@@ -1,0 +1,10 @@
+*.o
+*.pyc
+log/
+.vscode
+xgminer/build/
+scripts/__pycache__/*
+codes/GraphFold/build/
+codes/HEROFramework/build/
+codes/GraphPi/build/
+codes/GraphSet/build/

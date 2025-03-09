@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/wuzhenlin/workspace/2-graphmining/GLUMIN/codegen/scripts/../codegen/codegen.py", line 964, in <module>
+    main()
+  File "/home/wuzhenlin/workspace/2-graphmining/GLUMIN/codegen/scripts/../codegen/codegen.py", line 944, in main
+    A, O = pattern_parser.parse(args.pattern)
+ValueError: too many values to unpack (expected 2)

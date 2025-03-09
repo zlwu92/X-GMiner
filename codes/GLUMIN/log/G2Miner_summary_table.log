@@ -1,0 +1,4 @@
+Runtime of G2Miner and G2Miner + LUT (sec)
++------------------------------------------------------------------------------------+
+| Pattern  | Optimization | amazon0312_adj      | ba_1k_150k          | ca-HepPh_adj        | cit-Patents         | com-dblp            | crplat2             | enron               | facebook_combined_adj| friendster          | livej               | mico                | oregon2_010526_adj  | orkut               | p2p-Gnutella31      | pcrystk02           | roadNet-CA_adj      | soc-delicious       | soc-gowalla         | soc-lastfm          | soc-LiveMocha       | soc-pokec           | tube1               | twitter20           | youtube             
++------------------------------------------------------------------------------------+

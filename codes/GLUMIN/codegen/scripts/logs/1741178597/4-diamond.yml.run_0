@@ -1,0 +1,30 @@
+input file path: ../../datasets/mico, graph name: mico
+|V|: 100000, |E|: 2160312, Max Degree: 1359
+vertex-|Σ|: 29
+edge-|Σ|: 367
+This graph has no input vertex features
+Found 1 devices
+  Device[0]: NVIDIA GeForce RTX 3090
+  Compute capability: 8.6
+  Warp size: 32
+  Total # SM: 82
+  Total # CUDA cores: 10496
+  Total amount of shared memory per block: 49152 bytes
+  Total # registers per block: 65536
+  Total amount of constant memory: 65536 bytes
+  Total global memory: 23.7 GB
+  Memory Clock Rate: 9.30 GHz
+  Memory Bus Width: 384 bits
+  Peak Memory Bandwidth: 936.10 GB/s
+
+GPU_total_mem = 23 GB, graph_mem = 0 GB
+Time on generating the edgelist: 0.008809 sec
+CUDA 640 CTAs, 256 threads/CTA
+Intermediate result list size: 53 MB
+Intermediate result bitmap size: 0 MB
+Allocate LUT on GPU-side.
+5120 LUT, each has up to 2048 rows, 2048 cols, total memory size: 2560 MB
+LUT size: 636 MB
+Total number of warp: 5120
+runtime = 1.37182 sec
+pattern 0: 437985111

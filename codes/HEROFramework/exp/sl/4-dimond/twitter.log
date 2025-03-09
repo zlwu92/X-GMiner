@@ -1,0 +1,47 @@
+==============Graph twitter ==================
+Loading graph /pro-twitter-81306-1342296...
+Number of nodes: 0, number of edges: 0!
+Time used for loading graph: 0 ms!
+============Origin Order==============
+Time used for listing 4-dimond using merge intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============BFSR Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============DFS Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============Horder Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============MLOGGAPA Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============SB Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!
+============HBGP Order==============
+Number of nodes: 0, number of edges: 0!
+Time used for creating multi level index: 0 ms!
+Time used for listing 4-dimond using SIB tree intersection: 0 ms!
+Total number of 4-dimond: 0 !
+Speed up: x-nan!

@@ -1,0 +1,4 @@
+nvcc -gencode arch=compute_86,code=sm_86 -DUSE_GPU -Xcompiler -fopenmp -O3 -w  -DEDGE_PAR -I./include -I./include/generated  -I./include/gpu_kernels -c ./src/main.cu
+g++ -Wall -fopenmp -std=c++11 -march=native -fopenmp -l/home/linzhiheng/thirdparty/thirdparty/openmpi/lib -O3 -I./include -I./include/generated  -I./include/gpu_kernels -c ./src/VertexSet.cc
+g++ -Wall -fopenmp -std=c++11 -march=native -fopenmp -l/home/linzhiheng/thirdparty/thirdparty/openmpi/lib -O3 -I./include -I./include/generated  -I./include/gpu_kernels -c ./src/graph.cc
+nvcc -gencode arch=compute_86,code=sm_86 -DUSE_GPU -Xcompiler -fopenmp -O3 -w  -DEDGE_PAR -I./include -I./include/generated  -I./include/gpu_kernels main.o VertexSet.o graph.o -o gpm

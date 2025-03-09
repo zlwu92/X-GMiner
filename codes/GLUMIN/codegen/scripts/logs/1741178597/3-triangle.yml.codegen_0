@@ -1,0 +1,20 @@
+> Adjacency matrix of pattern:
+[[0 1 1]
+ [1 0 1]
+ [1 1 0]]
+res_idx={1: 0, 2: 1}
+
+> Logical plan:
+for v0 in V:
+  for v1 in V^N(v0):
+    for v2 in V^N(v0)^N(v1):
+      counter ++
+allocator.map={}
+> Before optimized
+for v0 in #ALL_VERTEX: | (:V)
+    for v1 in N(v0): | (1:V)
+      count += cnt_intersect(N(v0), N(v1)) | (1:V->11:V)
+> After optimize
+for v0 in #ALL_VERTEX: | (:V)
+    for v1 in N(v0): | (1:V)
+      count += cnt_intersect(N(v0), N(v1)) | (1:V->11:V)
