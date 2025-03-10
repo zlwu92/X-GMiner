@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -march=native -rdynamic CMakeFiles/tc.dir/src/tc.cpp.o CMakeFiles/tc.dir/src/graph.cpp.o CMakeFiles/tc.dir/src/SIBTree.cpp.o -o /home/wuzhenlin/workspace/2-graphmining/HEROFramework/bin/tc 

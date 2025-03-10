@@ -29,24 +29,28 @@ struct SIB_Tree_Node {
 };
 
 
-#ifndef PATH_MACRO
-#define PATH_MACRO "../data/processed"
-#endif
+// #ifndef PATH_MACRO
+// #define PATH_MACRO "../data/processed"
+// #define PATH_MACRO "/home/wuzhenlin/workspace/2-graphmining/graphmining_bench/hero_data/data/"
+#define PATH_MACRO "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/codes/HEROFramework/data/"
+// #endif
 
 #define REORDERED_PATH_MACRO "/home/wuzhenlin/workspace/2-graphmining/HEROFramework/data/"
 static string dict_path = PATH_MACRO;
 static string reordered_dict_path = REORDERED_PATH_MACRO;
 static vector<pair<string, string>> files = {
-		{"twitter", "/pro-twitter-81306-1342296"},
-		{"gplus", "/pro-gplus-107614-12238285"},
-		{"google", "/pro-web-google-916428-4322051"},
-		{"youtube", "/pro-com-youtube-1157827-2987624"},
-		{"berkstan", "/pro-web-berkstan-685230-6649470"},
-		{"flickr", "/pro-flickr-links-1715255-15551249"},
-		{"skitter", "/pro-as-skitter-1696415-11095298"},
-		{"pokec", "/pro-soc-pokec-1632803-22301964"},
-		{"livejournal", "/pro-soc-LJ-4847571-42851237"},
-		{"wiki", "/pro-wiki-Talk-2394385-4659565"}
+		// {"twitter", "/pro-twitter-81306-1342296"},
+		// {"gplus", "/pro-gplus-107614-12238285"},
+		// {"google", "/pro-web-google-916428-4322051"},
+		// {"youtube", "/pro-com-youtube-1157827-2987624"},
+		// {"berkstan", "/pro-web-berkstan-685230-6649470"},
+		// {"flickr", "/pro-flickr-links-1715255-15551249"},
+		// {"skitter", "/pro-as-skitter-1696415-11095298"},
+		// {"pokec", "/pro-soc-pokec-1632803-22301964"},
+		// {"livejournal", "/pro-soc-LJ-4847571-42851237"},
+		// {"wiki", "/pro-wiki-Talk-2394385-4659565"}
+		// {"test", "/test"},
+		{"test1", "/test1"},
 	};
 
 static vector<vector<string>> reorder_files = {

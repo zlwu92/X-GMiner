@@ -37,17 +37,17 @@ Linked_List_Heap::~Linked_List_Heap() {
 
 void Linked_List_Heap::inc(int key) {
     List_Node& curr = linked_list[key];
-
+    // printf("key: %d, val: %d, state: %d | ", key, curr.val, curr.state);
     if ((curr.state & RESET_LABEL_MASK) != reset_label) {
         curr.val = 0;
         curr.state = reset_label;
     }
     curr.val++;
-
     if ((curr.state & UPDATE_LABEL_MASK) == 0) {
         up_list[up_list_cnt++] = List_Update_Info(key, curr.val - 1);
         curr.state |= UPDATE_LABEL_MASK;
     }
+    // printf("new val: %d new state: %d\n", curr.val, curr.state);
 }
 
 void Linked_List_Heap::inc(int key, int delta) {
@@ -123,6 +123,7 @@ void Linked_List_Heap::del(int key) {
     if (curr.val == -1) return;
 
     int val = curr.val;
+    printf("Delete node: %d, val: %d from candidates!\n", key, val);
     if (curr.state != reset_label) val = 0;
 
     curr.val = -1;
@@ -286,14 +287,16 @@ void Linked_List_Heap::print() {
         return;
     }
 
-    printf("list:");
+    printf("key-val list:");
     int curr_key = head;
     while (curr_key != -1) {
         int val = linked_list[curr_key].val;
         if ((linked_list[curr_key].state & RESET_LABEL_MASK != reset_label)) val = 0;
-        printf("(%d, %d)\n", curr_key, val);
+        // printf("(%d, %d)\n", curr_key, val);
+        printf(" (%d, %d)", curr_key, val);
         curr_key = linked_list[curr_key].next;
     }
+    printf("\n");
 }
 
 void Linked_List_Heap::print_top(int k){

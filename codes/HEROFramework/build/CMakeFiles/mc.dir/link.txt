@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -march=native -rdynamic CMakeFiles/mc.dir/src/mc.cpp.o CMakeFiles/mc.dir/src/graph.cpp.o CMakeFiles/mc.dir/src/SIBTree.cpp.o -o /home/wuzhenlin/workspace/2-graphmining/HEROFramework/bin/mc 

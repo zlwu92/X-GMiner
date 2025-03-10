@@ -90,7 +90,7 @@ public:
     int pop_tail();
     void print();
     void print_reverse();
-private:
+// private:
     Double_Linked_Node *nodes = NULL;
     int *key2pos = NULL;
     int node_idx;
