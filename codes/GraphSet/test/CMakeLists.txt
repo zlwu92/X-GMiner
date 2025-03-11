@@ -7,13 +7,13 @@ include_directories(${GTEST_INCLUDE_DIR})
 include(GoogleTest)
 MESSAGE("GTEST FOUND")
 
-ADD_EXECUTABLE(pattern_matching_test pattern_matching_test.cpp)
-TARGET_LINK_LIBRARIES(pattern_matching_test
+ADD_EXECUTABLE(graphset_pattern_matching_test pattern_matching_test.cpp)
+TARGET_LINK_LIBRARIES(graphset_pattern_matching_test
                     ${GTEST_LIB}
                     graph_mining
                     pthread
                     gomp)
-gtest_discover_tests(pattern_matching_test)
+gtest_discover_tests(graphset_pattern_matching_test)
 
 ADD_EXECUTABLE(gpu_sample_test gpu_sample_test.cu)
 SET_PROPERTY(TARGET gpu_sample_test PROPERTY CUDA_SEPARABLE_COMPILATION ON)

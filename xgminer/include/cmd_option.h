@@ -132,7 +132,11 @@ public:
         std::cout << "(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)\n\n";
     }
 
+    std::string automata_filename = "";
+    std::string input_filename = "";
 
+    std::string algo = "donothing";
+    int length_of_input = -1;
     
 private:
     int argc;

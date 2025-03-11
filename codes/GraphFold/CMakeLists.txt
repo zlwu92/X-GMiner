@@ -1,4 +1,4 @@
-project(PROJECT_GraphFold LANGUAGES CUDA CXX)
+project(GraphFold LANGUAGES CUDA CXX)
 cmake_minimum_required(VERSION 3.0)
 
 option(BUILD_TESTS "Build tests" ON)
@@ -35,9 +35,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g")
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda -rdc=true")
-if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES 60 61 70)
-endif ()
+# if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+#   set(CMAKE_CUDA_ARCHITECTURES 60 61 70)
+# endif ()
 message("CUDA ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
 
 
@@ -46,7 +46,8 @@ set(CMAKE_THREAD_PREFER_PTHREAD ON)
 find_package(Threads REQUIRED)
 
 # find CUDA---------------------------------------------------------------------
-find_package(CUDA 9 REQUIRED)
+# find_package(CUDA 9 REQUIRED)
+find_package(CUDA REQUIRED)
 include_directories(${CUDA_TOOLKIT_INCLUDE})
 set(CUDA_LIBS ${CUDA_TOOLKIT_TARGET_DIR}/lib64/stubs/libcuda.so
   ${CUDA_TOOLKIT_TARGET_DIR}/lib64/libnvToolsExt.so
@@ -54,7 +55,8 @@ set(CUDA_LIBS ${CUDA_TOOLKIT_TARGET_DIR}/lib64/stubs/libcuda.so
 
 if(${CMAKE_VERSION} VERSION_LESS_EQUAL "3.13.4")
 	#cuda_select_nvcc_arch_flags(ARCH_FLAGS "Auto")
-  set(ARCH_FLAGS "75")
+  # set(ARCH_FLAGS "75")
+  set(ARCH_FLAGS "86")
   message(STATUS "CUDA_ARCH = ${ARCH_FLAGS}")
   string(REPLACE "-gencode;" "--generate-code=" ARCH_FLAGS "${ARCH_FLAGS}")
   string(APPEND CMAKE_CUDA_FLAGS "${ARCH_FLAGS}")
@@ -64,7 +66,8 @@ else()
   string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
   string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
   string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
-  set(CUDA_ARCH_LIST "75")
+  # set(CUDA_ARCH_LIST "75")
+  set(CUDA_ARCH_LIST "86")
   SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
   message(STATUS "CUDA_ARCH = ${CUDA_ARCH_LIST}")
   set_property(GLOBAL PROPERTY CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
@@ -81,7 +84,8 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_SEPARABLE_COMPILATION OFF)
 message(STATUS "Host Compiler: ${CUDA_HOST_COMPILER}")
 
-
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 # find NCCL---------------------------------------------------------------------
 # 2.7 at least (we fouces on single gpu now)
