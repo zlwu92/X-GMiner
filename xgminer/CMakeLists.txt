@@ -40,7 +40,7 @@ include_directories(include ${CUDA_INCLUDE_DIRS})
 
 message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
-file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR} main.cpp)
+file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR} main.cpp src/*)
 # cuda_add_executable(xgminer ${SOURCES})
 add_executable(xgminer ${SOURCES})
 

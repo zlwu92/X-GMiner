@@ -46,6 +46,7 @@ public:
 
         // 构建完整路径：$ROOT_PATH/{relativePath}
         std::filesystem::path fullPath(rootPath);
+        fullPath /= "log";
         fullPath /= filename;  // 自动处理路径分隔符
 
         // 创建目录（如果不存在）

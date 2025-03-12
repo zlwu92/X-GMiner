@@ -115,7 +115,7 @@ void HBGP(const Graph &g, vector<int> &new_order, int level) {
                 g.get_neighbors(u, neis2);
                 for (auto w : neis2) {
                     if (w < left || w >= right) continue;
-                    printf("curr u: %ld, w: %ld\n", u, w);
+                    printf("v_idx: %d, curr u: %ld, w: %ld\n", v_idx, u, w);
                     w = (w - left) * num_part + p_idx;
                     if (candidates.in_heap(w)) {
                         candidates.inc(w);

@@ -33,12 +33,13 @@ public:
         options.positional_help("[optional args]").show_positional_help();
         options.add_options()
             ("h,help", "Print usage")
-            ("a,automata", "Automata file path", cxxopts::value<std::string>()->default_value(""))
+            ("g,graph", "Graph file path", cxxopts::value<std::string>()->default_value(""))
             ("i,input", "Input file path", cxxopts::value<std::string>()->default_value(""))
             ("algorithm", "Algorithm", cxxopts::value<std::string>()->default_value("donothing"))
             ("testing-input", "Testing input file path", cxxopts::value<std::string>()->default_value(""))
             ("start-of-input", "Start of input", cxxopts::value<int>()->default_value("-1"))
             ("length-of-input", "Length of input", cxxopts::value<int>()->default_value("-1"))
+            ("pattern-name", "Pattern name", cxxopts::value<std::string>()->default_value(""));
         ;
         
         try {
@@ -49,14 +50,9 @@ public:
                 exit(0);
             }
 
-            if (result.count("automata")) {
-                automata_filename = result["automata"].as<std::string>();
-                PRINT_GREEN("Automata: " << automata_filename);
-            }
-
-            if (result.count("input")) {
-                input_filename = result["input"].as<std::string>();
-                PRINT_GREEN("Input stream: " << input_filename);
+            if (result.count("graph")) {
+                datagraph_file = result["graph"].as<std::string>();
+                PRINT_GREEN("Data graph: " << datagraph_file);
             }
 
             if (result.count("algorithm")) {
@@ -69,7 +65,10 @@ public:
                 PRINT_GREEN("Length of input: " << length_of_input);
             }
 
-            
+            if (result.count("pattern-name")) {
+                pattern_name = result["pattern-name"].as<std::string>();
+                PRINT_GREEN("Pattern name: " << pattern_name);
+            }
 
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
@@ -81,7 +80,7 @@ public:
         auto app_name = std::filesystem::path(argv[0]).filename().string();
         argparse::ArgumentParser program(app_name, "Command Line Options");
         
-        program.add_argument("-a", "--automata").help("Input file path").default_value(std::string{""});
+        program.add_argument("-g", "--graph").help("Input graph file path").default_value(std::string{""});
         program.add_argument("-i", "--input").help("Automata file path").default_value(std::string{""});
         program.add_argument("--algorithm").help("Algorithm").default_value(std::string{"donothing"});
         program.add_argument("--testing-input").help("Testing input file path").default_value(std::string{""});
@@ -89,18 +88,14 @@ public:
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--length-of-input").help("Length of input").default_value(-1).action(
                                                         [](const std::string& value) { return std::stoi(value); });
-        
+        program.add_argument("--pattern-name").help("Pattern name").default_value(std::string{""});
+
         try {
             program.parse_args(argc, argv);
 
-            if (program.get<std::string>("--automata") != "") {
-                automata_filename = program.get<std::string>("--automata");
-                PRINT_GREEN("Automata: " << automata_filename);
-            }
-
-            if (program.get<std::string>("--input") != "") {
-                input_filename = program.get<std::string>("--input");
-                PRINT_GREEN("Input stream: " << input_filename);
+            if (program.get<std::string>("--graph") != "") {
+                datagraph_file = program.get<std::string>("--graph");
+                PRINT_GREEN("Data graph: " << datagraph_file);
             }
 
             if (program.get<std::string>("--algorithm") != "") {
@@ -111,6 +106,11 @@ public:
             if (program.get<int>("--length-of-input") != -1) {
                 length_of_input = program.get<int>("--length-of-input");
                 PRINT_GREEN("Length of input: " << length_of_input);
+            }
+
+            if (program.get<std::string>("--pattern-name") != "") {
+                pattern_name = program.get<std::string>("--pattern-name");
+                PRINT_GREEN("Pattern name: " << pattern_name);
             }
 
         } catch (const std::exception& err) {
@@ -132,11 +132,12 @@ public:
         std::cout << "(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)\n\n";
     }
 
-    std::string automata_filename = "";
-    std::string input_filename = "";
+    std::string datagraph_file = "";
 
     std::string algo = "donothing";
     int length_of_input = -1;
+
+    std::string pattern_name = "";
     
 private:
     int argc;
