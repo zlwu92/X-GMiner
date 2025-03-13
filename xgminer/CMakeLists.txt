@@ -13,6 +13,11 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+find_package(MPI REQUIRED)
+if(MPI_FOUND)
+    SET(CMAKE_CXX_COMPILER mpicxx)   
+endif()
+
 set(CMAKE_CUDA_ARCHITECTURES 86)
 
 # Set CUDA architectures
@@ -21,6 +26,7 @@ set(CUDA_ARCHITECTURES "86")
 option(DEBUG_ENABLED "Enable debug mode" OFF)
 if (DEBUG_ENABLED)
     add_compile_definitions(DEBUG)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G")  # 调试模式添加 CUDA 调试符号
 endif()
 
 add_definitions(-DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
@@ -36,11 +42,29 @@ set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS} "-g -O3 -lineinfo --expt-extended-lambd
                     -Wall -Wno-deprecated -arch=compute_86 --disable-warnings")
 # -Wno-unused-variable
 
-include_directories(include ${CUDA_INCLUDE_DIRS})
+# include_directories(include include/graphpi/ ${CUDA_INCLUDE_DIRS})
+
+# 使用 target_include_directories 替代 include_directories（现代 CMake 推荐）
+target_include_directories(xgminer PRIVATE
+    ${PROJECT_SOURCE_DIR}/include       # 包含 include/ 目录
+    ${PROJECT_SOURCE_DIR}/include/graphpi  # 包含 include/graphpi/
+    ${CUDA_INCLUDE_DIRS}                # 包含 CUDA 头文件
+)
 
 message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
-file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR} main.cpp src/*)
+
+set(SOURCES main.cpp)
+# 递归收集 src/ 和 src/graphpi/ 下的所有 .cpp 文件
+file(GLOB_RECURSE SRC_FILES 
+    ${PROJECT_SOURCE_DIR}/src/*
+    ${PROJECT_SOURCE_DIR}/src/graphpi/*
+)
+
+# 合并源文件列表
+list(APPEND SOURCES ${SRC_FILES})
+
+# file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR} main.cpp "src/*" "src/graphpi/*")
 # cuda_add_executable(xgminer ${SOURCES})
 add_executable(xgminer ${SOURCES})
 
@@ -53,4 +77,8 @@ set_target_properties(
     CUDA_STANDARD 17
 )
 
-target_link_libraries(xgminer OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
+target_link_libraries(xgminer PRIVATE 
+    OpenMP::OpenMP_CXX 
+    nlohmann_json::nlohmann_json
+    ${MPI_CXX_LIBRARIES}
+)

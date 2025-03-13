@@ -1,7 +1,7 @@
 /*
     * common.h
     *
-    * borrowed from GLUMIN
+    * borrowed from GraphPi and GLUMIN
 */
 
 #pragma once
@@ -32,6 +32,12 @@
 #include <stdexcept>
 #include <algorithm>
 #include <unordered_map>
+#include <sys/time.h>
+#include <cstdlib>
+#include <string>
+#include "../include/pattern.h"
+#include "../include/dataloader.h"
+#include "../include/schedule.h"
 
 typedef float   feat_t;    // vertex feature type
 typedef uint8_t patid_t;   // pattern id type
@@ -124,3 +130,25 @@ extern std::map<char,double> time_ops;
 
 const std::string long_separator = "--------------------------------------------------------------------\n";
 const std::string short_separator = "-----------------------\n";
+
+
+
+/*********************************** GraphPi *******************************/
+
+
+double get_wall_time(); 
+
+void PatternType_printer(PatternType type);
+
+bool is_equal_adj_mat(const int* adj_mat1, const int* adj_mat2, int size);
+
+void GetDataType(DataType &type, const std::string str);
+
+int read_int();
+
+unsigned int read_unsigned_int();
+
+
+
+typedef int32_t v_index_t;
+typedef int64_t e_index_t;
