@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import subprocess
@@ -7,10 +8,12 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
-
+from argparse import ArgumentParser, Namespace
+import itertools
 
 PROJECT_ROOT = Path(os.environ.get("XGMINER_ROOT")).resolve()
 xgminer_bin = PROJECT_ROOT / "bin" / "xgminer"
+print(f"XGMiner binary: {xgminer_bin}")
 
 # 配置日志
 logging.basicConfig(
@@ -21,7 +24,7 @@ logging.basicConfig(
 
 class ExperimentRunner:
     """实验执行核心类"""
-    def __init__(self, config: Dict):
+    def __init__(self, config: Dict, args: Namespace):
         # 验证配置
         # required_fields = ["executable", "input_dir", "output_dir", "params"]
         required_fields = ["executable"]
@@ -43,9 +46,11 @@ class ExperimentRunner:
             self.output_dir = PROJECT_ROOT / "../results"
         
         # self.params = config["params"]
-        self.params = config.get("params", {})  # 允许空参数
+        # self.params = config.get("params", {})  # 允许空参数
+        # assign key and value in args to self.params
+        self.params = {k: v for k, v in vars(args).items() if k not in ["executable", "input_dir", "output_dir"]}
         self.timeout = 3600 # config.get("timeout", 300)  # 默认超时300秒
-
+        # print("self.params:", self.params)
         # 检查可执行文件是否存在
         if not self.executable.exists():
             raise FileNotFoundError(f"Executable not found: {self.executable}")
@@ -59,11 +64,7 @@ class ExperimentRunner:
         if not self.params:
             return [{}]  # 返回空参数集
         
-        import itertools
-        keys = self.params.keys()
-        values = [self.params[k] for k in keys]
-        return [dict(zip(keys, combo)) for combo in itertools.product(*values)]
-    
+        return [self.params]
     
     def run_experiment(self, params: Dict[str, Any]) -> Path:
         """运行单个实验"""
@@ -130,6 +131,27 @@ def parse_args():
     #     default=Path("results/"),
     #     help="Override output directory (default: ./results)"
     # )
+    # parser.add_argument(
+    #     "--timeout",
+    #     type=int,
+    #     default=300,
+    #     help="Experiment timeout in seconds (default: 300)"
+    # )
+    
+    parser.add_argument(
+        "--algorithm",
+        type=str,
+        default="cpu_baseline",
+        help="Algorithm type (default: cpu_baseline)"
+    )
+    parser.add_argument(
+        "--use-graphpi-sched",
+        type=int,
+        default=1,
+        dest="use-graphpi-sched",
+        choices=[0, 1],  # 限制取值为 0 或 1
+        help="Enable GraphPi scheduler (1=on, 0=off, default: 1)"
+    )
     return parser.parse_args()
 
 def launch_exp():
@@ -143,7 +165,10 @@ def launch_exp():
         # logging.error(f"Failed to load config: {e}")
         # sys.exit(1)
         config = {}
-    
+
+    # print args key and value
+    # for key, value in vars(args).items():
+    #     print(f"{key}: {value}")
     # 覆盖配置（如果命令行指定了参数）
     if args.executable:
         config["executable"] = str(args.executable.resolve())
@@ -155,9 +180,9 @@ def launch_exp():
     
     
     # 初始化运行器
-    runner = ExperimentRunner(config)
+    runner = ExperimentRunner(config, args=args)
 
-    print(runner.generate_param_combinations())
+    # print(runner.generate_param_combinations())
     # 运行所有参数组合
     for param_set in runner.generate_param_combinations():
         output_dir = runner.run_experiment(param_set)

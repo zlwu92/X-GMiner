@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import os
+import sys
+import subprocess
+import argparse
+import shutil
+from pathlib import Path
+import re
+
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+
+
+def run_command(cmd, shell=True, cwd=None, env=None, error_msg="Command failed"):
+    """执行 shell 命令并检查错误"""
+    print(f"{Colors.OKBLUE}>> {cmd}{Colors.ENDC}")
+    try:
+        subprocess.run(
+            cmd,
+            shell=shell,
+            check=True,
+            cwd=cwd,
+            env=env,
+            stdout=sys.stdout,
+            stderr=sys.stderr
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"{Colors.FAIL}{error_msg}{Colors.ENDC}")
+        sys.exit(e.returncode)

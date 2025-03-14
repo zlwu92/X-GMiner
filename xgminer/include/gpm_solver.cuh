@@ -1,5 +1,5 @@
 #pragma once
-
+#include "utils.h"
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
@@ -8,9 +8,6 @@
 // #include <device_atomic_functions.h>
 // #include <cooperative_groups.h>
 
-#define BLOCK_SIZE 128
-
-#define WARP_SIZE 32
 
 class GPM_Solver {
 public:

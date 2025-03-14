@@ -6,9 +6,11 @@ import argparse
 import shutil
 from pathlib import Path
 import re
+from scripts import utils
 
 # 项目根目录（根据 env.sh 动态获取）
 env_sh_path = os.path.abspath("env.sh")
+print(f"env.sh path: {env_sh_path}")
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 print(f"Project root: {PROJECT_ROOT}")
@@ -26,22 +28,6 @@ class Colors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
-def run_command(cmd, cwd=None, env=None, error_msg="Command failed"):
-    """执行 shell 命令并检查错误"""
-    print(f"{Colors.OKBLUE}>> {cmd}{Colors.ENDC}")
-    try:
-        subprocess.run(
-            cmd,
-            shell=True,
-            check=True,
-            cwd=cwd,
-            env=env,
-            stdout=sys.stdout,
-            stderr=sys.stderr
-        )
-    except subprocess.CalledProcessError as e:
-        print(f"{Colors.FAIL}{error_msg}{Colors.ENDC}")
-        sys.exit(e.returncode)
 
 def setup_environment():
     """设置环境变量"""
@@ -66,6 +52,7 @@ def setup_environment():
     # 验证 XGMINER_ROOT 是否设置成功
     print("XGMINER_ROOT:", os.environ.get("XGMINER_ROOT"))
 
+
 def build_project():
     """编译第三方库 3rd_party"""
     print(f"{Colors.HEADER}Building Third-Party Libraries and XGMiner...{Colors.ENDC}")
@@ -73,11 +60,12 @@ def build_project():
     cmake_build_root = PROJECT_ROOT / "build"
     if not cmake_build_root.exists():
         cmake_build_root.mkdir(exist_ok=True)
-    run_command("cmake ..", cwd=cmake_build_root, error_msg="CMake configure failed")
+    utils.run_command("cmake ..", cwd=cmake_build_root, error_msg="CMake configure failed")
     
     """编译主项目"""
     print(f"{Colors.HEADER}Building main project...{Colors.ENDC}")
-    run_command("make -j", cwd=cmake_build_root, error_msg="Failed to build")
+    utils.run_command("make -j", cwd=cmake_build_root, error_msg="Failed to build")
+
 
 def configure_cmake(build_type="Release"):
     """配置 CMake 项目"""
@@ -106,21 +94,15 @@ def run_tests():
     for test_bin in test_dir.iterdir():
         if test_bin.is_file() and test_bin.name.startswith("test_"):
             print(f"{Colors.OKGREEN}Running {test_bin.name}...{Colors.ENDC}")
-            run_command(str(test_bin), cwd=test_dir, error_msg=f"{test_bin.name} failed")
+            utils.run_command(str(test_bin), cwd=test_dir, error_msg=f"{test_bin.name} failed")
 
 
 def run_xgminer():
     """运行 xgminer"""
     print(f"{Colors.HEADER}Running XGMiner...{Colors.ENDC}")
-    # xgminer_bin = XGMINER_DIR / "bin" / "xgminer"
-    # if not xgminer_bin.exists():
-    #     print(f"{Colors.FAIL}xgminer binary not found!{Colors.ENDC}")
-    #     return
-    
-    # cmd = [str(xgminer_bin),
-    #     ]
-    cmd = "python scripts/launch_exp.py"
-    run_command(cmd, error_msg="xgminer failed")
+
+    cmd = "python scripts/testing_suites.py"
+    utils.run_command(cmd, error_msg="xgminer failed")
 
 
 def clean():
@@ -129,6 +111,7 @@ def clean():
     if BUILD_DIR.exists():
         shutil.rmtree(BUILD_DIR)
     print(f"{Colors.OKGREEN}Clean completed.{Colors.ENDC}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="X-GMiner Build System")

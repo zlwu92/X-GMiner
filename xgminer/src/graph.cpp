@@ -1,3 +1,9 @@
+/*
+    * dataloader.cpp
+    *
+    * borrowed from GraphPi and GLUMIN
+*/
+
 #include "../include/graph.h"
 #include "../include/graphpi/graphmpi.h"
 #include "../include/vertex_set.h"

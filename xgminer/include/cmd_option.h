@@ -1,5 +1,4 @@
-#ifndef CMD_OPTION_H_ 
-#define CMD_OPTION_H_
+#pragma once
 #include <string>
 #include <iostream>
 #include <memory>
@@ -34,12 +33,9 @@ public:
         options.add_options()
             ("h,help", "Print usage")
             ("g,graph", "Graph file path", cxxopts::value<std::string>()->default_value(""))
-            ("i,input", "Input file path", cxxopts::value<std::string>()->default_value(""))
             ("algorithm", "Algorithm", cxxopts::value<std::string>()->default_value("donothing"))
-            ("testing-input", "Testing input file path", cxxopts::value<std::string>()->default_value(""))
-            ("start-of-input", "Start of input", cxxopts::value<int>()->default_value("-1"))
-            ("length-of-input", "Length of input", cxxopts::value<int>()->default_value("-1"))
             ("pattern-name", "Pattern name", cxxopts::value<std::string>()->default_value(""));
+            ("use-graphpi-sched", "Use GraphPi scheduler", cxxopts::value<int>()->default_value("0"))
         ;
         
         try {
@@ -60,14 +56,14 @@ public:
                 PRINT_GREEN("Algo: " << algo);
             }
 
-            if (result.count("length-of-input")) {
-                length_of_input = result["length-of-input"].as<int>();
-                PRINT_GREEN("Length of input: " << length_of_input);
-            }
-
             if (result.count("pattern-name")) {
                 pattern_name = result["pattern-name"].as<std::string>();
                 PRINT_GREEN("Pattern name: " << pattern_name);
+            }
+
+            if (result.count("use-graphpi-sched")) {
+                use_graphpi_sched = result["use-graphpi-sched"].as<int>();
+                PRINT_GREEN("Use GraphPi scheduler: " << use_graphpi_sched);
             }
 
         } catch (const cxxopts::exceptions::exception& e) {
@@ -81,14 +77,10 @@ public:
         argparse::ArgumentParser program(app_name, "Command Line Options");
         
         program.add_argument("-g", "--graph").help("Input graph file path").default_value(std::string{""});
-        program.add_argument("-i", "--input").help("Automata file path").default_value(std::string{""});
         program.add_argument("--algorithm").help("Algorithm").default_value(std::string{"donothing"});
-        program.add_argument("--testing-input").help("Testing input file path").default_value(std::string{""});
-        program.add_argument("--start-of-input").help("Start of input").default_value(-1).action(
-                                                        [](const std::string& value) { return std::stoi(value); });
-        program.add_argument("--length-of-input").help("Length of input").default_value(-1).action(
-                                                        [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--pattern-name").help("Pattern name").default_value(std::string{""});
+        program.add_argument("--use-graphpi-sched").help("Use GraphPi scheduler").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
 
         try {
             program.parse_args(argc, argv);
@@ -103,14 +95,14 @@ public:
                 PRINT_GREEN("Algo: " << algo);
             }
 
-            if (program.get<int>("--length-of-input") != -1) {
-                length_of_input = program.get<int>("--length-of-input");
-                PRINT_GREEN("Length of input: " << length_of_input);
-            }
-
             if (program.get<std::string>("--pattern-name") != "") {
                 pattern_name = program.get<std::string>("--pattern-name");
                 PRINT_GREEN("Pattern name: " << pattern_name);
+            }
+
+            if (program.get<int>("--use-graphpi-sched") != 0) {
+                use_graphpi_sched = program.get<int>("--use-graphpi-sched");
+                PRINT_GREEN("Use GraphPi scheduler: " << use_graphpi_sched);
             }
 
         } catch (const std::exception& err) {
@@ -135,9 +127,9 @@ public:
     std::string datagraph_file = "";
 
     std::string algo = "donothing";
-    int length_of_input = -1;
 
     std::string pattern_name = "";
+    int use_graphpi_sched = 0;
     
 private:
     int argc;
@@ -145,5 +137,3 @@ private:
     struct option* long_opt;
 
 };
-
-#endif
