@@ -5,7 +5,7 @@
 */
 
 #pragma once
-#include "../include/graph.h"
+#include "graph.h"
 #include <map>
 #include <algorithm>
 #include <vector>
@@ -41,7 +41,6 @@ public:
         //               == 2 low degree first
     bool load_complete(Graph* &g, int clique_size);
 
-private:
     static bool cmp_pair(std::pair<int,int>a, std::pair<int,int>b);
     static bool cmp_degree_gt(std::pair<int,int> a,std::pair<int,int> b);
     static bool cmp_degree_lt(std::pair<int,int> a,std::pair<int,int> b);
@@ -50,5 +49,8 @@ private:
     bool general_load_data(Graph* &g, DataType type, const char* path, int oriented_type = 0);
     bool twitter_load_data(Graph* &g, DataType type, const char* path, int oriented_type = 0);
 
+    void GetDataType(DataType &type, const std::string str);
+
+private:
     std::map<int,int> id;
 };

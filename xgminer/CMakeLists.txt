@@ -42,23 +42,23 @@ set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS} "-g -O3 -lineinfo --expt-extended-lambd
                     -Wall -Wno-deprecated -arch=compute_86 --disable-warnings")
 # -Wno-unused-variable
 
-# include_directories(include include/graphpi/ ${CUDA_INCLUDE_DIRS})
-
-# 使用 target_include_directories 替代 include_directories（现代 CMake 推荐）
-target_include_directories(xgminer PRIVATE
-    ${PROJECT_SOURCE_DIR}/include       # 包含 include/ 目录
-    ${PROJECT_SOURCE_DIR}/include/graphpi  # 包含 include/graphpi/
-    ${CUDA_INCLUDE_DIRS}                # 包含 CUDA 头文件
+include_directories(
+    "${PROJECT_SOURCE_DIR}/include/" 
+    "${PROJECT_SOURCE_DIR}/include/graphpi/" 
+    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
 
+message(STATUS "CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+message(STATUS "CUDA_INCLUDE_DIRS: ${CUDA_INCLUDE_DIRS}")
 message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 
 set(SOURCES main.cpp)
 # 递归收集 src/ 和 src/graphpi/ 下的所有 .cpp 文件
 file(GLOB_RECURSE SRC_FILES 
-    ${PROJECT_SOURCE_DIR}/src/*
-    ${PROJECT_SOURCE_DIR}/src/graphpi/*
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/*.cu"
+    "${PROJECT_SOURCE_DIR}/src/graphpi/*.cpp"
 )
 
 # 合并源文件列表
@@ -68,6 +68,12 @@ list(APPEND SOURCES ${SRC_FILES})
 # cuda_add_executable(xgminer ${SOURCES})
 add_executable(xgminer ${SOURCES})
 
+# 使用 target_include_directories 替代 include_directories（现代 CMake 推荐）
+# target_include_directories(xgminer PRIVATE
+#     ${PROJECT_SOURCE_DIR}/include       # 包含 include/ 目录
+#     ${PROJECT_SOURCE_DIR}/include/graphpi  # 包含 include/graphpi/
+#     ${CUDA_INCLUDE_DIRS}                # 包含 CUDA 头文件
+# )
 
 set_target_properties(
     xgminer PROPERTIES CUDA_ARCHITECTURES "86;86"

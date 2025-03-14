@@ -112,13 +112,14 @@ def run_tests():
 def run_xgminer():
     """运行 xgminer"""
     print(f"{Colors.HEADER}Running XGMiner...{Colors.ENDC}")
-    xgminer_bin = XGMINER_DIR / "bin" / "xgminer"
-    if not xgminer_bin.exists():
-        print(f"{Colors.FAIL}xgminer binary not found!{Colors.ENDC}")
-        return
+    # xgminer_bin = XGMINER_DIR / "bin" / "xgminer"
+    # if not xgminer_bin.exists():
+    #     print(f"{Colors.FAIL}xgminer binary not found!{Colors.ENDC}")
+    #     return
     
-    cmd = [str(xgminer_bin),
-        ]
+    # cmd = [str(xgminer_bin),
+    #     ]
+    cmd = "python scripts/launch_exp.py"
     run_command(cmd, error_msg="xgminer failed")
 
 

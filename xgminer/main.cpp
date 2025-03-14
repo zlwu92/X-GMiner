@@ -21,6 +21,7 @@
 #include "cmd_option.h"
 #include "cpu_baseline.h"
 #include "log_manager.h"
+#include "gpm_solver.cuh"
 
 int main(int argc, char *argv[]) {
    
@@ -42,16 +43,16 @@ int main(int argc, char *argv[]) {
     // logger.setFile("log/another.log");
     // LOG_INFO("New file message (truncated)");
 
-    std::regex pattern("^P(\\d+)$");
-    std::smatch match;
-    int k;
-    if (std::regex_match(opts.pattern_name, match, pattern)) {
-        k = std::stoi(match[1].str());
-        std::cout << "Pattern P" << k << std::endl;
-    } else {
-        std::cerr << "Invalid input format. Expected format: Px, where x is an integer." << std::endl;
-        return 1;
-    }
+    // std::regex pattern("^P(\\d+)$");
+    // std::smatch match;
+    // int k;
+    // if (std::regex_match(opts.pattern_name, match, pattern)) {
+    //     k = std::stoi(match[1].str());
+    //     std::cout << "Pattern P" << k << std::endl;
+    // } else {
+    //     std::cerr << "Invalid input format. Expected format: Px, where x is an integer." << std::endl;
+    //     return 1;
+    // }
 
 
 

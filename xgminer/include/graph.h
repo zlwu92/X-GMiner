@@ -24,13 +24,13 @@ enum InputFileType {
 class Graph {
 public:
     /********************************** GraphMiner *****************************/
-    Graph(std::string file, int input_type);
+    // Graph(std::string file, int input_type);
     // ~Graph() {}
 
-    Graph(const Graph &)=delete; // disable copy constructor
-    Graph& operator=(const Graph &)=delete; // disable assignment operator
+    // Graph(const Graph &)=delete; // disable copy constructor
+    // Graph& operator=(const Graph &)=delete; // disable assignment operator
 
-protected:
+// protected:
     std::string name_;            // name of the graph
     std::string inputfile_path;   // file path of the graph
     bool is_directed_;            // is it a directed graph?
