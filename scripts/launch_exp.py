@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, Any
 from argparse import ArgumentParser, Namespace
 import itertools
+import arg_parser as ap
 
 PROJECT_ROOT = Path(os.environ.get("XGMINER_ROOT")).resolve()
 xgminer_bin = PROJECT_ROOT / "bin" / "xgminer"
@@ -155,7 +156,7 @@ def parse_args():
     return parser.parse_args()
 
 def launch_exp():
-    args = parse_args()
+    args = ap.parse_args()
     
     # 加载配置文件
     try:

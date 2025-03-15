@@ -34,8 +34,9 @@ public:
             ("h,help", "Print usage")
             ("g,graph", "Graph file path", cxxopts::value<std::string>()->default_value(""))
             ("algorithm", "Algorithm", cxxopts::value<std::string>()->default_value("donothing"))
-            ("pattern-name", "Pattern name", cxxopts::value<std::string>()->default_value(""));
+            ("pattern-name", "Pattern name", cxxopts::value<std::string>()->default_value(""))
             ("use-graphpi-sched", "Use GraphPi scheduler", cxxopts::value<int>()->default_value("0"))
+            ("d,dataname", "Data name", cxxopts::value<std::string>()->default_value("Wiki-Vote"));
         ;
         
         try {
@@ -66,6 +67,11 @@ public:
                 PRINT_GREEN("Use GraphPi scheduler: " << use_graphpi_sched);
             }
 
+            if (result.count("dataname")) {
+                data_name = result["dataname"].as<std::string>();
+                PRINT_GREEN("Data name: " << data_name);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -81,6 +87,7 @@ public:
         program.add_argument("--pattern-name").help("Pattern name").default_value(std::string{""});
         program.add_argument("--use-graphpi-sched").help("Use GraphPi scheduler").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("-d", "--dataname").help("Data name").default_value(std::string{"Wiki-Vote"});
 
         try {
             program.parse_args(argc, argv);
@@ -105,6 +112,11 @@ public:
                 PRINT_GREEN("Use GraphPi scheduler: " << use_graphpi_sched);
             }
 
+            if (program.get<std::string>("--dataname") != "") {
+                data_name = program.get<std::string>("--dataname");
+                PRINT_GREEN("Data name: " << data_name);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -125,7 +137,7 @@ public:
     }
 
     std::string datagraph_file = "";
-
+    std::string data_name = "Wiki-Vote";
     std::string algo = "donothing";
 
     std::string pattern_name = "";

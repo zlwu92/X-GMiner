@@ -12,7 +12,9 @@
 #include <cstring>
 
 bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int oriented_type) {
-    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || type == MiCo || type == CiteSeer || type == Wiki_Vote) {
+    if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || 
+        type == MiCo || type == CiteSeer || type == Wiki_Vote ||
+        type == TestGr1) {
         return general_load_data(g, type, path, oriented_type);
     }
 
@@ -56,6 +58,10 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         }
         case DataType::Orkut : {
             g->tri_cnt = Orkut_tri_cnt;
+            break;
+        }
+        case DataType::TestGr1 : {
+            g->tri_cnt = TestGr1_tri_cnt;
             break;
         }
         default : {
@@ -314,5 +320,8 @@ void DataLoader::GetDataType(DataType &type, const std::string str) {
     }
     if(str == "Wiki-Vote" ) {
         type = DataType::Wiki_Vote;
+    }
+    if(str == "TestGr1" ) {
+        type = DataType::TestGr1;
     }
 }

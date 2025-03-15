@@ -19,7 +19,7 @@
 
 enum PatternType {
     Rectangle,
-    QG3,
+    QG3, // quasi-clique of size 4
     Pentagon,
     House,
     Hourglass,
