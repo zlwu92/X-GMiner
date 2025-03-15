@@ -200,16 +200,16 @@ if __name__ == "__main__":
     
 
     # 输入顶点数和边数
-    # vertex_count = int(input("Enter the number of vertices: "))
-    # edge_count = int(input("Enter the number of edges: "))
+    vertex_count = int(input("Enter the number of vertices: "))
+    edge_count = int(input("Enter the number of edges: "))
 
-    output_file = "synthetic_graph.txt"
+    output_file = "test_gr2.txt"
 
-    # edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
+    edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
 
     # print(f"Synthetic graph file generated: {output_file}")
     
-    # visualize_graph_from_file(output_file)
+    visualize_graph_from_file(output_file)
     
     # graph = read_graph_from_file(output_file)
     

@@ -11,25 +11,30 @@
 #include <algorithm>
 
 void test_pattern(Graph* g, const Pattern &pattern, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize = false) {
-    int thread_num = 24;
+    int thread_num = 1;//24;//
     double t1,t2;
     
+    printf("g->v_cnt %d g->e_cnt %d g->tri_cnt %lld\n",g->v_cnt,g->e_cnt,g->tri_cnt);
+
     bool is_pattern_valid;
     Schedule schedule(pattern, is_pattern_valid, performance_modeling_type, restricts_type, use_in_exclusion_optimize, g->v_cnt, g->e_cnt, g->tri_cnt);
     assert(is_pattern_valid);
 
-    t1 = get_wall_time();
-    long long ans = g->pattern_matching(schedule, thread_num);
-    t2 = get_wall_time();
-
-    printf("ans %lld\n", ans);
-    printf("time %.6lf\n", t2 - t1);
     schedule.print_schedule();
     const auto& pairs = schedule.restrict_pair;
     printf("%d ",pairs.size());
     for(auto& p : pairs)
         printf("(%d,%d)",p.first,p.second);
     puts("");
+    
+    t1 = get_wall_time();
+    // long long ans = g->pattern_matching(schedule, thread_num);
+    long long ans = g->pattern_matching(schedule, thread_num, false, true);
+    t2 = get_wall_time();
+
+    printf("ans %lld\n", ans);
+    printf("time %.6lf\n", t2 - t1);
+    
     fflush(stdout);
 
 }
@@ -70,6 +75,7 @@ int main(int argc,char *argv[]) {
     fflush(stdout);
 
     Pattern p(size, adj_mat);
+    // Pattern p(PatternType::Rectangle);
     test_pattern(g, p, test_type, test_type, test_type);
     
     delete g;

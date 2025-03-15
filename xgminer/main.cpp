@@ -184,10 +184,10 @@ int main(int argc, char *argv[]) {
                                 embedding.push_back(candidate_4);
                                 count++;
                                 // print out the embedding
-                                // for (int v : embedding) {
-                                //     std::cout << v << " ";
-                                // }
-                                // std::cout << std::endl;
+                                for (int v : embedding) {
+                                    std::cout << v << " ";
+                                }
+                                std::cout << std::endl;
                                 if (uniques.find(std::set<int>(embedding.begin(), embedding.end())) == uniques.end()) {
                                     uniques.insert(std::set<int>(embedding.begin(), embedding.end()));
                                 }

@@ -196,14 +196,20 @@ void Graph::pattern_matching_func(const Schedule& schedule, VertexSet* vertex_se
     }
 }
 
-long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bool clique)
+long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bool clique, bool print)
 {
     long long global_ans = 0;
+    // printf("in_exclusion_optimize_redundancy = %ld\n", schedule.get_in_exclusion_optimize_redundancy());
 #pragma omp parallel num_threads(thread_count) reduction(+: global_ans)
     {
         double start_time = get_wall_time();
         double current_time;
         VertexSet* vertex_set = new VertexSet[schedule.get_total_prefix_num()];
+        if (print) {
+            printf("total_prefix_num = %d\n", schedule.get_total_prefix_num());
+            printf("in_exclusion_optimize_redundancy = %ld\n", schedule.get_in_exclusion_optimize_redundancy());
+        }
+        printf("VertexSet::max_intersection_size = %d\n", VertexSet::max_intersection_size);
         VertexSet subtraction_set;
         VertexSet tmp_set;
         subtraction_set.init();
@@ -235,14 +241,16 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
                     assert(0);
                 }
             }*/
+            printf("vertex = %d local_ans = %ld\n", vertex, local_ans);
         }
         delete[] vertex_set;
         // TODO : Computing multiplicty for a pattern
         global_ans += local_ans;
-        
+        printf("local_ans = %ld global_ans = %ld\n", local_ans, global_ans);
     }
     return global_ans / schedule.get_in_exclusion_optimize_redundancy();
 }
+
 
 void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet* vertex_set, VertexSet& subtraction_set, VertexSet& tmp_set, long long& local_ans, int depth) // 3 same # or @ in comment are useful in code generation ###
 {

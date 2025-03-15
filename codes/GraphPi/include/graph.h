@@ -36,7 +36,7 @@ public:
     long long triangle_counting_mt(int thread_count);
 
     //general pattern matching algorithm with multi thread
-    long long pattern_matching(const Schedule& schedule, int thread_count, bool clique = false);
+    long long pattern_matching(const Schedule& schedule, int thread_count, bool clique = false, bool print=false);
 
     //this function will be defined at code generation
     long long unfold_pattern_matching(const Schedule& schedule, int thread_count, bool clique = false);

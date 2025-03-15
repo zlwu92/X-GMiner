@@ -8,12 +8,13 @@
 
 Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize ,int v_cnt, unsigned int e_cnt, long long tri_cnt)
 {
+    // printf("Schedule(const Pattern& pattern, bool &is_pattern_valid, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize ,int v_cnt, unsigned int e_cnt, long long tri_cnt)\n");
     if( performance_modeling_type != 0 && tri_cnt == -1) {
         printf("Fatal: Can not use performance modeling if not have triangle number of this dataset.\n");
         fflush(stdout);
         assert(0);
     }
-
+    printf("restricts_type = %d\n",restricts_type);
     is_pattern_valid = true;
     size = pattern.get_size();
     adj_mat = new int[size * size];
@@ -250,10 +251,12 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
     if( restricts_type != 0) add_restrict(best_pairs);
     
     set_in_exclusion_optimize_redundancy();
+    // printf("Schedule: in_exclusion_optimize_redundancy = %ld\n", in_exclusion_optimize_redundancy);
 }
 
 Schedule::Schedule(const int* _adj_mat, int _size)
 {
+    // printf("Schedule(const int* _adj_mat, int _size)\n");
     size = _size;
     adj_mat = new int[size * size];
 
@@ -1761,4 +1764,5 @@ void Schedule::set_in_exclusion_optimize_redundancy() {
         delete complete;
         in_exclusion_optimize_redundancy = ans / true_ans;
     }
+    // printf("@@ in_exclusion_optimize_redundancy %ld\n", in_exclusion_optimize_redundancy);
 }

@@ -31,7 +31,7 @@ def parse_args():
         "--graph",
         type=Path,
         # default=Path("/home/wuzhenlin/workspace/2-graphmining/X-GMiner/codes/GraphPi/dataset/wiki-vote_input"),
-        default=Path("/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr1.txt"),
+        default=Path("/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr2.txt"),
         help="Override input directory"
     )
     # parser.add_argument(
