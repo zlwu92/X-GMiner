@@ -25,7 +25,8 @@ public:
     inline int get_last() const { return data[size - 1];}
     bool has_data(int val);
     static int max_intersection_size;
-    void build_vertex_set(const Schedule& schedule, const VertexSet* vertex_set, int* input_data, int input_size, int prefix_id, int min_vertex = -1, bool clique = false);
+    void build_vertex_set(const Schedule& schedule, const VertexSet* vertex_set, 
+                            int* input_data, int input_size, int prefix_id, int min_vertex = -1, bool clique = false);
 private:
     int* data;
     int size;

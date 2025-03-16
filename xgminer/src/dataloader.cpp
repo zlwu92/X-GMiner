@@ -90,8 +90,8 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         }
         if(!id.count(x)) id[x] = tmp_v ++;
         if(!id.count(y)) id[y] = tmp_v ++;
-        x = id[x];
-        y = id[y];
+        // x = id[x];
+        // y = id[y];
         e[tmp_e++] = std::make_pair(x,y);
         e[tmp_e++] = std::make_pair(y,x);
         ++degree[x];

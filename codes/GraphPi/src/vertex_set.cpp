@@ -155,11 +155,13 @@ void VertexSet::intersection_with(const VertexSet& set1) {
     }
 }
 
-void VertexSet::build_vertex_set(const Schedule& schedule, const VertexSet* vertex_set, int* input_data, int input_size, int prefix_id, int min_vertex, bool clique)
+void VertexSet::build_vertex_set(const Schedule& schedule, const VertexSet* vertex_set, 
+                                int* input_data, int input_size, int prefix_id, int min_vertex, bool clique)
 {
     int father_id = schedule.get_father_prefix_id(prefix_id);
-    if (father_id == -1)
+    if (father_id == -1) {
         init(input_size, input_data);
+    }
     else
     {
         init();
@@ -203,7 +205,9 @@ int VertexSet::unorderd_subtraction_size(const VertexSet& set0, const VertexSet&
     int ret = size0;
     const int* set0_ptr = set0.get_data_ptr();
     for (int j = 0; j < size1; ++j)
-        if (std::binary_search(set0_ptr, set0_ptr + size0, set1.get_data(j)))
+        if (std::binary_search(set0_ptr, set0_ptr + size0, set1.get_data(j))) {
+            // printf("found %d, ret=%d\n", set1.get_data(j), ret);
             --ret;
+        }
     return ret;
 }

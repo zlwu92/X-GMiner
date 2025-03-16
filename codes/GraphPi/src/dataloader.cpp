@@ -68,6 +68,7 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
     }
 
     scanf("%d%u",&g->v_cnt,&g->e_cnt);
+    printf("v_cnt %d e_cnt %u\n",g->v_cnt,g->e_cnt);
     int* degree = new int[g->v_cnt];
     memset(degree, 0, g->v_cnt * sizeof(int));
     g->e_cnt *= 2;
@@ -87,10 +88,12 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         }
         if(!id.count(x)) id[x] = tmp_v ++;
         if(!id.count(y)) id[y] = tmp_v ++;
-        x = id[x];
-        y = id[y];
+        // x = id[x];
+        // y = id[y];
         e[tmp_e++] = std::make_pair(x,y);
         e[tmp_e++] = std::make_pair(y,x);
+        printf("e[%d]: %d %d\n", tmp_e - 2, x, y);
+        printf("e[%d]: %d %d\n", tmp_e - 1, y, x);
         ++degree[x];
         ++degree[y];
         //if(tmp_e % 1000000u == 0u) {
@@ -98,6 +101,7 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         //    fflush(stdout);
         //}
     }
+    printf("tmp_v = %d tmp_e = %u\n",tmp_v,tmp_e);
 
     // oriented_type == 0 do nothing
     //               == 1 high degree first
@@ -136,6 +140,10 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         delete[] e;
         return false;
     }
+    // printf("before sort\n");
+    // for (int i = 0; i < g->e_cnt; i++) {
+    //     printf("e[%d]: %d %d\n", i, e[i].first, e[i].second);
+    // }
     std::sort(e,e+tmp_e,cmp_pair);
     g->e_cnt = unique(e,e+tmp_e) - e;
     for(unsigned int i = 0; i < g->e_cnt - 1; ++i)
@@ -161,6 +169,7 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         g->edge[i] = e[i].second;
     }
     // print e
+    printf("after sort\n");
     for (int i = 0; i < g->e_cnt; i++) {
         printf("e[%d]: %d %d\n", i, e[i].first, e[i].second);
     }

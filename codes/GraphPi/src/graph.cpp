@@ -239,7 +239,7 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
                 }
                 puts("");
             }
-            puts("");
+            puts("\n===========");
             // print schedule.adj_mat
             // for (int i = 0; i < schedule.get_size(); ++i) {
             //     for (int j = 0; j < schedule.get_size(); ++j) {
@@ -260,14 +260,45 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
             unsigned int l, r;
             get_edge_index(vertex, l, r);
             if (print) {
-                printf("vertex %d, l %d, r %d\n", vertex, l, r);
+                printf("vertex=%d, l=%d, r=%d, edge[l]=%d\n", vertex, l, r, edge[l]);
+                printf("before build_vertex_set\n");
+                // print all data in vertex_set
+                for (int i = 0; i < schedule.get_total_prefix_num(); ++i) {
+                    printf("vertex_set[%d].size = %d: ", i, vertex_set[i].get_size());
+                    for (int j = 0; j < vertex_set[i].get_size(); ++j) {
+                        printf("%d ", vertex_set[i].get_data(j));
+                    }
+                    puts("");
+                }
+                // print edge
+                for (int i = l; i < r; ++i) {
+                    printf("edge[%d]=%d ", i, edge[i]);
+                }
+                puts("");
             }
             for (int prefix_id = schedule.get_last(0); prefix_id != -1; prefix_id = schedule.get_next(prefix_id))
             {
                 vertex_set[prefix_id].build_vertex_set(schedule, vertex_set, &edge[l], (int)r - l, prefix_id);
+                if (print)  printf("vertex_set[prefix_id=%d].size = %d\n", prefix_id, vertex_set[prefix_id].get_size());
             }
             //subtraction_set.insert_ans_sort(vertex);
             subtraction_set.push_back(vertex);
+            if (print) {
+                printf("after build_vertex_set\n");
+                for (int i = 0; i < schedule.get_total_prefix_num(); ++i) {
+                    printf("vertex_set[%d].size = %d: ", i, vertex_set[i].get_size());
+                    for (int j = 0; j < vertex_set[i].get_size(); ++j) {
+                        printf("%d ", vertex_set[i].get_data(j));
+                    }
+                    puts("");
+                }
+                // print subtraction_set
+                // printf("subtraction_set.size = %d: ", subtraction_set.get_size());
+                // for (int i = 0; i < subtraction_set.get_size(); ++i) {
+                //     printf("%d ", subtraction_set.get_data(i));
+                // }
+                // puts("");
+            }
             //if (schedule.get_total_restrict_num() > 0 && clique == false)
             if(true) {
                 // printf("pattern_matching_aggressive_func\n");
@@ -285,7 +316,15 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
                     assert(0);
                 }
             }*/
-            if (print) printf("vertex = %d local_ans = %ld\n", vertex, local_ans);
+            if (print) {
+                printf("vertex = %d local_ans = %ld\n", vertex, local_ans);
+                printf("depth=0, subtraction_set.size = %d: ", subtraction_set.get_size());
+                for (int i = 0; i < subtraction_set.get_size(); ++i) {
+                    printf("%d ", subtraction_set.get_data(i));
+                }
+                puts("");
+                puts("=========");
+            }
         }
         delete[] vertex_set;
         // TODO : Computing multiplicty for a pattern
@@ -305,7 +344,13 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
         return;
     if (print) {
         printf("##in_exclusion_optimize_num = %d\n", schedule.get_in_exclusion_optimize_num());
+        printf("##total_restrict_num = %d\n", schedule.get_total_restrict_num());
         printf("##depth = %d local_ans = %ld\n", depth, local_ans);
+        printf("depth=%d, subtraction_set.size = %d: ", depth, subtraction_set.get_size());
+        for (int i = 0; i < subtraction_set.get_size(); ++i) {
+            printf("%d ", subtraction_set.get_data(i));
+        }
+        puts("");
     }
     int* loop_data_ptr = vertex_set[loop_set_prefix_id].get_data_ptr();
 /* @@@ 
@@ -361,8 +406,8 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
     //Case: in_exclusion_optimize_num > 1
     if( depth == schedule.get_size() - schedule.get_in_exclusion_optimize_num() ) {
         if (print) {
-            printf("in_exclusion_optimize_num = %d\n", schedule.get_in_exclusion_optimize_num());
-            printf("depth = %d\n", depth);
+            printf("!!in_exclusion_optimize_num = %d\n", schedule.get_in_exclusion_optimize_num());
+            printf("!!depth = %d\n", depth);
         }
         int in_exclusion_optimize_num = schedule.get_in_exclusion_optimize_num();// @@@
         int loop_set_prefix_ids[ in_exclusion_optimize_num ];
@@ -420,8 +465,29 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
                     min_vertex = subtraction_set.get_data(schedule.get_restrict_index(i));
             const VertexSet& vset = vertex_set[loop_set_prefix_id];
             int size_after_restrict = std::lower_bound(vset.get_data_ptr(), vset.get_data_ptr() + vset.get_size(), min_vertex) - vset.get_data_ptr();
-            if (size_after_restrict > 0)
-                local_ans += VertexSet::unorderd_subtraction_size(vertex_set[loop_set_prefix_id], subtraction_set, size_after_restrict);
+            int tmp_result = 0;
+            if (size_after_restrict > 0) {
+                if (print) {
+                    printf("\033[33mvertex_set[loop_set_prefix_id].size() = %d: ", vertex_set[loop_set_prefix_id].get_size());
+                    for (int i = 0; i < vertex_set[loop_set_prefix_id].get_size(); ++i) {
+                        printf("%d ", vertex_set[loop_set_prefix_id].get_data(i));
+                    }
+                    puts("\033[0m");
+                }
+                // local_ans += VertexSet::unorderd_subtraction_size(vertex_set[loop_set_prefix_id], subtraction_set, size_after_restrict);
+                tmp_result = VertexSet::unorderd_subtraction_size(vertex_set[loop_set_prefix_id], subtraction_set, size_after_restrict);
+                local_ans += tmp_result;
+            }
+            if (print) {
+                printf("\033[33mmin_vertex = %d size_after_restrict = %d\033[0m\n", min_vertex, size_after_restrict);
+                // print vset
+                printf("vset.size = %d: ", vset.get_size());
+                for (int i = 0; i < vset.get_size(); ++i) {
+                    printf("%d ", vset.get_data(i));
+                }
+                puts("");
+                printf("\033[33munorderd_subtraction_size = %d\033[0m\n", tmp_result);
+            }
         }
         else
             local_ans += VertexSet::unorderd_subtraction_size(vertex_set[loop_set_prefix_id], subtraction_set); 
@@ -434,6 +500,13 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
         if (min_vertex > subtraction_set.get_data(schedule.get_restrict_index(i)))
             min_vertex = subtraction_set.get_data(schedule.get_restrict_index(i));
     if (depth == 1) Graphmpi::getinstance().get_loop(loop_data_ptr, loop_size);
+    if (print) {
+        printf("min_vertex = %d loop_size = %d\n", min_vertex, loop_size);
+        for (int i = 0; i < loop_size; ++i) {
+            printf("loop_data_ptr[%d] = %d ", i, loop_data_ptr[i]);
+        }
+        puts("");
+    }
     int ii = 0;
     for (int &i = ii; i < loop_size; ++i)
     {
@@ -445,19 +518,68 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
         unsigned int l, r;
         get_edge_index(vertex, l, r);
         bool is_zero = false;
+        if (print) {
+            printf("\033[32mvertex=%d, l=%d, r=%d, edge[l]=%d\033[0m\n", vertex, l, r, edge[l]);
+            printf("\033[32mbefore build_vertex_set\033[0m\n");
+            for (int i = 0; i < schedule.get_total_prefix_num(); ++i) {
+                printf("vertex_set[%d].size = %d: ", i, vertex_set[i].get_size());
+                for (int j = 0; j < vertex_set[i].get_size(); ++j) {
+                    printf("%d ", vertex_set[i].get_data(j));
+                }
+                puts("");
+            }
+            // print edge
+            for (int i = l; i < r; ++i) {
+                printf("edge[%d]=%d ", i, edge[i]);
+            }
+            puts("");
+        }
         for (int prefix_id = schedule.get_last(depth); prefix_id != -1; prefix_id = schedule.get_next(prefix_id))
         {
             vertex_set[prefix_id].build_vertex_set(schedule, vertex_set, &edge[l], (int)r - l, prefix_id, vertex);
+            if (print)  printf("\033[32mdepth=%d, vertex_set[prefix_id=%d].size = %d\033[0m\n", depth, prefix_id, vertex_set[prefix_id].get_size());
             if( vertex_set[prefix_id].get_size() == 0) {
                 is_zero = true;
                 break;
             }
         }
+        if (print) {
+            printf("\033[32mafter build_vertex_set\033[0m\n");
+            for (int i = 0; i < schedule.get_total_prefix_num(); ++i) {
+                printf("vertex_set[%d].size = %d: ", i, vertex_set[i].get_size());
+                for (int j = 0; j < vertex_set[i].get_size(); ++j) {
+                    printf("%d ", vertex_set[i].get_data(j));
+                }
+                puts("");
+            }
+            printf("\033[32mis_zero = %d\033[0m\n", is_zero);
+            printf("before recursion\n");
+            printf("depth=%d, subtraction_set.size = %d: ", depth, subtraction_set.get_size());
+            for (int i = 0; i < subtraction_set.get_size(); ++i) {
+                printf("%d ", subtraction_set.get_data(i));
+            }
+            puts("");
+        }
         if( is_zero ) continue;
         //subtraction_set.insert_ans_sort(vertex);
         subtraction_set.push_back(vertex);
-        pattern_matching_aggressive_func(schedule, vertex_set, subtraction_set, tmp_set, local_ans, depth + 1);// @@@
+        pattern_matching_aggressive_func(schedule, vertex_set, subtraction_set, tmp_set, local_ans, depth + 1, print);// @@@
         subtraction_set.pop_back(); // @@@
+        if (print) {
+            printf("after recursion\n");
+            printf("depth=%d, subtraction_set.size = %d: ", depth, subtraction_set.get_size());
+            for (int i = 0; i < subtraction_set.get_size(); ++i) {
+                printf("%d ", subtraction_set.get_data(i));
+            }
+            puts("");
+        }
+    }
+    if (print) {
+        printf("$$ depth=%d, subtraction_set.size = %d: ", depth, subtraction_set.get_size());
+        for (int i = 0; i < subtraction_set.get_size(); ++i) {
+            printf("%d ", subtraction_set.get_data(i));
+        }
+        puts("");
     } 
     //if (depth == 1 && ii < loop_size) Graphmpi::getinstance().set_cur(subtraction_set.get_data(0));// @@@
 } 
