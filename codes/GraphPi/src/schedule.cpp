@@ -58,6 +58,16 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
             candidate_permutations = tmp;
         }
 
+        printf("candidate_permutations.size() = %d\n",candidate_permutations.size());
+        // print all candidate_permutations
+        for(const auto &vec : candidate_permutations) {
+            for(const auto &v : vec) {
+                printf("%d ",v);
+            }
+            puts("");
+        }
+        printf("\033[32m==========================================\033[0m\n");
+
         int *best_order = new int[size];
         double min_val;
         bool have_best = false;
@@ -90,6 +100,8 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
                 restricts_vector.push_back(pairs);
             }
 
+            // print green
+            printf("\033[32m==========================================\033[0m\n");
             if( restricts_vector.size() == 0) {
                 std::vector< std::pair<int,int> > Empty;
                 Empty.clear();
@@ -246,17 +258,27 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
             return;
         }
     }
-
+    // print best_pairs
+    for(const auto& p : best_pairs) printf("(%d,%d) ", p.first, p.second);
+    puts("");
     build_loop_invariant();
     if( restricts_type != 0) add_restrict(best_pairs);
     
     set_in_exclusion_optimize_redundancy();
     // printf("Schedule: in_exclusion_optimize_redundancy = %ld\n", in_exclusion_optimize_redundancy);
+    
 }
 
 Schedule::Schedule(const int* _adj_mat, int _size)
 {
-    // printf("Schedule(const int* _adj_mat, int _size)\n");
+    printf("Schedule: _size = %d\n", _size);
+    // print _adj_mat and _size
+    for (int i = 0; i < _size; ++i) {
+        for (int j = 0; j < _size; ++j) {
+            printf("%d", _adj_mat[INDEX(i, j, _size)]);
+        }
+    }
+    puts("");
     size = _size;
     adj_mat = new int[size * size];
 
@@ -337,29 +359,65 @@ void Schedule::build_loop_invariant()
     {
         int data_size = 0;
         for (int j = 0; j < i; ++j)
-            if (adj_mat[INDEX(i, j, size)])
+            if (adj_mat[INDEX(i, j, size)]) {
+                // printf("%d %d\n", data_size, j);
                 tmp_data[data_size++] = j;
+            }
+        printf("\033[34mi = %d data_size = %d\033[0m\n", i, data_size);
         loop_set_prefix_id[i] = find_father_prefix(data_size, tmp_data);
     }
+    puts("");
+    // print tmp_data and loop_set_prefix_id
+    for(int i = 0; i < size; ++i) printf("tmp_data[%d]=%d ", i, tmp_data[i]);
+    puts("");
+    for(int i = 0; i < size; ++i) printf("loop_set_prefix_id[%d]=%d ", i, loop_set_prefix_id[i]);
+    puts("");
+    // print last and next, prefix and father_prefix_id
+    for(int i = 0; i < size; ++i) printf("last[%d]=%d ", i, last[i]);
+    puts("");
+    for(int i = 0; i < total_prefix_num; ++i) printf("next[%d]=%d ", i, next[i]);
+    puts("");
+    for(int i = 0; i < total_prefix_num; ++i) {
+        printf("prefix[%d].size = %d: ", i, prefix[i].get_size());
+        for(int j = 0; j < prefix[i].get_size(); ++j) {
+            printf("%d ", prefix[i].get_data(j));
+        }
+        puts("");
+    }
+    for(int i = 0; i < total_prefix_num; ++i) printf("father_prefix_id[%d]=%d ", i, father_prefix_id[i]);
+    puts("\n=======");
     assert(total_prefix_num <= size * (size - 1) / 2);
     delete[] tmp_data;
 }
 
 int Schedule::find_father_prefix(int data_size, const int* data)
 {
+    // print tmp_data
+    for(int i = 0; i < data_size; ++i) printf("data[%d]=%d ", i, data[i]);
+    if (data_size)  puts("");
     if (data_size == 0)
         return -1;
     int num = data[data_size - 1];
     for (int prefix_id = last[num]; prefix_id != -1; prefix_id = next[prefix_id])
-        if (prefix[prefix_id].equal(data_size, data))
+        if (prefix[prefix_id].equal(data_size, data)) {
+            printf("@@ prefix[%d].size = %d\n", prefix_id, prefix[prefix_id].get_size());
             return prefix_id;
-    
+        }
+
     // not found, create new prefix and find its father prefix id recursively
     int father = find_father_prefix(data_size - 1, data);
     father_prefix_id[total_prefix_num] = father;
     next[total_prefix_num] = last[num];
     last[num] = total_prefix_num;
     prefix[total_prefix_num].init(data_size, data);
+    printf("next[%d] = %d last[%d] = %d\n", total_prefix_num, next[total_prefix_num], num, last[num]);
+    printf("father_prefix_id[%d] = %d\n", total_prefix_num, father);
+    printf("prefix[%d].size = %d: ", total_prefix_num, prefix[total_prefix_num].get_size());
+    for(int i = 0; i < prefix[total_prefix_num].get_size(); ++i) {
+        printf("%d ", prefix[total_prefix_num].get_data(i));
+    }
+    puts("");
+    // puts("");
     ++total_prefix_num;
     return total_prefix_num - 1;
 }
@@ -1442,6 +1500,7 @@ void Schedule::restricts_generate(const int* cur_adj_mat, std::vector< std::vect
     assert(D->load_complete(complete, size + 1));
     long long ans = complete->pattern_matching( schedule, 1) / schedule.get_multiplicity();
     int thread_num = 1;
+    printf("\033[32mrestricts_generate ans=%lld restricts.size()=%d\033[0m\n", ans, restricts.size());
     for(int i = 0; i < restricts.size(); ) {
         Schedule cur_schedule(schedule.get_adj_mat_ptr(), schedule.get_size());
         cur_schedule.add_restrict(restricts[i]);

@@ -56,7 +56,7 @@ public:
     std::vector< std::vector< std::vector<int> > >in_exclusion_optimize_group;
     std::vector< int > in_exclusion_optimize_val;
     std::vector< std::pair<int,int> > restrict_pair;
-private:
+// private:
     int* adj_mat;
     int* father_prefix_id;
     int* last;

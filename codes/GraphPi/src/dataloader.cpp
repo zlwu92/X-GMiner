@@ -103,6 +103,7 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
     //               == 1 high degree first
     //               == 2 low degree first
     if ( oriented_type != 0 ) {
+        printf("oriented_type = %d\n",oriented_type);
         std::pair<int,int> *rank = new std::pair<int,int>[g->v_cnt];
         int *new_id = new int[g->v_cnt];
         for(int i = 0; i < g->v_cnt; ++i) rank[i] = std::make_pair(i,degree[i]);
@@ -154,9 +155,14 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         if(e[i].first != lst_v) {
             have_edge[e[i].first] = true;
             g->vertex[e[i].first] = i;
+            printf("vertex[%d]: %d\n", e[i].first, i);
         }
         lst_v = e[i].first;
         g->edge[i] = e[i].second;
+    }
+    // print e
+    for (int i = 0; i < g->e_cnt; i++) {
+        printf("e[%d]: %d %d\n", i, e[i].first, e[i].second);
     }
     delete[] e;
     printf("Success! There are %d nodes and %u edges.\n",g->v_cnt,g->e_cnt);
@@ -167,7 +173,17 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
             g->vertex[i] = g->vertex[i+1];
         }
     delete[] have_edge;
-
+    // print vertex and edge
+    for (int i = 0; i < g->v_cnt; i++) {
+        printf("vertex[%d]: %d\n", i, g->vertex[i]);
+    }
+    for (int i = 0; i < g->e_cnt; i++) {
+        printf("edge[%d]: %d\n", i, g->edge[i]);
+    }
+    // print have_edge
+    for (int i = 0; i < g->v_cnt; i++) {
+        printf("have_edge[%d]: %d\n", i, have_edge[i]);
+    }
     return true;
 }
 

@@ -206,10 +206,49 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
         double current_time;
         VertexSet* vertex_set = new VertexSet[schedule.get_total_prefix_num()];
         if (print) {
+            int total_prefix_num = schedule.get_total_prefix_num();
             printf("total_prefix_num = %d\n", schedule.get_total_prefix_num());
             printf("in_exclusion_optimize_redundancy = %ld\n", schedule.get_in_exclusion_optimize_redundancy());
+            printf("VertexSet::max_intersection_size = %d\n", VertexSet::max_intersection_size);
+
+            int max_prefix_num = schedule.get_size() * (schedule.get_size() - 1) / 2;
+            printf("max_prefix_num = %d\n", max_prefix_num);
+            // print schedule.last and schedule.next and father_prefix_id
+            for (int i = 0; i < schedule.get_size(); ++i) { // pattern size: 4
+                printf("last[%d] = %d ", i, schedule.get_last(i));
+            }
+            puts("");
+            for (int i = 0; i < max_prefix_num; ++i) {
+                printf("next[%d] = %d ", i, schedule.get_next(i));
+            }
+            puts("");
+            for (int i = 0; i < max_prefix_num; ++i) {
+                printf("father_prefix_id[%d] = %d ", i, schedule.get_father_prefix_id(i));
+            }
+            puts("");
+            // print schedule.loop_set_prefix_id
+            for (int i = 0; i < schedule.get_size(); ++i) {
+                printf("loop_set_prefix_id[%d]=%d ", i, schedule.get_loop_set_prefix_id(i));
+            }
+            puts("");
+            // print schedule.prefix
+            for (int i = 0; i < total_prefix_num; ++i) {
+                printf("prefix[%d].size = %d: ", i, schedule.prefix[i].get_size());
+                for (int j = 0; j < schedule.prefix[i].get_size(); ++j) {
+                    printf("%d ", schedule.prefix[i].get_data(j));
+                }
+                puts("");
+            }
+            puts("");
+            // print schedule.adj_mat
+            // for (int i = 0; i < schedule.get_size(); ++i) {
+            //     for (int j = 0; j < schedule.get_size(); ++j) {
+            //         printf("%d", schedule.get_adj_mat_ptr()[INDEX(i, j, schedule.get_size())]);
+            //     }
+            //     puts("");
+            // }
         }
-        printf("VertexSet::max_intersection_size = %d\n", VertexSet::max_intersection_size);
+        
         VertexSet subtraction_set;
         VertexSet tmp_set;
         subtraction_set.init();
@@ -220,6 +259,9 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
         {
             unsigned int l, r;
             get_edge_index(vertex, l, r);
+            if (print) {
+                printf("vertex %d, l %d, r %d\n", vertex, l, r);
+            }
             for (int prefix_id = schedule.get_last(0); prefix_id != -1; prefix_id = schedule.get_next(prefix_id))
             {
                 vertex_set[prefix_id].build_vertex_set(schedule, vertex_set, &edge[l], (int)r - l, prefix_id);
@@ -227,8 +269,10 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
             //subtraction_set.insert_ans_sort(vertex);
             subtraction_set.push_back(vertex);
             //if (schedule.get_total_restrict_num() > 0 && clique == false)
-            if(true)
-                pattern_matching_aggressive_func(schedule, vertex_set, subtraction_set, tmp_set, local_ans, 1);
+            if(true) {
+                // printf("pattern_matching_aggressive_func\n");
+                pattern_matching_aggressive_func(schedule, vertex_set, subtraction_set, tmp_set, local_ans, 1, print);
+            }
             else
                 pattern_matching_func(schedule, vertex_set, subtraction_set, local_ans, 1, clique);
             subtraction_set.pop_back();
@@ -241,24 +285,28 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
                     assert(0);
                 }
             }*/
-            printf("vertex = %d local_ans = %ld\n", vertex, local_ans);
+            if (print) printf("vertex = %d local_ans = %ld\n", vertex, local_ans);
         }
         delete[] vertex_set;
         // TODO : Computing multiplicty for a pattern
         global_ans += local_ans;
-        printf("local_ans = %ld global_ans = %ld\n", local_ans, global_ans);
+        // printf("local_ans = %ld global_ans = %ld\n", local_ans, global_ans);
     }
     return global_ans / schedule.get_in_exclusion_optimize_redundancy();
 }
 
 
-void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet* vertex_set, VertexSet& subtraction_set, VertexSet& tmp_set, long long& local_ans, int depth) // 3 same # or @ in comment are useful in code generation ###
+void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet* vertex_set, VertexSet& subtraction_set, 
+                        VertexSet& tmp_set, long long& local_ans, int depth, bool print) // 3 same # or @ in comment are useful in code generation ###
 {
     int loop_set_prefix_id = schedule.get_loop_set_prefix_id(depth);// @@@
     int loop_size = vertex_set[loop_set_prefix_id].get_size();
     if (loop_size <= 0)
         return;
-
+    if (print) {
+        printf("##in_exclusion_optimize_num = %d\n", schedule.get_in_exclusion_optimize_num());
+        printf("##depth = %d local_ans = %ld\n", depth, local_ans);
+    }
     int* loop_data_ptr = vertex_set[loop_set_prefix_id].get_data_ptr();
 /* @@@ 
     //Case: in_exclusion_optimize_num = 2
@@ -312,6 +360,10 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
 */
     //Case: in_exclusion_optimize_num > 1
     if( depth == schedule.get_size() - schedule.get_in_exclusion_optimize_num() ) {
+        if (print) {
+            printf("in_exclusion_optimize_num = %d\n", schedule.get_in_exclusion_optimize_num());
+            printf("depth = %d\n", depth);
+        }
         int in_exclusion_optimize_num = schedule.get_in_exclusion_optimize_num();// @@@
         int loop_set_prefix_ids[ in_exclusion_optimize_num ];
         loop_set_prefix_ids[0] = loop_set_prefix_id;
@@ -353,6 +405,11 @@ void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet
     //Case: in_exclusion_optimize_num <= 1
     if (depth == schedule.get_size() - 1)
     {
+        if (print) {
+            printf("@@depth = %d\n", depth);
+            printf("@@loop_set_prefix_id = %d\n", loop_set_prefix_id);
+            printf("@@loop_size = %d\n", loop_size);
+        }
         // TODO : try more kinds of calculation. @@@
         // For example, we can maintain an ordered set, but it will cost more to maintain itself when entering or exiting recursion.
         if (schedule.get_total_restrict_num() > 0)
