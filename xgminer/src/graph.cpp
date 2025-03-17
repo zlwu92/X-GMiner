@@ -204,6 +204,7 @@ void Graph::pattern_matching_func(const Schedule& schedule, VertexSet* vertex_se
 
 long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bool clique)
 {
+    // std::cout << __LINE__ << " pattern_matching()" << std::endl;
     long long global_ans = 0;
 #pragma omp parallel num_threads(thread_count) reduction(+: global_ans)
     {
@@ -214,16 +215,19 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
         VertexSet tmp_set;
         subtraction_set.init();
         long long local_ans = 0;
+        // std::cout << __LINE__ << " " << __FILE__ << " " << v_cnt << std::endl;
         // TODO : try different chunksize
 #pragma omp for schedule(dynamic) nowait
         for (int vertex = 0; vertex < v_cnt; ++vertex)
         {
             unsigned int l, r;
             get_edge_index(vertex, l, r);
+            // std::cout << __LINE__ << " " << __FILE__ << std::endl;
             for (int prefix_id = schedule.get_last(0); prefix_id != -1; prefix_id = schedule.get_next(prefix_id))
             {
                 vertex_set[prefix_id].build_vertex_set(schedule, vertex_set, &edge[l], (int)r - l, prefix_id);
             }
+            // std::cout << __LINE__ << " " << __FILE__ << std::endl;
             //subtraction_set.insert_ans_sort(vertex);
             subtraction_set.push_back(vertex);
             //if (schedule.get_total_restrict_num() > 0 && clique == false)
@@ -252,6 +256,7 @@ long long Graph::pattern_matching(const Schedule& schedule, int thread_count, bo
 
 void Graph::pattern_matching_aggressive_func(const Schedule& schedule, VertexSet* vertex_set, VertexSet& subtraction_set, VertexSet& tmp_set, long long& local_ans, int depth) // 3 same # or @ in comment are useful in code generation ###
 {
+    // std::cout << __LINE__ << " pattern_matching_aggressive_func()" << std::endl;
     int loop_set_prefix_id = schedule.get_loop_set_prefix_id(depth);// @@@
     int loop_size = vertex_set[loop_set_prefix_id].get_size();
     if (loop_size <= 0)

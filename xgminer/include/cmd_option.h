@@ -88,6 +88,7 @@ public:
 
             if (result.count("pattern-adj-mat")) {
                 pattern_adj_mat = strdup(result["pattern-adj-mat"].as<std::string>().c_str());
+                // pattern_adj_mat = result["pattern-adj-mat"].as<std::string>().c_str();
                 PRINT_GREEN("Pattern adjacency matrix: " << pattern_adj_mat);
             }
 

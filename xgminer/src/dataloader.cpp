@@ -15,7 +15,7 @@ bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int orien
     printf("load_data\n");
     if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || 
         type == MiCo || type == CiteSeer || type == Wiki_Vote ||
-        type == TestGr1 || type == DataType::TestGr2) {
+        type == TestGr1 || type == TestGr2) {
         return general_load_data(g, type, path, oriented_type);
     }
 
@@ -209,11 +209,12 @@ bool DataLoader::twitter_load_data(Graph *&g, DataType type, const char* path, i
 }
 
 bool DataLoader::load_complete(Graph* &g, int clique_size) {
+    // printf("load_complete\n");
     g = new Graph();
 
     g->v_cnt = clique_size;
     g->e_cnt = clique_size * (clique_size - 1) / 2;
-
+    // printf("@@ v_cnt: %d, e_cnt: %u\n", g->v_cnt, g->e_cnt);
     int* degree = new int[g->v_cnt];
     memset(degree, 0, g->v_cnt * sizeof(int));
     g->e_cnt *= 2;

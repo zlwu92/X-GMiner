@@ -133,8 +133,8 @@ def launch_exp():
     #     config["input_dir"] = str(args.input_dir.resolve())
     # config["output_dir"] = str(args.output_dir.resolve())
     
-    args.__dict__["pattern-size"] = 3
-    del args.__dict__["pattern_size"]
+    # args.__dict__["pattern-size"] = 3
+    # del args.__dict__["pattern_size"]
     print(args)
     # 初始化运行器
     runner = ExperimentRunner(config, args=args)

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <assert.h>
 #include <algorithm>
+#include <iostream>
 
 Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize ,int v_cnt, unsigned int e_cnt, long long tri_cnt)
 {
@@ -386,6 +387,8 @@ void Schedule::build_loop_invariant()
     }
     for(int i = 0; i < total_prefix_num; ++i) printf("father_prefix_id[%d]=%d ", i, father_prefix_id[i]);
     puts("\n=======");
+    bool test = total_prefix_num <= size * (size - 1) / 2;
+    std::cout << __LINE__ << " " << test << std::endl;
     assert(total_prefix_num <= size * (size - 1) / 2);
     delete[] tmp_data;
 }

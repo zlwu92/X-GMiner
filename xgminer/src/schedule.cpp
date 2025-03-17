@@ -11,9 +11,11 @@
 #include <cstring>
 #include <assert.h>
 #include <algorithm>
+#include <iostream>
 
 Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performance_modeling_type, int restricts_type, bool use_in_exclusion_optimize ,int v_cnt, unsigned int e_cnt, long long tri_cnt)
 {
+    // printf("Schedule(....)\n");
     if( performance_modeling_type != 0 && tri_cnt == -1) {
         printf("Fatal: Can not use performance modeling if not have triangle number of this dataset.\n");
         fflush(stdout);
@@ -67,11 +69,12 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
         double min_val;
         bool have_best = false;
         
-
+        std::cout << __LINE__ << " candidate_permutations.size(): " << candidate_permutations.size() << std::endl;
         for(const auto &vec : candidate_permutations) {
+            // std::cout << __LINE__ << std::endl;
             int rank[size];
             for(int i = 0; i < size; ++i) rank[vec[i]] = i;
-        
+            // std::cout << __LINE__ << std::endl;
             int* cur_adj_mat;
             cur_adj_mat = new int[size*size];
             for(int i = 0; i < size; ++i)
@@ -195,7 +198,7 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
         }
 
     }
-
+    std::cout << __LINE__ << " best_pairs.size(): " << best_pairs.size() << std::endl;
     if( use_in_exclusion_optimize) {
         std::vector<int> I;
         I.clear();
@@ -251,7 +254,7 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
             return;
         }
     }
-
+    std::cout << __LINE__ << " " << __FILE__ << std::endl;
     build_loop_invariant();
     if( restricts_type != 0) add_restrict(best_pairs);
     
@@ -260,6 +263,7 @@ Schedule::Schedule(const Pattern& pattern, bool &is_pattern_valid, int performan
 
 Schedule::Schedule(const int* _adj_mat, int _size)
 {
+    // std::cout << __LINE__ << " Schedule(....)" << std::endl;
     size = _size;
     adj_mat = new int[size * size];
 
@@ -306,6 +310,8 @@ Schedule::Schedule(const int* _adj_mat, int _size)
     build_loop_invariant();
 
     set_in_exclusion_optimize_redundancy();
+
+    // std::cout << __LINE__ << " pass" << std::endl;
 }
 
 Schedule::~Schedule()
@@ -334,6 +340,7 @@ int Schedule::get_max_degree() const{
 
 void Schedule::build_loop_invariant()
 {
+    // std::cout << __LINE__ << " build_loop_invariant()" << std::endl;
     int* tmp_data = new int[size];
     loop_set_prefix_id[0] = -1;
     for (int i = 1; i < size; ++i)
@@ -344,12 +351,17 @@ void Schedule::build_loop_invariant()
                 tmp_data[data_size++] = j;
         loop_set_prefix_id[i] = find_father_prefix(data_size, tmp_data);
     }
-    assert(total_prefix_num <= size * (size - 1) / 2);
+    // std::cout << __LINE__ << " ";
+
+    int ret = total_prefix_num <= size * (size - 1) / 2;
+    assert(ret);
+    // std::cout << __LINE__ << " pass" << std::endl;
     delete[] tmp_data;
 }
 
 int Schedule::find_father_prefix(int data_size, const int* data)
 {
+    // std::cout << __LINE__ << " find_father_prefix(....)" << std::endl;
     if (data_size == 0)
         return -1;
     int num = data[data_size - 1];
@@ -1437,12 +1449,16 @@ void Schedule::restrict_selection(int v_cnt, unsigned int e_cnt, long long tri_c
 }
 
 void Schedule::restricts_generate(const int* cur_adj_mat, std::vector< std::vector< std::pair<int,int> > > &restricts) {
+    // std::cout << __LINE__ << " restricts_generate" << std::endl;
     Schedule schedule(cur_adj_mat, get_size());
     schedule.aggressive_optimize_get_all_pairs(restricts);
     int size = schedule.get_size();
     Graph* complete;
     DataLoader* D = new DataLoader();
-    assert(D->load_complete(complete, size + 1));
+    // assert(D->load_complete(complete, size + 1));
+    int ret = D->load_complete(complete, size + 1);
+    assert(ret);
+
     long long ans = complete->pattern_matching( schedule, 1) / schedule.get_multiplicity();
     int thread_num = 1;
     for(int i = 0; i < restricts.size(); ) {
@@ -1750,14 +1766,18 @@ int Schedule::get_in_exclusion_optimize_num_when_not_optimize() {
 }
 
 void Schedule::set_in_exclusion_optimize_redundancy() {
+    // std::cout << __LINE__ << " set_in_exclusion_optimize_redundancy" << std::endl;
     int tmp = get_in_exclusion_optimize_num();
+    // std::cout << "tmp " << tmp << std::endl;
     if(tmp <= 1) {
         in_exclusion_optimize_redundancy = 1;
     }
     else {
+        // std::cout << __LINE__ << " " << __FILE__ << " " << std::endl;
         Graph* complete;
         DataLoader* D = new DataLoader();
-        assert(D->load_complete(complete, get_size()));
+        int ret = D->load_complete(complete, get_size());
+        assert(ret);
         delete D;
         in_exclusion_optimize_redundancy = 1;
         long long ans = complete->pattern_matching( *this, 1);

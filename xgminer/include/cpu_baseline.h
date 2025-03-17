@@ -27,7 +27,7 @@ public:
         // std::cout << "CPU_Baseline destructor" << std::endl;
     }
 
-    void run_baseline_with_graphpi();
+    void run_baseline_with_graphpi_sched();
 
     void run_graphpi_test();
 
@@ -48,11 +48,13 @@ public:
         }
         if (run_our_baseline) {
             LOG_INFO("Running our baseline implementation.");
-            run_our_baseline_test();
+            if (use_graphpi_sched) {
+                run_baseline_with_graphpi_sched();
+            } else {
+                run_our_baseline_test();
+            }
         }
     }
-
-    // void rectangle4_baseline_cpu_kernel();
 
 private:
     int use_graphpi_sched = 1;
@@ -70,6 +72,7 @@ private:
     std::vector<std::set<int>> edgeLists;
     int total_count = 0;
     std::vector<int> embedding;
+    
 
     Kernel kernel;
 };

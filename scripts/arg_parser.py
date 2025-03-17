@@ -86,7 +86,8 @@ def parse_args():
         "--pattern-size",
         type=int,
         default=3,
-        dest="pattern_size",
+        # dest="pattern_size",
+        dest="pattern-size",
         help="Pattern size (default: 3)"
     )
     parser.add_argument(
@@ -94,6 +95,7 @@ def parse_args():
         type=str,
         default="011101110",
         dest="pattern-adj-mat",
+        # dest="pattern_adj_mat",
         help="Pattern adjacency matrix (default: 011101110)"
     )
     
@@ -117,10 +119,16 @@ def parse_args():
     print("0 -- Triangle (size = 3)")
     print("1 -- Rectangle (size = 4)")
     choice = input("Enter Dataset ID: ").strip()
-    # args = parser.parse_args()
+    args = parser.parse_args()
     if (choice == "0"):
-        parser.set_defaults(pattern_size=3)
-        # args.__dict__["pattern-size"] = args.pattern_size
-        # del args.__dict__["pattern_size"]
-        # parser.set_defaults(pattern-adj-mat="011101110")
-    return parser.parse_args()
+        setattr(args, "pattern-size", 3)  # 动态设置 pattern-size
+        setattr(args, "pattern-adj-mat", "011101110")
+    if (choice == "1"):
+        setattr(args, "pattern-size", 4)  # 动态设置 pattern-size
+        custom_adj_mat = input("Define a pattern-adj-mat (Default is permitted): ").strip()
+        if custom_adj_mat == "":
+            setattr(args, "pattern-adj-mat", "0110100110010110")
+        else:
+            setattr(args, "pattern-adj-mat", custom_adj_mat)
+    # return parser.parse_args()
+    return args

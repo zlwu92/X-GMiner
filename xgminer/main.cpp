@@ -76,41 +76,15 @@ int main(int argc, char *argv[]) {
         LOG_INFO("Running CPU baseline algorithm.");
         CPU_Baseline cpu_base(opts);
         cpu_base.run();
+    } else if (opts.algo == "gpu_baseline") {
+        LOG_INFO("Running GPU baseline algorithm.");
+        // CPU_Baseline cpu_base(opts);
+        // cpu_base.run();
     } else {
         LOG_ERROR("Unsupported algorithm: " + opts.algo);
         return 1;
     }
-#if 0
-    Graph *g;
-    DataLoader D;
 
-    const std::string type = argv[1];
-    const std::string path = argv[2];
-    
-    int size = atoi(argv[3]);
-    char* adj_mat = argv[4];
-
-    // comments in include/schedule.h explain the meaning of these parameters.
-    int test_type = 1; // performance_modeling_type = restricts_type = use_in_exclusion_optimize = 1
-
-    DataType my_type;
-    
-    D.GetDataType(my_type, type);
-
-    if(my_type == DataType::Invalid) {
-        printf("Dataset not found!\n");
-        return 0;
-    }
-
-    assert(D.load_data(g,my_type,path.c_str())==true); 
-
-    printf("Load data success!\n");
-    fflush(stdout);
-
-    Pattern p(size, adj_mat);
-    // Pattern p(PatternType::Rectangle);
-    test_pattern(g, p, test_type, test_type, test_type);
-#endif
 
     LOG_INFO("Finish processing.");
     return 0;
