@@ -59,6 +59,7 @@ file(GLOB_RECURSE SRC_FILES
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/*.cu"
     "${PROJECT_SOURCE_DIR}/src/graphpi/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/cpu_kernels/*.cpp"
 )
 
 # 合并源文件列表

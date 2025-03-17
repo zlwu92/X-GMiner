@@ -36,7 +36,11 @@ public:
             ("algorithm", "Algorithm", cxxopts::value<std::string>()->default_value("donothing"))
             ("pattern-name", "Pattern name", cxxopts::value<std::string>()->default_value(""))
             ("use-graphpi-sched", "Use GraphPi scheduler", cxxopts::value<int>()->default_value("0"))
-            ("d,dataname", "Data name", cxxopts::value<std::string>()->default_value("Wiki-Vote"));
+            ("d,dataname", "Data name", cxxopts::value<std::string>()->default_value("Wiki-Vote"))
+            ("run-graphpi", "Run GraphPi algorithm", cxxopts::value<int>()->default_value("0"))
+            ("run-our-baseline", "Run our baseline implementation", cxxopts::value<int>()->default_value("0"))
+            ("pattern-adj-mat", "Pattern adjacency matrix", cxxopts::value<std::string>()->default_value("011101110"))
+            ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"));
         ;
         
         try {
@@ -72,6 +76,26 @@ public:
                 PRINT_GREEN("Data name: " << data_name);
             }
 
+            if (result.count("run-graphpi")) {
+                run_graphpi = result["run-graphpi"].as<int>();
+                PRINT_GREEN("Run GraphPi algorithm: " << run_graphpi);
+            }
+
+            if (result.count("run-our-baseline")) {
+                run_our_baseline = result["run-our-baseline"].as<int>();
+                PRINT_GREEN("Run our baseline implementation: " << run_our_baseline);
+            }
+
+            if (result.count("pattern-adj-mat")) {
+                pattern_adj_mat = strdup(result["pattern-adj-mat"].as<std::string>().c_str());
+                PRINT_GREEN("Pattern adjacency matrix: " << pattern_adj_mat);
+            }
+
+            if (result.count("pattern-size")) {
+                pattern_size = result["pattern-size"].as<int>();
+                PRINT_GREEN("Pattern size: " << pattern_size);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -88,6 +112,13 @@ public:
         program.add_argument("--use-graphpi-sched").help("Use GraphPi scheduler").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("-d", "--dataname").help("Data name").default_value(std::string{"Wiki-Vote"});
+        program.add_argument("--run-graphpi").help("Run GraphPi algorithm").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--run-our-baseline").help("Run our baseline implementation").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--pattern-adj-mat").help("Pattern adjacency matrix").default_value(std::string{"011101110"});
+        program.add_argument("--pattern-size").help("Pattern size").default_value(3).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
 
         try {
             program.parse_args(argc, argv);
@@ -117,6 +148,28 @@ public:
                 PRINT_GREEN("Data name: " << data_name);
             }
 
+            if (program.get<int>("--run-graphpi") != 0) {
+                run_graphpi = program.get<int>("--run-graphpi");
+                PRINT_GREEN("Run GraphPi algorithm: " << run_graphpi);
+            }
+
+            if (program.get<int>("--run-our-baseline") != 0) {
+                run_our_baseline = program.get<int>("--run-our-baseline");
+                PRINT_GREEN("Run our baseline implementation: " << run_our_baseline);
+            }
+
+            if (program.get<std::string>("--pattern-adj-mat") != "") {
+                printf("heree@!!!!\n");
+                std::cout << program.get<std::string>("--pattern-adj-matrix") << std::endl;
+                pattern_adj_mat = strdup(program.get<std::string>("--pattern-adj-matrix").c_str());
+                PRINT_GREEN("Pattern adjacency matrix: " << pattern_adj_mat);
+            }
+
+            if (program.get<int>("--pattern-size") != 0) {
+                pattern_size = program.get<int>("--pattern-size");
+                PRINT_GREEN("Pattern size: " << pattern_size);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -142,6 +195,10 @@ public:
 
     std::string pattern_name = "";
     int use_graphpi_sched = 0;
+    int run_graphpi = 0;
+    int run_our_baseline = 0;
+    char* pattern_adj_mat = nullptr;
+    int pattern_size = 3;
     
 private:
     int argc;

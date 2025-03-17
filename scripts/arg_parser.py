@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
 from argparse import ArgumentParser, Namespace
-
+import utils
 
 PROJECT_ROOT = Path(os.environ.get("XGMINER_ROOT")).resolve()
 print(f"XGMiner root: {PROJECT_ROOT}")
@@ -61,9 +61,66 @@ def parse_args():
     parser.add_argument(
         "--use-graphpi-sched",
         type=int,
-        default=1,
+        default=0,
         dest="use-graphpi-sched",
         choices=[0, 1],  # 限制取值为 0 或 1
         help="Enable GraphPi scheduler (1=on, 0=off, default: 1)"
     )
+    parser.add_argument(
+        "--run-our-baseline",
+        type=int,
+        default=0,
+        dest="run-our-baseline",
+        choices=[0, 1],  # 限制取值为 0 或 1
+        help="Run our baseline (1=on, 0=off, default: 1)"
+    )
+    parser.add_argument(
+        "--run-graphpi",
+        type=int,
+        default=0,
+        dest="run-graphpi",
+        choices=[0, 1],  # 限制取值为 0 或 1
+        help="Run GraphPi (1=on, 0=off, default: 1)"
+    )
+    parser.add_argument(
+        "--pattern-size",
+        type=int,
+        default=3,
+        dest="pattern_size",
+        help="Pattern size (default: 3)"
+    )
+    parser.add_argument(
+        "--pattern-adj-mat",
+        type=str,
+        default="011101110",
+        dest="pattern-adj-mat",
+        help="Pattern adjacency matrix (default: 011101110)"
+    )
+    
+    """显示交互式菜单"""
+    print(f"{utils.Colors.OKBLUE}>> Choose input dataset:{utils.Colors.ENDC}")
+    print("0 -- TestGr1")
+    print("1 -- TestGr2")
+    print("2 -- Wiki-Vote")
+    choice = input("Enter Dataset ID: ").strip()
+    if (choice == "0"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['TestGr1']}"))
+        parser.set_defaults(dataname="TestGr1")
+    if (choice == "1"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['TestGr2']}"))
+        parser.set_defaults(dataname="TestGr2")
+    if (choice == "2"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['Wiki-Vote']}"))
+        parser.set_defaults(dataname="Wiki-Vote")
+        
+    print(f"{utils.Colors.OKBLUE}>> Choose input pattern:{utils.Colors.ENDC}")
+    print("0 -- Triangle (size = 3)")
+    print("1 -- Rectangle (size = 4)")
+    choice = input("Enter Dataset ID: ").strip()
+    # args = parser.parse_args()
+    if (choice == "0"):
+        parser.set_defaults(pattern_size=3)
+        # args.__dict__["pattern-size"] = args.pattern_size
+        # del args.__dict__["pattern_size"]
+        # parser.set_defaults(pattern-adj-mat="011101110")
     return parser.parse_args()

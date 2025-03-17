@@ -108,52 +108,6 @@ class ExperimentRunner:
         # 这里可添加结果解析逻辑
         logging.info(f"Results saved to: {output_dir}")
         
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run XGMiner Experiments")
-    # parser.add_argument(
-    #     "-c", "--config",
-        # required=True,
-    #     type=Path,
-    #     help="Path to JSON config file"
-    # )
-    parser.add_argument(
-        "-e", "--executable",
-        type=Path,
-        help="Override executable path (if not in default build location)"
-    )
-    # parser.add_argument(
-    #     "--input-dir",
-    #     type=Path,
-    #     help="Override input directory"
-    # )
-    # parser.add_argument(
-    #     "--output-dir",
-    #     type=Path,
-    #     default=Path("results/"),
-    #     help="Override output directory (default: ./results)"
-    # )
-    # parser.add_argument(
-    #     "--timeout",
-    #     type=int,
-    #     default=300,
-    #     help="Experiment timeout in seconds (default: 300)"
-    # )
-    
-    parser.add_argument(
-        "--algorithm",
-        type=str,
-        default="cpu_baseline",
-        help="Algorithm type (default: cpu_baseline)"
-    )
-    parser.add_argument(
-        "--use-graphpi-sched",
-        type=int,
-        default=1,
-        dest="use-graphpi-sched",
-        choices=[0, 1],  # 限制取值为 0 或 1
-        help="Enable GraphPi scheduler (1=on, 0=off, default: 1)"
-    )
-    return parser.parse_args()
 
 def launch_exp():
     args = ap.parse_args()
@@ -179,7 +133,9 @@ def launch_exp():
     #     config["input_dir"] = str(args.input_dir.resolve())
     # config["output_dir"] = str(args.output_dir.resolve())
     
-    
+    args.__dict__["pattern-size"] = 3
+    del args.__dict__["pattern_size"]
+    print(args)
     # 初始化运行器
     runner = ExperimentRunner(config, args=args)
 

@@ -7,16 +7,20 @@
 #include "../include/pattern.h"
 #include "../include/schedule.h"
 #include "../include/common.h"
+#include "cmd_option.h"
+#include "kernel.h"
 
 class CPU_Baseline {
 public:
-    CPU_Baseline(int use_graphpi_sched_, std::string data_name_, std::string data_path_) {
-        data_name = data_name_;
-        data_path = data_path_;
-        g = new Graph();
-        // std::cout << "CPU_Baseline constructor" << std::endl;
-        use_graphpi_sched = use_graphpi_sched_;
-        
+    CPU_Baseline(Command_Option &opts) {
+        data_name = opts.data_name;
+        data_path = opts.datagraph_file;
+        // g = new Graph();
+        use_graphpi_sched = opts.use_graphpi_sched;
+        run_graphpi = opts.run_graphpi;
+        run_our_baseline = opts.run_our_baseline;
+        pattern_size = opts.pattern_size;
+        adj_mat = opts.pattern_adj_mat;
     }
 
     ~CPU_Baseline() {
@@ -30,14 +34,14 @@ public:
     void run_our_baseline_test();
 
     void run() {
-        if (use_graphpi_sched) {
-            LOG_INFO("Using GraphPi schedule.");
+        // if (use_graphpi_sched) {
+        //     LOG_INFO("Using GraphPi schedule.");
 
-            DataType my_type;
-            D.GetDataType(my_type, data_name);
-            assert(D.load_data(g, my_type, data_path.c_str())==true); 
-            run_baseline_with_graphpi();
-        }
+        //     DataType my_type;
+        //     D.GetDataType(my_type, data_name);
+        //     assert(D.load_data(g, my_type, data_path.c_str())==true); 
+        //     run_baseline_with_graphpi();
+        // }
         if (run_graphpi) {
             LOG_INFO("Running GraphPi algorithm.");
             run_graphpi_test();
@@ -48,12 +52,24 @@ public:
         }
     }
 
+    // void rectangle4_baseline_cpu_kernel();
+
 private:
     int use_graphpi_sched = 1;
     int run_graphpi = 0;
     int run_our_baseline = 1;
-    Graph *g;
-    DataLoader D;
+    // Graph *g;
+    // DataLoader D;
     std::string data_name = "Wiki-Vote";
     std::string data_path = "";
+    char* adj_mat;
+    int pattern_size = 3;
+    const int* p_adj_mat;
+    
+    int vertices, edges;
+    std::vector<std::set<int>> edgeLists;
+    int total_count = 0;
+    std::vector<int> embedding;
+
+    Kernel kernel;
 };

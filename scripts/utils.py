@@ -16,6 +16,13 @@ class Colors:
     ENDC = '\033[0m'
 
 
+datasets = {
+    "Wiki-Vote": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/codes/GraphPi/dataset/wiki-vote_input",
+    "TestGr1": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr1.txt",
+    "TestGr2": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr2.txt",
+}
+
+
 
 def run_command(cmd, shell=True, cwd=None, env=None, error_msg="Command failed"):
     """执行 shell 命令并检查错误"""

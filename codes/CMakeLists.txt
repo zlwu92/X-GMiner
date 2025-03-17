@@ -10,20 +10,20 @@
 #     COMMENT "Running Makefile in GLUMIN"
 # )
 
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GLUMIN)
-# add_custom_target(glumin ALL
-#     COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/GLUMIN all
-#     COMMENT "Running Makefile in GLUMIN"
-# )
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GLUMIN)
+add_custom_target(glumin ALL
+    COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/GLUMIN all
+    COMMENT "Running Makefile in GLUMIN"
+)
 
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphMiner)
-# add_custom_target(g2miner ALL
-#     COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/GraphMiner all
-#     COMMENT "Running Makefile in GraphMiner"
-# )
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphMiner)
+add_custom_target(g2miner ALL
+    COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/GraphMiner all
+    COMMENT "Running Makefile in GraphMiner"
+)
 
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphFold GraphFold)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphFold GraphFold)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphPi GraphPi)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphSet GraphSet)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/HEROFramework HERO)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/GraphSet GraphSet)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/HEROFramework HERO)

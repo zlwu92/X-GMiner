@@ -12,9 +12,10 @@
 #include <cstring>
 
 bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int oriented_type) {
+    printf("load_data\n");
     if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || 
         type == MiCo || type == CiteSeer || type == Wiki_Vote ||
-        type == TestGr1) {
+        type == TestGr1 || type == DataType::TestGr2) {
         return general_load_data(g, type, path, oriented_type);
     }
 
@@ -26,6 +27,7 @@ bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int orien
 }
 
 bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, int oriented_type) {
+    printf("general_load_data\n");
     if (freopen(path, "r", stdin) == NULL)
     {
         printf("File not found. %s\n", path);
@@ -64,6 +66,10 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
             g->tri_cnt = TestGr1_tri_cnt;
             break;
         }
+        case DataType::TestGr2 : {
+            g->tri_cnt = TestGr2_tri_cnt;
+            break;
+        }
         default : {
             g->tri_cnt = -1;
             break;
@@ -71,6 +77,7 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
     }
 
     scanf("%d%u",&g->v_cnt,&g->e_cnt);
+    printf("v_cnt: %d, e_cnt: %u\n", g->v_cnt, g->e_cnt);
     int* degree = new int[g->v_cnt];
     memset(degree, 0, g->v_cnt * sizeof(int));
     g->e_cnt *= 2;
@@ -295,6 +302,7 @@ long long DataLoader::comb(int n, int k) {
 }
 
 void DataLoader::GetDataType(DataType &type, const std::string str) {
+    printf("GetDataType\n");
     type = DataType::Invalid;
     
     if( str == "Patents" ) {
@@ -323,5 +331,9 @@ void DataLoader::GetDataType(DataType &type, const std::string str) {
     }
     if(str == "TestGr1" ) {
         type = DataType::TestGr1;
+    }
+    if(str == "TestGr2" ) {
+        printf("DataType::TestGr2\n");
+        type = DataType::TestGr2;
     }
 }

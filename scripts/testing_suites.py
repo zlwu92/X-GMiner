@@ -12,18 +12,28 @@ import utils
 
 # 定义测试套件
 TEST_SUITES = {
-    "1": {
-        "name": "CPU Baseline (GraphPi sched)",
+    "0": {
+        "name": "Run GraphPi Baseline",
         "params": {
             "algorithm": "cpu_baseline",
-            "use-graphpi-sched": 1
+            # "use-graphpi-sched": 1
+            "run-graphpi": 1
+        }
+    },
+    "1": {
+        "name": "Our CPU Baseline (GraphPi sched)",
+        "params": {
+            "algorithm": "cpu_baseline",
+            "use-graphpi-sched": 1,
+            "run-our-baseline": 1
         }
     },
     "2": {
-        "name": "CPU Baseline",
+        "name": "Our CPU Baseline",
         "params": {
             "algorithm": "cpu_baseline",
-            "use-graphpi-sched": 0
+            "use-graphpi-sched": 0,
+            "run-our-baseline": 1
         }
     },
     "3": {
@@ -56,13 +66,19 @@ TEST_SUITES = {
 #     }
 
 
+def RUN_TEST0():
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "cpu_baseline", "--run-graphpi", "1"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run test 0")
+
 # def RUN_TEST1(config: dict):
 def RUN_TEST1():
-    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "cpu_baseline", "--use-graphpi-sched", "1"]
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "cpu_baseline", 
+           "--use-graphpi-sched", "1", "--run-our-baseline", "1"]
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 1")
 
 def RUN_TEST2():
-    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "cpu_baseline", "--use-graphpi-sched", "0"]
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "cpu_baseline", 
+           "--use-graphpi-sched", "0", "--run-our-baseline", "1"]
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 2")
     
 def RUN_TEST3():
@@ -76,7 +92,7 @@ def RUN_TEST4():
 
 def show_menu():
     """显示交互式菜单"""
-    print("Which experiment do you want to launch?")
+    print(f"{utils.Colors.OKBLUE}Which experiment do you want to launch?{utils.Colors.ENDC}")
     for key, suite in TEST_SUITES.items():
         print(f"{key} -- {suite['name']}")
     choice = input("Enter Testing ID: ").strip()
@@ -98,6 +114,8 @@ def testing_suites():
     
     # 根据选择执行测试
     try:
+        if choice == "0":
+            RUN_TEST0()
         if choice == "1":
             RUN_TEST1()
         elif choice == "2":
