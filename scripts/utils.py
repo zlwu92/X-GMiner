@@ -23,6 +23,12 @@ datasets = {
 }
 
 
+patterns = {
+    "P1", # Triangle
+    "P2", # Rectangle
+}
+
+
 
 def run_command(cmd, shell=True, cwd=None, env=None, error_msg="Command failed"):
     """执行 shell 命令并检查错误"""

@@ -86,17 +86,22 @@ def parse_args():
         "--pattern-size",
         type=int,
         default=3,
-        # dest="pattern_size",
         dest="pattern-size",
-        help="Pattern size (default: 3)"
+        help="Pattern size (default: 3 for triangle)"
     )
     parser.add_argument(
         "--pattern-adj-mat",
         type=str,
         default="011101110",
         dest="pattern-adj-mat",
-        # dest="pattern_adj_mat",
-        help="Pattern adjacency matrix (default: 011101110)"
+        help="Pattern adjacency matrix (default: 011101110 for triangle)"
+    )
+    parser.add_argument(
+        "--patternID",
+        type=int,
+        default=1,
+        dest="patternID",
+        help="Pattern ID (default: 1 for triangle)"
     )
     
     """显示交互式菜单"""
@@ -116,19 +121,21 @@ def parse_args():
         parser.set_defaults(dataname="Wiki-Vote")
         
     print(f"{utils.Colors.OKBLUE}>> Choose input pattern:{utils.Colors.ENDC}")
-    print("0 -- Triangle (size = 3)")
-    print("1 -- Rectangle (size = 4)")
-    choice = input("Enter Dataset ID: ").strip()
+    print("1 -- Triangle (size = 3)")
+    print("2 -- Rectangle (size = 4)")
+    choice = input("Enter Pattern ID: ").strip()
     args = parser.parse_args()
-    if (choice == "0"):
+    if (choice == "1"):
         setattr(args, "pattern-size", 3)  # 动态设置 pattern-size
         setattr(args, "pattern-adj-mat", "011101110")
-    if (choice == "1"):
+        setattr(args, "patternID", 1)
+    if (choice == "2"):
         setattr(args, "pattern-size", 4)  # 动态设置 pattern-size
         custom_adj_mat = input("Define a pattern-adj-mat (Default is permitted): ").strip()
         if custom_adj_mat == "":
             setattr(args, "pattern-adj-mat", "0110100110010110")
         else:
             setattr(args, "pattern-adj-mat", custom_adj_mat)
+        setattr(args, "patternID", 2)
     # return parser.parse_args()
     return args

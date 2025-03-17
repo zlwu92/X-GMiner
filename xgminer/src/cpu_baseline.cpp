@@ -50,7 +50,18 @@ void CPU_Baseline::run_graphpi_test() {
                         performance_modeling_type, restricts_type, use_in_exclusion_optimize, 
                         g->v_cnt, g->e_cnt, g->tri_cnt);
 
-    std::cout << __LINE__ << " " << __FILE__ << std::endl;
+    printf("Current schedule: ");
+    const int* sched_adj_mat = schedule.get_adj_mat_ptr();
+    for(int i = 0; i < 4; ++i)
+        for(int j = 0; j< 4; ++j)
+            printf("%d", sched_adj_mat[INDEX(i,j,4)]);
+    puts("");
+
+    auto& pairs = schedule.restrict_pair;
+    printf("%ld ",pairs.size());
+    for(auto& p : pairs)
+        printf("(%d,%d)",p.first,p.second);
+    puts("");
     // 0110
     // 1001
     // 1001
@@ -81,6 +92,7 @@ void CPU_Baseline::run_our_baseline_test() {
         // edgeLists[target].push_back(source); // 无向图需要双向添加
         edgeLists[source].insert(target); // 添加边到源顶点的边列表
         edgeLists[target].insert(source); // 无向图需要双向添加
+        printf("source=%d target=%d\n", source, target);
     }
 
     // 输出每个顶点的边列表
@@ -105,9 +117,11 @@ void CPU_Baseline::run_our_baseline_test() {
     // std::set<std::set<int>> uniques;
     // int count = 0;
     
-    // identify the pattern
-    // 4_rectangle_baseline_cpu_kernel();
-    kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+    if (patternID == XGMinerPatternType::RECTANGLE) {
+        kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+    } else {
+        LOG_ERROR("Invalid pattern ID.");
+    }
 
     LOG_INFO("total embeddings: " + std::to_string(total_count));
     // LOG_INFO("unique embeddings: " + std::to_string(uniques.size()));
@@ -216,9 +230,13 @@ void CPU_Baseline::run_baseline_with_graphpi_sched() {
         std::cout << std::endl;
     }
 
-    // kernel.rectangle4_baseline_cpu_kernel_with_graphpi_sched(vertices, edgeLists, total_count, embedding,
-    //                                                         p_edgeList, pairs);
-    kernel.rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(vertices, edgeLists, total_count, embedding,
-                                                            p_edgeList, pairs);
+    if (patternID == XGMinerPatternType::RECTANGLE) {
+        // kernel.rectangle4_baseline_cpu_kernel_with_graphpi_sched(vertices, edgeLists, total_count, embedding,
+        //                                                         p_edgeList, pairs);
+        kernel.rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(vertices, edgeLists, total_count, embedding,
+                                                                p_edgeList, pairs);
+    } else {
+        LOG_ERROR("Invalid pattern ID.");
+    }
     LOG_INFO("total embeddings: " + std::to_string(total_count));
 }

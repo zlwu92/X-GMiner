@@ -40,7 +40,8 @@ public:
             ("run-graphpi", "Run GraphPi algorithm", cxxopts::value<int>()->default_value("0"))
             ("run-our-baseline", "Run our baseline implementation", cxxopts::value<int>()->default_value("0"))
             ("pattern-adj-mat", "Pattern adjacency matrix", cxxopts::value<std::string>()->default_value("011101110"))
-            ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"));
+            ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"))
+            ("patternID", "Pattern ID", cxxopts::value<int>()->default_value("1"));
         ;
         
         try {
@@ -97,6 +98,11 @@ public:
                 PRINT_GREEN("Pattern size: " << pattern_size);
             }
 
+            if (result.count("patternID")) {
+                patternID = result["patternID"].as<int>();
+                PRINT_GREEN("Pattern ID: " << patternID);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -119,6 +125,8 @@ public:
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--pattern-adj-mat").help("Pattern adjacency matrix").default_value(std::string{"011101110"});
         program.add_argument("--pattern-size").help("Pattern size").default_value(3).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--patternID").help("Pattern ID").default_value(1).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -171,6 +179,11 @@ public:
                 PRINT_GREEN("Pattern size: " << pattern_size);
             }
 
+            if (program.get<int>("--patternID") != 0) {
+                patternID = program.get<int>("--patternID");
+                PRINT_GREEN("Pattern ID: " << patternID);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -200,6 +213,7 @@ public:
     int run_our_baseline = 0;
     char* pattern_adj_mat = nullptr;
     int pattern_size = 3;
+    int patternID = 1;
     
 private:
     int argc;

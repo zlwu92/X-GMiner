@@ -21,6 +21,7 @@ public:
         run_our_baseline = opts.run_our_baseline;
         pattern_size = opts.pattern_size;
         adj_mat = opts.pattern_adj_mat;
+        patternID = opts.patternID;
     }
 
     ~CPU_Baseline() {
@@ -60,12 +61,12 @@ private:
     int use_graphpi_sched = 1;
     int run_graphpi = 0;
     int run_our_baseline = 1;
-    // Graph *g;
-    // DataLoader D;
+    
     std::string data_name = "Wiki-Vote";
     std::string data_path = "";
     char* adj_mat;
     int pattern_size = 3;
+    int patternID = 1;
     const int* p_adj_mat;
     
     int vertices, edges;

@@ -2,7 +2,7 @@
 
 void Kernel::rectangle4_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
                                         int& total_count, std::vector<int>& embedding) {
-// void rectangle4_baseline_cpu_kernel() {
+    LOG_INFO("Running rectangle4_baseline_cpu_kernel.");
     std::set<std::set<int>> uniques;
 
     for (int i = 0; i < vertices; i++) { // level 1
@@ -36,9 +36,9 @@ void Kernel::rectangle4_baseline_cpu_kernel(int vertices, std::vector<std::set<i
                                     //     std::cout << v << " ";
                                     // }
                                     // std::cout << std::endl;
-                                    if (uniques.find(std::set<int>(embedding.begin(), embedding.end())) == uniques.end()) {
-                                        uniques.insert(std::set<int>(embedding.begin(), embedding.end()));
-                                    }
+                                    // if (uniques.find(std::set<int>(embedding.begin(), embedding.end())) == uniques.end()) {
+                                    //     uniques.insert(std::set<int>(embedding.begin(), embedding.end()));
+                                    // }
                                     embedding.pop_back();
                                 }
                             }
@@ -79,6 +79,7 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched(
                                         int& total_count, std::vector<int>& embedding, 
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair) {
+    LOG_INFO("Running rectangle4_baseline_cpu_kernel_with_graphpi_sched.");
     int uID = 0;
     for (int i = 0; i < vertices; i++) { // level 0, search candidates of u0
         int candidate_0 = i;
@@ -156,62 +157,76 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(
                                         int& total_count, std::vector<int>& embedding, 
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair) {
+    LOG_INFO("Running rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2.");
     int uID = 0;
-    std::vector<int> search_path(vertices, 0);
+    std::vector<int> p_search_path(p_edgeList.size(), 0);
+    p_search_path[uID] = 1;
+    // std::vector<int> search_path(vertices, 0);
     for (int i = 0; i < vertices; i++) { // level 0, search candidates of u0
         int candidate_0 = i;
-        if (i == 0)
+        // if (i == 0)
         {
         embedding.push_back(candidate_0);
-        search_path[candidate_0] = 1;
         uID = 1;
+        p_search_path[uID] = 1;
         for (int candidate_1 : edgeLists[candidate_0]) { // level 1, search candidates of u1 in N(v0)
             // search if exists restrict pair for u1
             bool isValid = get_restrict_prefix(restrict_pair, uID, candidate_1, embedding);
             if (isValid) {
                 embedding.push_back(candidate_1);
-                search_path[candidate_1] = 1;
                 uID = 2;
-                auto neigh_belong_to = get_neighbor_prefix(p_edgeList, embedding, uID, search_path);
-                std::cout << "@@ embedding: ";
-                for (int v : embedding) {
-                    std::cout << v << " ";
-                }
-                std::cout << "; neigh_belong_to: ";
-                for (int v : neigh_belong_to) {
-                    std::cout << v << " ";
-                }
-                puts("");
+                auto neigh_belong_to = get_neighbor_prefix(p_edgeList, embedding, uID, p_search_path);
+                // std::cout << __LINE__ << " embedding: ";
+                // for (int v : embedding) {
+                //     std::cout << v << " ";
+                // }
+                // std::cout << "; neigh_belong_to: ";
+                // for (int v : neigh_belong_to) {
+                //     std::cout << v << " ";
+                // }
+                // puts("");
                 if (neigh_belong_to.size() == 0) {
                     embedding.pop_back();
-                    search_path[candidate_1] = 0;
                     continue;
                 }
+                p_search_path[uID] = 1;
                 int father = neigh_belong_to[0];
+                int cand_father = embedding[father];
                 // std::cout << "neigh_belong_to.size()=" << neigh_belong_to.size() << " father=" << father << std::endl;
-                for (int candidate_2 : edgeLists[father]) { // level 2, search candidates of u2 in N(v0)
+                for (int candidate_2 : edgeLists[cand_father]) { // level 2, search candidates of u2 in N(v0)
                     // search if exists restrict pair for u2
                     bool isValid = get_restrict_prefix(restrict_pair, uID, candidate_2, embedding);
                     // if (embedding[0]==0 && embedding[1]==2 && uID==2) {
                     //     printf("candidate_2=%d isValid=%d\n", candidate_2, isValid);
                     // }
+                    // printf("## cand_father=%d, candidate_2=%d isValid=%d\n", cand_father, candidate_2, isValid);
                     if (isValid) {
                         embedding.push_back(candidate_2);
-                        search_path[candidate_2] = 1;
                         uID = 3;
-                        auto neigh_belong_to = get_neighbor_prefix(p_edgeList, embedding, uID, search_path);
+                        auto neigh_belong_to = get_neighbor_prefix(p_edgeList, embedding, uID, p_search_path);
+                        // std::cout << __LINE__ << " embedding: ";
+                        // for (int v : embedding) {
+                        //     std::cout << v << " ";
+                        // }
+                        // std::cout << "; neigh_belong_to: ";
+                        // for (int v : neigh_belong_to) {
+                        //     std::cout << v << " ";
+                        // }
+                        // puts("");
                         // should be intersection of edgeLists[candidate_1] and edgeLists[candidate_2]
                         if (neigh_belong_to.size() < 2) {
                             embedding.pop_back();
-                            search_path[candidate_2] = 0;
                             continue;
                         }
+                        p_search_path[uID] = 1;
                         int father1 = neigh_belong_to[0];
                         int father2 = neigh_belong_to[1];
+                        int cand_father1 = embedding[father1];
+                        int cand_father2 = embedding[father2];
                         // printf("father1=%d, father2=%d\n", father1, father2);
                         std::set<int> candidate_3;
-                        std::set_intersection(edgeLists[father1].begin(), edgeLists[father1].end(), 
-                                        edgeLists[father2].begin(), edgeLists[father2].end(), 
+                        std::set_intersection(edgeLists[cand_father1].begin(), edgeLists[cand_father1].end(), 
+                                        edgeLists[cand_father2].begin(), edgeLists[cand_father2].end(), 
                                         std::inserter(candidate_3, candidate_3.begin()));
                         for (int candidate_3 : candidate_3) { // level 3, search candidates of u3 in N(v1) and N(v2)
                             // search if exists restrict pair for u3
@@ -230,19 +245,16 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(
                                 embedding.pop_back();
                             }
                         }
-                        // if (embedding.size() == 4) 
                         embedding.pop_back();
-                        search_path[candidate_2] = 0;
+                        p_search_path[3] = 0;
                     }
-                }
-                // if (embedding.size() == 3)  
+                } 
                 embedding.pop_back();
-                search_path[candidate_1] = 0;
+                p_search_path[2] = 0;
             }
         }
-        // if (embedding.size() == 2) 
         embedding.pop_back();
         }
-        std::fill(search_path.begin(), search_path.end(), 0);
+        p_search_path[1] = 0;
     }
 }
