@@ -120,6 +120,7 @@ def parse_args():
     print("0 -- TestGr1")
     print("1 -- TestGr2")
     print("2 -- Wiki-Vote")
+    print("3 -- Mico-Bin")
     choice = input("Enter Dataset ID: ").strip()
     if (choice == "0"):
         parser.set_defaults(graph=Path(f"{utils.datasets['TestGr1']}"))
@@ -130,10 +131,15 @@ def parse_args():
     if (choice == "2"):
         parser.set_defaults(graph=Path(f"{utils.datasets['Wiki-Vote']}"))
         parser.set_defaults(dataname="Wiki-Vote")
+    if (choice == "3"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['mico_bin']}"))
+        parser.set_defaults(dataname="Mico-Bin")
         
     print(f"{utils.Colors.OKBLUE}>> Choose input pattern:{utils.Colors.ENDC}")
     print("1 -- Triangle (size = 3)")
     print("2 -- Rectangle (size = 4)")
+    print("3 -- Diamond (size = 4)")
+    print(" For GLUMIN (>16)")
     choice = input("Enter Pattern ID: ").strip()
     args = parser.parse_args()
     if (choice == "1"):

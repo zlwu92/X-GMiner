@@ -37,17 +37,41 @@ TEST_SUITES = {
         }
     },
     "3": {
-        "name": "GPU Baseline (GraphPi sched)",
+        "name": "GLUMIN + G2Miner",
         "params": {
-            "algorithm": "gpu_optimized",
-            "use-graphpi-sched": 1,
+            "algorithm": "glumin_g2miner",
+            # "use-graphpi-sched": 1,
         }
     },
     "4": {
-        "name": "GPU Baseline",
+        "name": "GLUMIN + G2Miner with LUT",
         "params": {
-            "algorithm": "gpu_optimized",
-            "use-graphpi-sched": 0,
+            "algorithm": "glumin_g2miner_lut",
+            # "use-graphpi-sched": 0,
+        }
+    },
+    "5": {
+        "name": "GLUMIN + GraphFold",
+        "params": {
+            "algorithm": "glumin_gf",
+        }
+    },
+    "6": {
+        "name": "GLUMIN + GraphFold with LUT",
+        "params": {
+            "algorithm": "glumin_gf_lut",
+        }
+    },
+    "7": {
+        "name": "GLUMIN + AutoMine",
+        "params": {
+            "algorithm": "glumin_automine",
+        }
+    },
+    "8": {
+        "name": "GLUMIN + AutoMine with LUT",
+        "params": {
+            "algorithm": "glumin_automine_lut",
         }
     },
 }
@@ -82,13 +106,28 @@ def RUN_TEST2():
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 2")
     
 def RUN_TEST3():
-    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "gpu_baseline", "--use-graphpi-sched", "1"]
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_g2miner"]
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 3")
 
 def RUN_TEST4():
-    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "gpu_baseline", "--use-graphpi-sched", "0"]
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_g2miner_lut"]
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 4")
 
+def RUN_TEST5():
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_gf"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run test 5")
+    
+def RUN_TEST6():
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_gf_lut"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run test 6")
+    
+def RUN_TEST7():
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_automine"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run test 7")
+    
+def RUN_TEST8():
+    cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_automine_lut"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run test 8")
 
 def show_menu():
     """显示交互式菜单"""
@@ -124,6 +163,14 @@ def testing_suites():
             RUN_TEST3()
         elif choice == "4":
             RUN_TEST4()
+        elif choice == "5":
+            RUN_TEST5()
+        elif choice == "6":
+            RUN_TEST6()
+        elif choice == "7":
+            RUN_TEST7()
+        elif choice == "8":
+            RUN_TEST8()
     except subprocess.CalledProcessError as e:
         print(f"Experiment failed with code {e.returncode}")
         sys.exit(e.returncode)

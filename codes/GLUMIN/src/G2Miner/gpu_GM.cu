@@ -27,6 +27,7 @@ __global__ void clear(AccType *accumulators) {
 }
 
 void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
+  std::cout << "PatternSolver without LUT.\n";
   assert(k >= 1);
   size_t memsize = print_device_info(0);
   vidType nv = g.num_vertices();

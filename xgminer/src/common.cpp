@@ -64,8 +64,9 @@ bool checkDirectoryForFilesWithExtension(std::string directoryPath, const std::s
 }
 
 Input_FileFormat getFileFormat(std::string filename) {
-    
+    printf("Checking file format of %s\n", filename.c_str());
     if (fs::is_directory(filename)) {
+        printf("Directory\n");
         if (checkDirectoryForFilesWithExtension(filename, "bin")) {
             return BINARY; // for GLUMIN and G2Miner
         }

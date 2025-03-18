@@ -5,6 +5,7 @@
 #include "log_manager.h"
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
+#include "common.h"
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -239,6 +240,8 @@ inline std::vector<int> PrefixSum(const std::vector<int> &degrees) {
 }
 
 }
+
+
 
 /*********************************** X-GMiner *******************************/
 #include <iostream>

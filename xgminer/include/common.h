@@ -131,6 +131,11 @@ const std::string long_separator = "--------------------------------------------
 const std::string short_separator = "-----------------------\n";
 
 
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+
+
+
 
 /*********************************** GraphPi *******************************/
 
@@ -169,3 +174,32 @@ bool checkFileExtension(std::string filename, const std::string& extension);
 bool checkDirectoryForFilesWithExtension(std::string directoryPath, const std::string& extension);
 
 Input_FileFormat getFileFormat(std::string filename);
+
+
+enum XGMinerPatternType {
+    TRIANGLE = 1,
+    RECTANGLE = 2,
+    DIAMOND = 3,
+
+    P1_GraphPi = 4, // HOUSE
+    P2_GraphPi_Paper = 5, // Cycle_6_Tri
+    P3_GraphPi_Paper = 6,
+    P4_GraphPi = 7,
+    P5_GraphPi = 8,
+    P6_GraphPi = 9,
+
+    QuasiG3 = 10, // quasi-clique of size 4
+    PENGTAGON = 11, // Pentagon  supported by GraphPi
+    HOUSE = 13, // House  supported by GraphPi
+    HOURGLASS = 14, // Hourglass  supported by GraphPi
+    CYCLE_6_TRI = 15, // Cycle_6_Tri  supported by GraphPi
+    CLIQUE_7_MINUS = 16, // Clique_7_Minus  supported by GraphPi
+};
+
+static int global_pattern_ID_map_to_graphpi[] = {
+    -1,0,-1,-1,-1,-1,-1,-1,-1,1,2,3,4,5,6
+};
+
+// static int global_pattern_ID_map_to_glumin[] = {
+//     -1,1,2,3,4,5,6,7,8,9,10,11,13,14,15,16
+// };

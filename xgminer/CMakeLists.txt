@@ -45,6 +45,7 @@ set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS} "-g -O3 -lineinfo --expt-extended-lambd
 include_directories(
     "${PROJECT_SOURCE_DIR}/include/" 
     "${PROJECT_SOURCE_DIR}/include/graphpi/" 
+    "${PROJECT_SOURCE_DIR}/include/glumin/"
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
 
@@ -60,6 +61,8 @@ file(GLOB_RECURSE SRC_FILES
     "${PROJECT_SOURCE_DIR}/src/*.cu"
     "${PROJECT_SOURCE_DIR}/src/graphpi/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/cpu_kernels/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cu"
 )
 
 # 合并源文件列表

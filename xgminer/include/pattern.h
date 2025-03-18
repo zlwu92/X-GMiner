@@ -35,12 +35,6 @@ enum Labelling {
     DISCOVER_LABELS
 };
 
-enum XGMinerPatternType {
-    TRIANGLE = 1,
-    RECTANGLE = 2,
-    DIAMOND = 3,
-};
-
 
 
 class Pattern {

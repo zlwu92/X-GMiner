@@ -22,29 +22,29 @@ enum InputFileType {
 };
 
 class Graph {
-public:
-    /********************************** GraphMiner *****************************/
-    // Graph(std::string file, int input_type);
-    // ~Graph() {}
+// public:
+//     /********************************** GraphMiner *****************************/
+//     // Graph(std::string file, int input_type);
+//     // ~Graph() {}
 
-    // Graph(const Graph &)=delete; // disable copy constructor
-    // Graph& operator=(const Graph &)=delete; // disable assignment operator
+//     // Graph(const Graph &)=delete; // disable copy constructor
+//     // Graph& operator=(const Graph &)=delete; // disable assignment operator
 
-// protected:
-    std::string name_;            // name of the graph
-    std::string inputfile_path;   // file path of the graph
-    bool is_directed_;            // is it a directed graph?
-    bool is_bipartite;            // is it a bipartite graph?
-    bool has_reverse;             // has reverse/incoming edges maintained
-    vidType max_degree;           // maximun degree
-    vidType n_vertices;           // number of vertices
-    eidType n_edges;              // number of edges
-    eidType nnz;                  // number of edges in COO format (may be halved due to orientation)
+// // protected:
+//     std::string name_;            // name of the graph
+//     std::string inputfile_path;   // file path of the graph
+//     bool is_directed_;            // is it a directed graph?
+//     bool is_bipartite;            // is it a bipartite graph?
+//     bool has_reverse;             // has reverse/incoming edges maintained
+//     vidType max_degree;           // maximun degree
+//     vidType n_vertices;           // number of vertices
+//     eidType n_edges;              // number of edges
+//     eidType nnz;                  // number of edges in COO format (may be halved due to orientation)
 
-    vidType *colinds;             // column indices of CSR format
-    eidType *rowptrs;             // row pointers of CSR format
-    vidType *src_list, *dst_list; // source and destination vertices of COO format
-    VertexList neigh_count;             // neighbor count of each source vertex in the edgelist
+//     vidType *colinds;             // column indices of CSR format
+//     eidType *rowptrs;             // row pointers of CSR format
+//     vidType *src_list, *dst_list; // source and destination vertices of COO format
+//     VertexList neigh_count;             // neighbor count of each source vertex in the edgelist
 
 
     /*********************************** GraphPi *******************************/
@@ -87,7 +87,7 @@ public:
     //general pattern matching algorithm with multi thread ans multi process
     long long pattern_matching_mpi(const Schedule& schedule, int thread_count, bool clique = false);
 
-    // int max_degree;
+    int max_degree;
 
     void tc_mt(long long * global_ans);
 
