@@ -2,13 +2,13 @@
 #include <iostream>
 #include <assert.h>
 #include "utils.h"
-#include "../include/graph.h"
+#include "graph.h"
 #include "../include/dataloader.h"
 #include "../include/pattern.h"
 #include "../include/schedule.h"
 #include "../include/common.h"
 #include "cmd_option.h"
-
+// #include "graph_v2_gpu.h"
 
 class Kernel {
 public:
@@ -27,5 +27,16 @@ public:
                                         long long& total_count, std::vector<int>& embedding, 
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair);
+
+
+    // __global__ void __launch_bounds__(BLOCK_SIZE, 8)
+    // GM_LUT_warp(vidType begin, vidType end, /*add begin, end!!!*/
+    //                 vidType *vid_list, /*Add vid_list*/
+    //                 GraphGPU g, 
+    //                 vidType *vlists,
+    //                 bitmapType* bitmaps,
+    //                 vidType max_deg,
+    //                 AccType *counter,
+    //                 LUTManager<> LUTs);
 
 };

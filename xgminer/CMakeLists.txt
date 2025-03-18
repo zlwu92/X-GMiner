@@ -46,6 +46,9 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include/" 
     "${PROJECT_SOURCE_DIR}/include/graphpi/" 
     "${PROJECT_SOURCE_DIR}/include/glumin/"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/glumin/"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/glumin/gpu_GM_LUT_kernels/"
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
 
@@ -63,6 +66,7 @@ file(GLOB_RECURSE SRC_FILES
     "${PROJECT_SOURCE_DIR}/src/cpu_kernels/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cu"
+    "${PROJECT_SOURCE_DIR}/src/gpu_kernels/glumin/gpu_GM_LUT_kernels/*.cu"
 )
 
 # 合并源文件列表
@@ -73,10 +77,13 @@ list(APPEND SOURCES ${SRC_FILES})
 add_executable(xgminer ${SOURCES})
 
 # 使用 target_include_directories 替代 include_directories（现代 CMake 推荐）
+# 添加目标并递归包含 src/gpu_kernels/ 及其子目录
 # target_include_directories(xgminer PRIVATE
-#     ${PROJECT_SOURCE_DIR}/include       # 包含 include/ 目录
-#     ${PROJECT_SOURCE_DIR}/include/graphpi  # 包含 include/graphpi/
-#     ${CUDA_INCLUDE_DIRS}                # 包含 CUDA 头文件
+#     "${PROJECT_SOURCE_DIR}/include/"
+#     "${PROJECT_SOURCE_DIR}/include/graphpi/"
+#     "${PROJECT_SOURCE_DIR}/include/glumin/"
+#     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/"
+#     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 # )
 
 set_target_properties(
