@@ -1,7 +1,7 @@
 #include "cpu_baseline.h"
 
 
-void CPU_Baseline::run_graphpi_test() {
+long long CPU_Baseline::run_graphpi_test() {
     printf("run_graphpi_test\n");
     // step 0: load data
     DataType my_type;
@@ -10,7 +10,7 @@ void CPU_Baseline::run_graphpi_test() {
     D.GetDataType(my_type, data_name);
     if(my_type == DataType::Invalid) {
         printf("Dataset not found!\n");
-        return ;
+        return -1;
     }
 
     // assert(D.load_data(g, my_type, data_path.c_str())==true);
@@ -76,55 +76,26 @@ void CPU_Baseline::run_graphpi_test() {
     printf("time %.6lf\n", t2 - t1);
     
     // fflush(stdout);
+    return ans;
 }
 
+
 void CPU_Baseline::run_our_baseline_test() {
-    std::ifstream file(data_path); // 打开文本文件
-    int vertices, edges;
-    file >> vertices >> edges; // 读取顶点数和边数
-    std::cout << "Vertices: " << vertices << ", Edges: " << edges << std::endl;
-    // std::vector<std::vector<int>> edgeLists; // 用于存储每个顶点的边列表
-    // std::vector<std::set<int>> edgeLists; // 用于存储每个顶点的边列表
-    edgeLists.resize(vertices);
-    int source, target;
-    while (file >> source >> target) {
-        // edgeLists[source].push_back(target); // 添加边到源顶点的边列表
-        // edgeLists[target].push_back(source); // 无向图需要双向添加
-        edgeLists[source].insert(target); // 添加边到源顶点的边列表
-        edgeLists[target].insert(source); // 无向图需要双向添加
-        printf("source=%d target=%d\n", source, target);
-    }
-
-    // 输出每个顶点的边列表
-    // for (const auto& entry : edgeLists) {
-    //     std::cout << "Vertex " << entry.first << " edges: ";
-    //     for (int edge : entry.second) {
-    //         std::cout << edge << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    for (int i = 0; i < vertices; i++) {
-        std::cout << "Vertex " << i << " edges: ";
-        for (int edge : edgeLists[i]) {
-            std::cout << edge << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    file.close();
-
-    // std::vector<int> embedding;
-    // std::set<std::set<int>> uniques;
-    // int count = 0;
     
+    timer.start();
     if (patternID == XGMinerPatternType::RECTANGLE) {
         kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
     } else {
         LOG_ERROR("Invalid pattern ID.");
     }
-
+    timer.stop();
+    LOG_INFO("Elapsed time: " + std::to_string(timer.elapsed()) + " seconds.");
     LOG_INFO("total embeddings: " + std::to_string(total_count));
     // LOG_INFO("unique embeddings: " + std::to_string(uniques.size()));
+
+    if (do_validation) {
+        validation();
+    }
 }
 
 
@@ -192,25 +163,28 @@ void CPU_Baseline::run_baseline_with_graphpi_sched() {
     puts("");
 
     // construct edgeList
-    std::ifstream file(data_path); // 打开文本文件
-    int vertices, edges;
-    file >> vertices >> edges; // 读取顶点数和边数
-    std::cout << "Vertices: " << vertices << ", Edges: " << edges << std::endl;
-    edgeLists.resize(vertices);
-    int source, target;
-    while (file >> source >> target) {
-        edgeLists[source].insert(target);
-        edgeLists[target].insert(source);
-    }
-    file.close();
+    // int vertices, edges;
+    // if (file_format == Input_FileFormat::SNAP_TXT) {
+    //     std::ifstream file(data_path);
+    //     file >> vertices >> edges;
+    //     std::cout << "Vertices: " << vertices << ", Edges: " << edges << std::endl;
+    //     edgeLists.resize(vertices);
+    //     int source, target;
+    //     while (file >> source >> target) {
+    //         edgeLists[source].insert(target);
+    //         edgeLists[target].insert(source);
+    //     }
+    //     file.close();
+    // }
+    
     // print edgeLists
-    for (int i = 0; i < vertices; i++) {
-        std::cout << "Vertex " << i << " edges: ";
-        for (int edge : edgeLists[i]) {
-            std::cout << edge << " ";
-        }
-        std::cout << std::endl;
-    }
+    // for (int i = 0; i < vertices; i++) {
+    //     std::cout << "Vertex " << i << " edges: ";
+    //     for (int edge : edgeLists[i]) {
+    //         std::cout << edge << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     std::vector<std::vector<int>> p_edgeList(pattern_size);
     for (int i = 0; i < pattern_size * pattern_size; ++i) {
@@ -230,6 +204,7 @@ void CPU_Baseline::run_baseline_with_graphpi_sched() {
         std::cout << std::endl;
     }
 
+    timer.start();
     if (patternID == XGMinerPatternType::RECTANGLE) {
         // kernel.rectangle4_baseline_cpu_kernel_with_graphpi_sched(vertices, edgeLists, total_count, embedding,
         //                                                         p_edgeList, pairs);
@@ -238,5 +213,13 @@ void CPU_Baseline::run_baseline_with_graphpi_sched() {
     } else {
         LOG_ERROR("Invalid pattern ID.");
     }
+    timer.stop();
+    LOG_INFO("Elapsed time: " + std::to_string(timer.elapsed()) + " seconds.");
     LOG_INFO("total embeddings: " + std::to_string(total_count));
+
+
+    if (do_validation) {
+        validation();
+    }
+
 }

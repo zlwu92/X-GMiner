@@ -32,6 +32,7 @@ def parse_args():
         type=Path,
         # default=Path("/home/wuzhenlin/workspace/2-graphmining/X-GMiner/codes/GraphPi/dataset/wiki-vote_input"),
         default=Path("/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr2.txt"),
+        # required=True,
         help="Override input directory"
     )
     # parser.add_argument(
@@ -50,12 +51,14 @@ def parse_args():
         "--dataname",
         type=str,
         default="Wiki-Vote",
+        # required=True,
         help="Dataset name (default: Wiki-Vote)"
     )
     parser.add_argument(
         "--algorithm",
         type=str,
         default="cpu_baseline",
+        # required=True,
         help="Algorithm type (default: cpu_baseline)"
     )
     parser.add_argument(
@@ -101,6 +104,14 @@ def parse_args():
         type=int,
         default=1,
         dest="patternID",
+        help="Pattern ID (default: 1 for triangle)"
+    )
+    parser.add_argument(
+        "--do-validation",
+        type=int,
+        default=1,
+        # required=True,
+        dest="do-validation",
         help="Pattern ID (default: 1 for triangle)"
     )
     

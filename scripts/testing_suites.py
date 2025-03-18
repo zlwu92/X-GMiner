@@ -13,7 +13,7 @@ import utils
 # 定义测试套件
 TEST_SUITES = {
     "0": {
-        "name": "Run GraphPi Baseline",
+        "name": "Run GraphPi CPU",
         "params": {
             "algorithm": "cpu_baseline",
             # "use-graphpi-sched": 1

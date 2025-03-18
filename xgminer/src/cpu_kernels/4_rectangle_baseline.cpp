@@ -1,7 +1,7 @@
 #include "../include/kernel.h"
 
 void Kernel::rectangle4_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
-                                        int& total_count, std::vector<int>& embedding) {
+                                        long long& total_count, std::vector<int>& embedding) {
     LOG_INFO("Running rectangle4_baseline_cpu_kernel.");
     std::set<std::set<int>> uniques;
 
@@ -76,14 +76,14 @@ bool get_restrict_prefix(const std::vector<std::pair<int, int>>& pairs,
 
 void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched(
                                         int vertices, std::vector<std::set<int>>& edgeLists,
-                                        int& total_count, std::vector<int>& embedding, 
+                                        long long& total_count, std::vector<int>& embedding, 
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair) {
     LOG_INFO("Running rectangle4_baseline_cpu_kernel_with_graphpi_sched.");
     int uID = 0;
     for (int i = 0; i < vertices; i++) { // level 0, search candidates of u0
         int candidate_0 = i;
-        if (i == 0)
+        // if (i == 0)
         {
         embedding.push_back(candidate_0);
         uID = 1;
@@ -103,7 +103,7 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched(
                         embedding.push_back(candidate_2);
                         uID = 3;
                         // should be intersection of edgeLists[candidate_1] and edgeLists[candidate_2]
-                        printf("candidate_1=%d, candidate_2=%d\n", candidate_1, candidate_2);
+                        // printf("candidate_1=%d, candidate_2=%d\n", candidate_1, candidate_2);
                         std::set<int> candidate_3;
                         std::set_intersection(edgeLists[candidate_1].begin(), edgeLists[candidate_1].end(), 
                                         edgeLists[candidate_2].begin(), edgeLists[candidate_2].end(), 
@@ -118,10 +118,10 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched(
                                 embedding.push_back(candidate_3);
                                 total_count++;
                                 // print out the embedding
-                                for (int v : embedding) {
-                                    std::cout << v << " ";
-                                }
-                                std::cout << std::endl;
+                                // for (int v : embedding) {
+                                //     std::cout << v << " ";
+                                // }
+                                // std::cout << std::endl;
                                 embedding.pop_back();
                             }
                         }
@@ -154,7 +154,7 @@ std::vector<int> get_neighbor_prefix(std::vector<std::vector<int>>& p_edgeList,
 
 void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(
                                         int vertices, std::vector<std::set<int>>& edgeLists,
-                                        int& total_count, std::vector<int>& embedding, 
+                                        long long& total_count, std::vector<int>& embedding, 
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair) {
     LOG_INFO("Running rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2.");
@@ -238,10 +238,10 @@ void Kernel::rectangle4_baseline_cpu_kernel_with_graphpi_sched_v2(
                                 embedding.push_back(candidate_3);
                                 total_count++;
                                 // print out the embedding
-                                for (int v : embedding) {
-                                    std::cout << v << " ";
-                                }
-                                std::cout << std::endl;
+                                // for (int v : embedding) {
+                                //     std::cout << v << " ";
+                                // }
+                                // std::cout << std::endl;
                                 embedding.pop_back();
                             }
                         }

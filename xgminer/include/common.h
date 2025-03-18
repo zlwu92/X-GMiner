@@ -150,3 +150,22 @@ unsigned int read_unsigned_int();
 
 typedef int32_t v_index_t;
 typedef int64_t e_index_t;
+
+
+
+/*********************************** X-GMiner *******************************/
+
+enum Input_FileFormat {
+    SNAP_TXT = 0,
+    BINARY = 1,
+    DIMACS = 2,
+    MatrixMarket = 3,
+    INVALID = 4,
+};
+
+
+bool checkFileExtension(std::string filename, const std::string& extension);
+
+bool checkDirectoryForFilesWithExtension(std::string directoryPath, const std::string& extension);
+
+Input_FileFormat getFileFormat(std::string filename);

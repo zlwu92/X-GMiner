@@ -41,7 +41,8 @@ public:
             ("run-our-baseline", "Run our baseline implementation", cxxopts::value<int>()->default_value("0"))
             ("pattern-adj-mat", "Pattern adjacency matrix", cxxopts::value<std::string>()->default_value("011101110"))
             ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"))
-            ("patternID", "Pattern ID", cxxopts::value<int>()->default_value("1"));
+            ("patternID", "Pattern ID", cxxopts::value<int>()->default_value("1"))
+            ("do-validation", "Do validation", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -103,6 +104,11 @@ public:
                 PRINT_GREEN("Pattern ID: " << patternID);
             }
 
+            if (result.count("do-validation")) {
+                do_validation = result["do-validation"].as<int>();
+                PRINT_GREEN("Do validation: " << do_validation);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -127,6 +133,8 @@ public:
         program.add_argument("--pattern-size").help("Pattern size").default_value(3).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--patternID").help("Pattern ID").default_value(1).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--do-validation").help("Do validation").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -184,6 +192,11 @@ public:
                 PRINT_GREEN("Pattern ID: " << patternID);
             }
 
+            if (program.get<int>("--do-validation") != 0) {
+                do_validation = program.get<int>("--do-validation");
+                PRINT_GREEN("Do validation: " << do_validation);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -214,6 +227,7 @@ public:
     char* pattern_adj_mat = nullptr;
     int pattern_size = 3;
     int patternID = 1;
+    int do_validation = 0;
     
 private:
     int argc;

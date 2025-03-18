@@ -239,3 +239,50 @@ inline std::vector<int> PrefixSum(const std::vector<int> &degrees) {
 }
 
 }
+
+/*********************************** X-GMiner *******************************/
+#include <iostream>
+#include <chrono>
+
+class CPUTimer {
+public:
+    // 构造函数：默认不启动计时器
+    CPUTimer() : start_time_(std::chrono::high_resolution_clock::now()), is_running_(false) {}
+
+    // 启动计时器
+    void start() {
+        if (!is_running_) {
+            start_time_ = std::chrono::high_resolution_clock::now();
+            is_running_ = true;
+        }
+    }
+
+    // 停止计时器
+    void stop() {
+        if (is_running_) {
+            elapsed_time_ += std::chrono::high_resolution_clock::now() - start_time_;
+            is_running_ = false;
+        }
+    }
+
+    // 重置计时器
+    void reset() {
+        elapsed_time_ = std::chrono::duration<double>::zero();
+        is_running_ = false;
+    }
+
+    // 获取经过的时间（以秒为单位）
+    double elapsed() const {
+        if (is_running_) {
+            return elapsed_time_.count() + 
+                   std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start_time_).count();
+        }
+        return elapsed_time_.count();
+    }
+
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time_; // 记录启动时间
+    std::chrono::duration<double> elapsed_time_ = std::chrono::duration<double>::zero(); // 累计经过时间
+    bool is_running_; // 是否正在运行
+};
+
