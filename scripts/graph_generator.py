@@ -112,7 +112,7 @@ def visualize_graph_from_file(file_path):
     nx.draw(G, with_labels=True, node_color='skyblue', node_size=500, font_size=10, font_color='black')
     plt.axis('off')
 
-    plt.savefig("graph_visualization.pdf", format="pdf")
+    plt.savefig("example_graph.pdf", format="pdf")
 
     print("Graph visualization saved as: graph_visualization.pdf")
 
