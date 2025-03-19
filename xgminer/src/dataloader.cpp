@@ -15,7 +15,7 @@ bool DataLoader::load_data(Graph* &g, DataType type, const char* path, int orien
     printf("load_data\n");
     if(type == Patents || type == Orkut || type == complete8 || type == LiveJournal || 
         type == MiCo || type == CiteSeer || type == Wiki_Vote ||
-        type == TestGr1 || type == TestGr2) {
+        type == TestGr1 || type == TestGr2 || type == DBLP || type == YouTube) {
         return general_load_data(g, type, path, oriented_type);
     }
 
@@ -68,6 +68,14 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
         }
         case DataType::TestGr2 : {
             g->tri_cnt = TestGr2_tri_cnt;
+            break;
+        }
+        case DataType::DBLP : {
+            g->tri_cnt = DBLP_tri_cnt;
+            break;
+        }
+        case DataType::YouTube : {
+            g->tri_cnt = YouTube_tri_cnt;
             break;
         }
         default : {
@@ -134,10 +142,10 @@ bool DataLoader::general_load_data(Graph *&g, DataType type, const char* path, i
     g->max_degree = degree[g->v_cnt - 1];
     delete[] degree;
     if(tmp_v != g->v_cnt) {
-        printf("vertex number error!\n");
+        printf("vertex number error! tmp_v = %d, g->v_cnt = %d\n", tmp_v, g->v_cnt);
     }
     if(tmp_e != g->e_cnt) {
-        printf("edge number error!\n");
+        printf("edge number error! tmp_e = %u, g->e_cnt = %u\n", tmp_e, g->e_cnt);
     }
     if(tmp_v != g->v_cnt || tmp_e != g->e_cnt) {
         fclose(stdin);
@@ -336,5 +344,11 @@ void DataLoader::GetDataType(DataType &type, const std::string str) {
     if(str == "TestGr2" ) {
         printf("DataType::TestGr2\n");
         type = DataType::TestGr2;
+    }
+    if(str == "DBLP" ) {
+        type = DataType::DBLP;
+    }
+    if(str == "YouTube" ) {
+        type = DataType::YouTube;
     }
 }

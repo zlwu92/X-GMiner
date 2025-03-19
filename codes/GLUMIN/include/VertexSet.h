@@ -30,6 +30,7 @@ private:
   const bool pooled;
 public:
   VertexSet() : set_size(0), vid(-1), pooled(true) {
+    printf("VertexSet() called\n");
     if(buffers_avail.size() == 0) { 
       vidType *p = custom_alloc_local<vidType>(MAX_DEGREE);
       buffers_exist.push_back(p);
@@ -44,11 +45,11 @@ public:
   VertexSet& operator=(const VertexSet&)=delete;
   VertexSet(VertexSet&&)=default;
   VertexSet& operator=(VertexSet&&)=default;
-  ~VertexSet() {
-    if(pooled) {
-      buffers_avail.push_back(ptr);
-    }
-  }
+  // ~VertexSet() {
+  //   if(pooled) {
+  //     buffers_avail.push_back(ptr);
+  //   }
+  // }
   vidType size() const { return set_size; }
   VertexSet operator &(const VertexSet &other) const {
     VertexSet out;

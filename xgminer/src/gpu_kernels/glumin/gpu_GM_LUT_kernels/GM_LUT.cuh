@@ -1,10 +1,11 @@
-#include "../../../../include/kernel.h"
+// #include "../../../../include/kernel.h"
 
 #define __N_LISTS1 2
 #define __N_BITMAPS1 1
 
+#if 1
 __global__ void __launch_bounds__(BLOCK_SIZE, 8)
-Kernel::GM_LUT_warp(vidType begin, vidType end, /*add begin, end!!!*/
+GM_LUT_warp(vidType begin, vidType end, /*add begin, end!!!*/
                   vidType *vid_list, /*Add vid_list*/
                   GraphGPU g, 
                   vidType *vlists,
@@ -195,3 +196,4 @@ GM_LUT_global(vidType begin, vidType end, /*add begin end!!!*/
 
   atomicAdd(&counter[0], count);
 }
+#endif

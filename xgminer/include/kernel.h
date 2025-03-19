@@ -28,6 +28,13 @@ public:
                                         std::vector<std::vector<int>>& p_edgeList, 
                                         std::vector< std::pair<int,int>>& restrict_pair);
 
+    void motif4_glumin_p1_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
+                                            long long& total_count, std::vector<int>& embedding);
+
+
+    void motif4_glumin_p3_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
+                                            long long& total_count, std::vector<int>& embedding);
+
 
     // __global__ void __launch_bounds__(BLOCK_SIZE, 8)
     // GM_LUT_warp(vidType begin, vidType end, /*add begin, end!!!*/

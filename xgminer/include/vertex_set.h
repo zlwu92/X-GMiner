@@ -6,7 +6,8 @@
 
 #pragma once
 #include "schedule.h"
-
+#include "glumin/custom_alloc.h"
+#if 0
 #ifdef USE_NUMA
   #include <numa.h>
   template<typename T>
@@ -61,6 +62,7 @@ static void map_file(std::string fname, T *& pointer, size_t length) {
   assert(pointer != MAP_FAILED);
   close(inf);
 }
+#endif
 
 constexpr vidType VID_MIN = 0;
 constexpr vidType VID_MAX = std::numeric_limits<vidType>::max();
@@ -92,6 +94,7 @@ private:
 
 public:
     VertexSet() : set_size(0), vid(-1), pooled(true), data(nullptr), size(0), allocate(false){
+        // printf("VertexSet() called\n");
         if(buffers_avail.size() == 0) { 
             vidType *p = custom_alloc_local<vidType>(MAX_DEGREE);
             buffers_exist.push_back(p);
@@ -100,8 +103,21 @@ public:
         ptr = buffers_avail.back();
         buffers_avail.pop_back();
     }
+    // VertexSet() : set_size(0), vid(-1), pooled(true) {
+    //   // printf("VertexSet() called\n");
+    //   if(buffers_avail.size() == 0) { 
+    //     vidType *p = custom_alloc_local<vidType>(MAX_DEGREE);
+    //     buffers_exist.push_back(p);
+    //     buffers_avail.push_back(p);
+    //   }
+    //   ptr = buffers_avail.back();
+    //   buffers_avail.pop_back();
+    // }
+    // VertexSet::VertexSet() :data(nullptr), size(0), allocate(false) {}
+    
     VertexSet(vidType *p, vidType s, vidType id) : 
         ptr(p), set_size(s), vid(id), pooled(false) {}
+
     
     VertexSet(const VertexSet&)=delete;
     VertexSet& operator=(const VertexSet&)=delete;

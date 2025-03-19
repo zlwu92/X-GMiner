@@ -4,7 +4,7 @@
     * borrowed from GLUMIN
 */
 
-#include "../include/pattern.h"
+#include "../../include/pattern.h"
 
 
 void Pattern::set_name() {

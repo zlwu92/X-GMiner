@@ -194,6 +194,10 @@ enum XGMinerPatternType {
     HOURGLASS = 14, // Hourglass  supported by GraphPi
     CYCLE_6_TRI = 15, // Cycle_6_Tri  supported by GraphPi
     CLIQUE_7_MINUS = 16, // Clique_7_Minus  supported by GraphPi
+
+    P1_GLUMIN = 17,
+
+    P3_GLUMIN = 19,
 };
 
 static int global_pattern_ID_map_to_graphpi[] = {

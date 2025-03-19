@@ -64,6 +64,8 @@ file(GLOB_RECURSE SRC_FILES
     "${PROJECT_SOURCE_DIR}/src/*.cu"
     "${PROJECT_SOURCE_DIR}/src/graphpi/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/cpu_kernels/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/glumin/*.cu"
+    "${PROJECT_SOURCE_DIR}/src/glumin/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/*.cu"
     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/glumin/gpu_GM_LUT_kernels/*.cu"

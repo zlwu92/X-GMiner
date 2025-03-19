@@ -7,7 +7,7 @@
 // Daniel Mawhirter and Bo Wu. SOSP 2019.
 // AutoMine: Harmonizing High-Level Abstraction and High Performance for Graph Mining
 
-#include "../include/vertex_set.h"
+#include "../../include/vertex_set.h"
 #include <cassert>
 
 // VertexSet static members

@@ -18,7 +18,8 @@ Graph_V2::Graph_V2(std::string prefix, bool use_dag, bool directed,
     std::cout << "input file path: " << inputfile_path << ", graph name: " << name_ << "\n";
 
     // read meta information
-    VertexSet::release_buffers();
+    // VertexSet::release_buffers();
+    std::cout << prefix + ".meta.txt" << "\n";
     std::ifstream f_meta((prefix + ".meta.txt").c_str());
     assert(f_meta);
     int vid_size = 0, eid_size = 0, vlabel_size = 0, elabel_size = 0;
@@ -179,6 +180,7 @@ void Graph_V2::build_reverse_graph() {
 }
 
 VertexSet Graph_V2::N(vidType vid) const {
+  printf("vid = %d\n", vid);
   assert(vid >= 0);
   assert(vid < n_vertices);
   eidType begin = vertices[vid], end = vertices[vid+1];
@@ -313,9 +315,28 @@ eidType Graph_V2::init_edgelist(bool sym_break, bool ascend) {
   if (sym_break) dst_list = new vidType[nnz];
   else dst_list = edges;
   size_t i = 0;
+  std::cout << "nnz = " << nnz << " sym_break = " << sym_break << " ascend = " << ascend << " V = " << V() << "\n";
+  std::cout << "Generating the edgelist\n";
   for (vidType v = 0; v < V(); v ++) {
-    for (auto u : N(v)) {
-      if (u == v) continue; // no selfloops
+    // if (v == 0) 
+    {
+    // for (auto u : N(v)) {
+    //   if (u == v) continue; // no selfloops
+    //   // printf("v = %d, u = %d\n", v, u);
+    //   if (ascend) {
+    //     if (sym_break && v > u) continue;  
+    //   } else {
+    //     if (sym_break && v < u) break;  
+    //   }
+    //   src_list[i] = v;
+    //   if (sym_break) dst_list[i] = u;
+    //   sizes[v] ++;
+    //   i ++;
+    // }
+    for (eidType e = edge_begin(v); e < edge_end(v); e++) {
+      auto u = getEdgeDst(e);
+      if (v == u) continue; // no selfloops
+      // printf("v = %d, u = %d\n", v, u);
       if (ascend) {
         if (sym_break && v > u) continue;  
       } else {
@@ -326,7 +347,9 @@ eidType Graph_V2::init_edgelist(bool sym_break, bool ascend) {
       sizes[v] ++;
       i ++;
     }
+    }
   }
+  // std::cout << "i = " << i << " nnz = " << nnz << "\n";
   //assert(i == nnz);
   t.Stop();
   std::cout << "Time on generating the edgelist: " << t.Seconds() << " sec\n";

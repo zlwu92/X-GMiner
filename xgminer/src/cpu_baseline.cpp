@@ -75,6 +75,8 @@ long long CPU_Baseline::run_graphpi_test() {
     printf("ans %lld\n", ans);
     printf("time %.6lf\n", t2 - t1);
     
+    std::ofstream out(output_path + "overall_performance.csv", std::ios::app);
+    out << data_name << ",P" << local_patternId << ",graphpi" << "," << ans << "," << t2 - t1 << "\n";
     // fflush(stdout);
     return ans;
 }
@@ -85,6 +87,10 @@ void CPU_Baseline::run_our_baseline_test() {
     timer.start();
     if (patternID == XGMinerPatternType::RECTANGLE) {
         kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+    } else if (patternID == XGMinerPatternType::P1_GLUMIN) {
+        kernel.motif4_glumin_p1_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+    } else if (patternID == XGMinerPatternType::P3_GLUMIN) {
+        kernel.motif4_glumin_p3_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
     } else {
         LOG_ERROR("Invalid pattern ID.");
     }
@@ -93,9 +99,12 @@ void CPU_Baseline::run_our_baseline_test() {
     LOG_INFO("total embeddings: " + std::to_string(total_count));
     // LOG_INFO("unique embeddings: " + std::to_string(uniques.size()));
 
+    std::ofstream out(output_path + "overall_performance.csv", std::ios::app);
+    out << data_name << ",P" << local_patternId << ",our_baseline" << "," << total_count << "," << timer.elapsed() << "\n";
     if (do_validation) {
         validation();
     }
+    
 }
 
 
@@ -217,7 +226,8 @@ void CPU_Baseline::run_baseline_with_graphpi_sched() {
     LOG_INFO("Elapsed time: " + std::to_string(timer.elapsed()) + " seconds.");
     LOG_INFO("total embeddings: " + std::to_string(total_count));
 
-
+    std::ofstream out(output_path + "overall_performance.csv", std::ios::app);
+    out << data_name << ",P" << local_patternId << ",our_baseline_graphpi_sched" << "," << total_count << "," << timer.elapsed() << "\n";
     if (do_validation) {
         validation();
     }

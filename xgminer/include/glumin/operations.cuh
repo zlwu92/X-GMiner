@@ -103,7 +103,7 @@ __forceinline__ __device__ unsigned count_smaller(vidType bound, vidType *a, vid
   return count[warp_lane];
 }
 
-int Select_func(vidType nv,eidType ne, vidType md) {
+inline int Select_func(vidType nv,eidType ne, vidType md) {
   float avg = (float)ne / nv;
   if (nv < 11500 && avg > 5 && md < 2500 && md > 2400) return 1;
   if (nv < 24000 && avg < 13 && md < 2620) return 0;

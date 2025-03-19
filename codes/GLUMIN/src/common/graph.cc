@@ -305,8 +305,11 @@ eidType Graph::init_edgelist(bool sym_break, bool ascend) {
   else dst_list = edges;
   size_t i = 0;
   for (vidType v = 0; v < V(); v ++) {
+    // if (v == 0) 
+    {
     for (auto u : N(v)) {
       if (u == v) continue; // no selfloops
+      // if (v == 0) printf("v=%d, u=%d\n", v, u);
       if (ascend) {
         if (sym_break && v > u) continue;  
       } else {
@@ -316,6 +319,7 @@ eidType Graph::init_edgelist(bool sym_break, bool ascend) {
       if (sym_break) dst_list[i] = u;
       sizes[v] ++;
       i ++;
+    }
     }
   }
   //assert(i == nnz);

@@ -62,8 +62,8 @@ public:
             features(NULL), src_list(NULL), dst_list(NULL) { }
   Graph_V2(vidType nv, eidType ne) { allocateFrom(nv, ne); }
   ~Graph_V2();
-  Graph_V2(const Graph_V2 &)=delete;
-  Graph_V2& operator=(const Graph_V2 &)=delete;
+  // Graph_V2(const Graph_V2 &)=delete;
+  // Graph_V2& operator=(const Graph_V2 &)=delete;
 
   // get methods for graph meta information
   vidType V() const { return n_vertices; }

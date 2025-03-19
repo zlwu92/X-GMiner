@@ -317,7 +317,7 @@ __build_vid_from_vidx(GraphGPU& g, StorageMeta& meta, vidType vidx){
  *****************************************************************************/
 
 ////////////////////////// vlist + vlist -> vlist /////////////////////////////
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __difference(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -334,7 +334,7 @@ __difference(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType up
   return VertexArrayView(buffer, cnt);
 }
 
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __intersect(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -351,7 +351,7 @@ __intersect(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upp
   return VertexArrayView(buffer, cnt);
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num(VertexArrayView v, VertexArrayView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return difference_num(v.ptr(), v.size(), u.ptr(), u.size());
@@ -360,7 +360,7 @@ __difference_num(VertexArrayView v, VertexArrayView u, vidType upper_bound) {
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num(VertexArrayView v, VertexArrayView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return intersect_num(v.ptr(), v.size(), u.ptr(), u.size());
@@ -370,7 +370,7 @@ __intersect_num(VertexArrayView v, VertexArrayView u, vidType upper_bound) {
 }
 
 ////////////////////////// vmap + vmap -> vmap ////////////////////////////////
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __difference(StorageMeta& meta, VertexMapView v, VertexMapView u, vidType upper_bound, int bitmap_id) {
   vidType* bitmap_ptr = meta.bitmap(bitmap_id);
   vidType* bitmap_addr_size = meta.bitmap_size_addr(bitmap_id);
@@ -385,7 +385,7 @@ __difference(StorageMeta& meta, VertexMapView v, VertexMapView u, vidType upper_
   return VertexMapView(raw_list, output);
 }
 
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __intersect(StorageMeta& meta, VertexMapView v, VertexMapView u, vidType upper_bound, int bitmap_id) {
   vidType* bitmap_ptr = meta.bitmap(bitmap_id);
   vidType* bitmap_addr_size = meta.bitmap_size_addr(bitmap_id);
@@ -400,7 +400,7 @@ __intersect(StorageMeta& meta, VertexMapView v, VertexMapView u, vidType upper_b
   return VertexMapView(raw_list, output);
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num_warp(VertexMapView v, VertexMapView u, vidType upper_bound) {
   if(v.use_one){
     return v.bitmap_.count_AND_NOT(u.bitmap_, upper_bound);
@@ -409,7 +409,7 @@ __difference_num_warp(VertexMapView v, VertexMapView u, vidType upper_bound) {
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num(VertexMapView v, VertexMapView u, vidType upper_bound) {
   if(v.use_one){
     return v.bitmap_.count_AND_NOT_thread(u.bitmap_, upper_bound);
@@ -418,7 +418,7 @@ __difference_num(VertexMapView v, VertexMapView u, vidType upper_bound) {
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num(VertexMapView v, VertexMapView u, vidType upper_bound) {
   if(v.use_one){
     return v.bitmap_.count_AND_thread(u.bitmap_, upper_bound);
@@ -427,7 +427,7 @@ __intersect_num(VertexMapView v, VertexMapView u, vidType upper_bound) {
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num_warp(VertexMapView v, VertexMapView u, vidType upper_bound) {
   if(v.use_one){
     return v.bitmap_.count_AND(u.bitmap_, upper_bound);
@@ -436,19 +436,19 @@ __intersect_num_warp(VertexMapView v, VertexMapView u, vidType upper_bound) {
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num(VertexMapView v, vidType upper_bound) {
   return v.bitmap_.count_thread(false, upper_bound);
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num(VertexMapView v, vidType upper_bound) {
   return v.bitmap_.count_thread(true, upper_bound);
 }
 
 
 ////////////////////////// vlist + vmap -> vlist //////////////////////////////
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __difference(StorageMeta& meta, VertexArrayView v, VertexMapView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -465,7 +465,7 @@ __difference(StorageMeta& meta, VertexArrayView v, VertexMapView u, vidType uppe
   return VertexArrayView(buffer, cnt);
 }
 
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __intersect(StorageMeta& meta, VertexArrayView v, VertexMapView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -482,7 +482,7 @@ __intersect(StorageMeta& meta, VertexArrayView v, VertexMapView u, vidType upper
   return VertexArrayView(buffer, cnt);
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num(VertexArrayView v, VertexMapView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return difference_num_source2(v.ptr(), v.size(), /*u_source=*/u.raw_list(), u.ptr(), u.size());
@@ -492,7 +492,7 @@ __difference_num(VertexArrayView v, VertexMapView u, vidType upper_bound) {
   __syncwarp();
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num(VertexArrayView v, VertexMapView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return intersect_num_source2(v.ptr(), v.size(), /*u_source=*/u.raw_list(), u.ptr(), u.size());
@@ -503,7 +503,7 @@ __intersect_num(VertexArrayView v, VertexMapView u, vidType upper_bound) {
 }
 
 ////////////////////////// vmap + vlist -> vmap ///////////////////////////////
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __difference(StorageMeta& meta, VertexMapView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -522,7 +522,7 @@ __difference(StorageMeta& meta, VertexMapView v, VertexArrayView u, vidType uppe
   return VertexMapView(raw_list, index);
 }
 
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __intersect(StorageMeta& meta, VertexMapView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
@@ -541,7 +541,7 @@ __intersect(StorageMeta& meta, VertexMapView v, VertexArrayView u, vidType upper
   return VertexMapView(raw_list, index);
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __difference_num(VertexMapView v, VertexArrayView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return difference_num_source1(/*v_source=*/v.raw_list(), v.ptr(), v.size(), u.ptr(), u.size());
@@ -551,7 +551,7 @@ __difference_num(VertexMapView v, VertexArrayView u, vidType upper_bound) {
   __syncwarp();
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __intersect_num(VertexMapView v, VertexArrayView u, vidType upper_bound) {
   if (upper_bound < 0) {
     return intersect_num_source1(/*v_source=*/v.raw_list(), v.ptr(), v.size(), u.ptr(), u.size());

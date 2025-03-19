@@ -69,15 +69,15 @@
 };
 
  VertexArrayView
-__get_vlist_from_graph(Graph &g, StorageMeta& meta, vidType vid) {
-  vidType* vlist = g.N(vid).data();
+__get_vlist_from_graph(Graph_V2 &g, StorageMeta& meta, vidType vid) {
+  vidType* vlist = g.N(vid).dataptr();
   vidType size = g.get_degree(vid);
   //printf("vid:%d  size:%d true:%d\n",vid, size,g.N(vid).size());
   return VertexArrayView(vlist, size);
 }
 
  VertexArrayView
-__get_vlist_from_heap(Graph &g, StorageMeta& meta, int slot_id) {
+__get_vlist_from_heap(Graph_V2 &g, StorageMeta& meta, int slot_id) {
   // A hack to represent all vertices
   if (slot_id < 0) {
     return VertexArrayView(NULL, meta.nv);
@@ -138,7 +138,7 @@ __get_vlist_from_heap(Graph &g, StorageMeta& meta, int slot_id) {
 
 // bitmap only
  VertexMapView
-__get_vmap_from_lut(Graph &g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound=-1) {
+__get_vmap_from_lut(Graph_V2 &g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound=-1) {
   auto lut = meta.lut;
   if (upper_bound < 0){
     auto vmap = VertexMapView(VertexArrayView(lut.vlist_, lut.size_), lut.row(vidx_rowid));
@@ -152,7 +152,7 @@ __get_vmap_from_lut(Graph &g, StorageMeta& meta, vidType vidx_rowid, bool connec
 }
 
  VertexMapView
-__get_vmap_from_lut_vid_limit(Graph &g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound) {
+__get_vmap_from_lut_vid_limit(Graph_V2 &g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound) {
   auto lut = meta.lut;
   auto vmap = VertexMapView(VertexArrayView(lut.vlist_, lut.size_), lut.row_limit(vidx_rowid, upper_bound));
   if(!connected) vmap.use_zero();
@@ -161,7 +161,7 @@ __get_vmap_from_lut_vid_limit(Graph &g, StorageMeta& meta, vidType vidx_rowid, b
 
 // optional bitmapa and optinalindex
  VertexMapView
-__get_vmap_from_heap(Graph &g, StorageMeta& meta, int bitmap_id, int slot_id) {
+__get_vmap_from_heap(Graph_V2 &g, StorageMeta& meta, int bitmap_id, int slot_id) {
   auto lut = meta.lut;
   auto raw_list = VertexArrayView(lut.vlist_, lut.size_);
   Bitmap1DView<> bitmap;
@@ -198,34 +198,34 @@ __get_vmap_from_heap(Graph &g, StorageMeta& meta, int bitmap_id, int slot_id) {
  *****************************************************************************/
 
  void
-__build_LUT(Graph &g, StorageMeta& meta, VertexArrayView target){
+__build_LUT(Graph_V2 &g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build(g, target.ptr(), target.size());
 }
 
  void
-__build_LUT_block(Graph &g, StorageMeta& meta, VertexArrayView target){
+__build_LUT_block(Graph_V2 &g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_block(g, target.ptr(), target.size());
 }
 
  void
-__build_LUT_global(Graph &g, StorageMeta& meta, VertexArrayView target){
+__build_LUT_global(Graph_V2 &g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_global(g, target.ptr(), target.size());
 }
 
  void
-__set_LUT_para(Graph &g, StorageMeta& meta, VertexArrayView target){
+__set_LUT_para(Graph_V2 &g, StorageMeta& meta, VertexArrayView target){
   meta.lut.set_LUT_para(g, target.ptr(), target.size());
 }
 
  void 
-__build_index_from_vmap(Graph &g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
+__build_index_from_vmap(Graph_V2 &g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
   vidType* index = meta.buffer(slot_id);
   vidType* index_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
   vmap.bitmap_._to_index(vmap.use_one, index, index_size_addr);
 }
 
  void 
-__build_vlist_from_vmap(Graph &g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
+__build_vlist_from_vmap(Graph_V2 &g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
   vidType* vlist = meta.buffer(slot_id);
   vidType* vlist_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
   vmap.bitmap_._to_vlist(vmap.use_one, /*raw_list*/vmap.raw_list(), vlist, vlist_size_addr);
@@ -233,7 +233,7 @@ __build_vlist_from_vmap(Graph &g, StorageMeta& meta, VertexMapView vmap, int slo
 
 // warp-level
  void 
-__build_bitmap_from_vmap(Graph &g, StorageMeta& meta, VertexMapView vmap, int bitmap_id) {
+__build_bitmap_from_vmap(Graph_V2 &g, StorageMeta& meta, VertexMapView vmap, int bitmap_id) {
   vidType* bitmap_result = meta.bitmap(bitmap_id);
   vidType* bitmap_addr_size = meta.bitmap_size_addr(bitmap_id);
   vidType* index_list = vmap.index_.ptr();
@@ -262,7 +262,7 @@ __build_bitmap_from_vmap(Graph &g, StorageMeta& meta, VertexMapView vmap, int bi
 }
 
  vidType
-__build_vid_from_vidx(Graph &g, StorageMeta& meta, vidType vidx){
+__build_vid_from_vidx(Graph_V2 &g, StorageMeta& meta, vidType vidx){
   return meta.lut.vid(vidx);
 }
 

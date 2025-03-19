@@ -135,7 +135,7 @@ def find_rectangle_subgraphs(graph):
                         continue
 
                     rectangle_count += 1
-                    print(f"Rectangle pattern found: {node1}-{node2}-{node3}-{node4}")
+                    # print(f"Rectangle pattern found: {node1}-{node2}-{node3}-{node4}")
 
     return rectangle_count
 
@@ -188,8 +188,8 @@ def find_triangles(file_path):
     
     print(f"Total triangles: {len(triangles)}")
     print("Unique triangles:")
-    for t in sorted(triangles):
-        print(f"{t[0]} {t[1]} {t[2]}")
+    # for t in sorted(triangles):
+    #     print(f"{t[0]} {t[1]} {t[2]}")
         
     return triangles
 
@@ -200,16 +200,21 @@ if __name__ == "__main__":
     
 
     # 输入顶点数和边数
-    vertex_count = int(input("Enter the number of vertices: "))
-    edge_count = int(input("Enter the number of edges: "))
+    # vertex_count = int(input("Enter the number of vertices: "))
+    # edge_count = int(input("Enter the number of edges: "))
 
-    output_file = "test_gr2.txt"
+    # output_file = "test_gr2.txt"
+    # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt"
+    # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/cit-Patents.txt"
+    # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-dblp.ungraph.txt"
+    # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-lj.ungraph.txt"
+    output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-youtube.ungraph.txt"
 
-    edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
+    # edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
 
     # print(f"Synthetic graph file generated: {output_file}")
     
-    visualize_graph_from_file(output_file)
+    # visualize_graph_from_file(output_file)
     
     # graph = read_graph_from_file(output_file)
     

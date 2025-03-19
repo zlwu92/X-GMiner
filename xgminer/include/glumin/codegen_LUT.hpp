@@ -24,7 +24,7 @@ struct LUT
     return vlist_[idx];
   }
 
-  void build(Graph &g, vidType *vlist, vidType size)
+  void build(Graph_V2 &g, vidType *vlist, vidType size)
   {
     vlist_ = vlist;
     size_ = size;
@@ -34,7 +34,7 @@ struct LUT
     bitmap_.build(g, vlist, size);
   }
 
-  void build_block(Graph &g, vidType *vlist, vidType size)
+  void build_block(Graph_V2 &g, vidType *vlist, vidType size)
   {
     vlist_ = vlist;
     size_ = size;
@@ -44,7 +44,7 @@ struct LUT
     bitmap_.build_block(g, vlist, size);
   }
 
-  void build_global(Graph &g, vidType *vlist, vidType size)
+  void build_global(Graph_V2 &g, vidType *vlist, vidType size)
   {
     vlist_ = vlist;
     size_ = size;
@@ -54,7 +54,7 @@ struct LUT
     bitmap_.build_global(g, vlist, size);
   }
 
-  void set_LUT_para(Graph &g, vidType *vlist, vidType size)
+  void set_LUT_para(Graph_V2 &g, vidType *vlist, vidType size)
   {
     vlist_ = vlist;
     size_ = size;

@@ -36,7 +36,7 @@ public:
     void run_our_baseline_test();
 
     void run() {
-
+        local_patternId = patternID - 16;
         if (run_graphpi) {
             LOG_INFO("Running GraphPi algorithm.");
             run_graphpi_test();
@@ -115,7 +115,8 @@ private:
     int pattern_size = 3;
     int patternID = 1;
     const int* p_adj_mat;
-    
+    int local_patternId = 1;
+    std::string output_path = "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/";
     int vertices, edges;
     std::vector<std::set<int>> edgeLists;
     long long total_count = 0;

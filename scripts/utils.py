@@ -20,7 +20,14 @@ datasets = {
     "Wiki-Vote": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/codes/GraphPi/dataset/wiki-vote_input",
     "TestGr1": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr1.txt",
     "TestGr2": "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/test_gr2.txt",
+    "TestGr2_bin": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/testgr2/",
+    "TestGr1_bin": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/testgr1/",
     "mico_bin" : "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/",
+    "MiCo": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt",
+    "Patents": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/cit-Patents.txt",
+    "DBLP": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-dblp.ungraph.txt",
+    "LiveJournal": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-lj.ungraph.txt",
+    "YouTube": "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-youtube.ungraph.txt",
 }
 
 

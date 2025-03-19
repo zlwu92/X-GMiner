@@ -396,20 +396,20 @@ template<typename T = bitmapType, int W = BITMAP_WIDTH>
     
   }
 
-   void build(Graph &g, vidType* vlist, vidType size) {
+   void build(Graph_V2 &g, vidType* vlist, vidType size) {
     int thread_lane = 0;
     for (vidType i = 0; i < size; i++) {
       auto search = g.N(vlist[i]);
       vidType search_size = g.get_degree(vlist[i]);
       for (int j = thread_lane; j < size; j += THREAD_SIZE) {
-        bool flag = (j!=i) && binary_search(search.data(), vlist[j], search_size);
+        bool flag = (j!=i) && binary_search(search.dataptr(), vlist[j], search_size);
         //warp_set(i, j, flag);
         thread_set(i, j, flag);
       }
     }
   }
 
-   void build_block(Graph &g, vidType* vlist, vidType size) {
+   void build_block(Graph_V2 &g, vidType* vlist, vidType size) {
     printf("No implment!\n");
     // int thread_lane = 0;
     // int warp_lane = threadIdx.x / THREAD_SIZE;
@@ -424,7 +424,7 @@ template<typename T = bitmapType, int W = BITMAP_WIDTH>
     // }
   }
 
-   void build_global(Graph &g, vidType* vlist, vidType size) {
+   void build_global(Graph_V2 &g, vidType* vlist, vidType size) {
     printf("No implment!\n");
     // int thread_lane = 0;
     // int thread_id = blockIdx.x * blockDim.x + threadIdx.x;    

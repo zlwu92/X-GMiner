@@ -21,18 +21,22 @@ enum DataType {
     Wiki_Vote,
     TestGr1,
     TestGr2,
+    DBLP,
+    YouTube,
     Invalid
 };
 
 const long long Patents_tri_cnt = 7515023LL;
 const long long LiveJournal_tri_cnt = 177820130LL;
-const long long MiCo_tri_cnt = 12534960LL;
+const long long MiCo_tri_cnt = 12534960LL; // same as used in GLUMIN
 const long long CiteSeer_tri_cnt = 1166LL;
 const long long Wiki_Vote_tri_cnt = 608389LL;
 const long long Orkut_tri_cnt = 627584181LL;
 const long long Twitter_tri_cnt = 34824916864LL;
 const long long TestGr1_tri_cnt = 7LL;
 const long long TestGr2_tri_cnt = 5LL;
+const long long DBLP_tri_cnt = 2224385LL;
+const long long YouTube_tri_cnt = 3056386LL;
 
 class DataLoader {
 public:

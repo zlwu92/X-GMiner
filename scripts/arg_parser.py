@@ -121,6 +121,13 @@ def parse_args():
     print("1 -- TestGr2")
     print("2 -- Wiki-Vote")
     print("3 -- Mico-Bin")
+    print("4 -- TestGr1_bin")
+    print("5 -- TestGr2_bin")
+    print("6 -- MiCo")
+    print("7 -- Patents")
+    print("8 -- DBLP")
+    print("9 -- LiveJournal")
+    print("10 -- YouTube")
     choice = input("Enter Dataset ID: ").strip()
     if (choice == "0"):
         parser.set_defaults(graph=Path(f"{utils.datasets['TestGr1']}"))
@@ -134,12 +141,35 @@ def parse_args():
     if (choice == "3"):
         parser.set_defaults(graph=Path(f"{utils.datasets['mico_bin']}"))
         parser.set_defaults(dataname="Mico-Bin")
+    if (choice == "4"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['TestGr1_bin']}"))
+        parser.set_defaults(dataname="TestGr1_bin")
+    if (choice == "5"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['TestGr2_bin']}"))
+        parser.set_defaults(dataname="TestGr2_bin")
+    if (choice == "6"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['MiCo']}"))
+        parser.set_defaults(dataname="MiCo")
+    if (choice == "7"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['Patents']}"))
+        parser.set_defaults(dataname="Patents")
+    if (choice == "8"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['DBLP']}"))
+        parser.set_defaults(dataname="DBLP")
+    if (choice == "9"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['LiveJournal']}"))
+        parser.set_defaults(dataname="LiveJournal")
+    if (choice == "10"):
+        parser.set_defaults(graph=Path(f"{utils.datasets['YouTube']}"))
+        parser.set_defaults(dataname="YouTube")
         
     print(f"{utils.Colors.OKBLUE}>> Choose input pattern:{utils.Colors.ENDC}")
     print("1 -- Triangle (size = 3)")
     print("2 -- Rectangle (size = 4)")
     print("3 -- Diamond (size = 4)")
     print(" For GLUMIN (>16)")
+    print("17 -- P1 in GLUMIN (size = 4)")
+    print("19 -- P3 in GLUMIN (size = 4)")
     choice = input("Enter Pattern ID: ").strip()
     args = parser.parse_args()
     if (choice == "1"):
@@ -154,5 +184,13 @@ def parse_args():
         else:
             setattr(args, "pattern-adj-mat", custom_adj_mat)
         setattr(args, "patternID", 2)
+    if (choice == "17"):
+        setattr(args, "pattern-size", 4)  # 动态设置 pattern-size
+        setattr(args, "pattern-adj-mat", "0111100010001000")
+        setattr(args, "patternID", 17)
+    if (choice == "19"):
+        setattr(args, "pattern-size", 4)
+        setattr(args, "pattern-adj-mat", "0111101011001000")
+        setattr(args, "patternID", 19)
     # return parser.parse_args()
     return args
