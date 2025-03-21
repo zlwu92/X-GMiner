@@ -47,7 +47,9 @@ P2_GM_LUT_warp(vidType begin, vidType end,
       auto candidate_v2_idx = __get_vmap_from_heap(g, meta, /*bitmap_id=*/-1, /*slot_id=*/1);
       for(vidType v2_idx_idx = thread_lane; v2_idx_idx < candidate_v2_idx.size(); v2_idx_idx += WARP_SIZE){
         auto v2_idx = candidate_v2_idx[v2_idx_idx];
+        #ifndef INTERSECTION
         count += __difference_num(__get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), /*upper_bound=*/v2_idx);
+        #endif
       }
     }
   }
@@ -104,7 +106,9 @@ P2_GM_LUT_block(vidType begin, vidType end,
       auto candidate_v2_idx = __get_vmap_from_heap(g, meta, /*bitmap_id=*/-1, /*slot_id=*/1);
       for(vidType v2_idx_idx = thread_lane; v2_idx_idx < candidate_v2_idx.size(); v2_idx_idx += WARP_SIZE){
         auto v2_idx = candidate_v2_idx[v2_idx_idx];
+        #ifndef INTERSECTION
         count += __difference_num(__get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), /*upper_bound=*/v2_idx);
+        #endif
       }
     }
     __syncthreads();
@@ -157,7 +161,9 @@ P2_GM_LUT_global(vidType begin, vidType end,
     auto candidate_v2_idx = __get_vmap_from_heap(g, meta, /*bitmap_id=*/-1, /*slot_id=*/1);
     for(vidType v2_idx_idx = thread_lane; v2_idx_idx < candidate_v2_idx.size(); v2_idx_idx += WARP_SIZE){
       auto v2_idx = candidate_v2_idx[v2_idx_idx];
+      #ifndef INTERSECTION
       count += __difference_num(__get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), /*upper_bound=*/v2_idx);
+      #endif
     }
   }
   // END OF CODEGEN

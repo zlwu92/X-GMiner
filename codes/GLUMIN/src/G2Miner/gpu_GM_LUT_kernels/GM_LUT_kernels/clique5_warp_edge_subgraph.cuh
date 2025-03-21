@@ -17,7 +17,10 @@ clique5_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
     auto v1 = g.get_dst(eid);
     vidType v0_size = g.get_degree(v0);
     vidType v1_size = g.get_degree(v1);
-    vidType count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    vidType count1 = 0;
+    #ifndef INTERSECTION
+    count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    #endif
     if (thread_lane == 0) list_size[warp_lane] = count1;
     __syncwarp();
     // build binary_encode
@@ -26,7 +29,10 @@ clique5_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
       vidType search_size = g.get_degree(vlist[i]);
       for (int j = thread_lane; j < list_size[warp_lane]; j += WARP_SIZE) {
         unsigned active = __activemask();
-        bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
+        bool flag = false;
+        #ifndef INTERSECTION
+        flag = (j!=i) && binary_search(search, vlist[j], search_size);
+        #endif
         __syncwarp(active);
         // set binary_encode
         sub_graph.warp_cover(warpMapHead, i, j, flag);
@@ -37,7 +43,9 @@ clique5_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
     for (vidType v1 = thread_lane; v1 < list_size[warp_lane]; v1 += WARP_SIZE) {
       for (vidType v2 = 0; v2 < list_size[warp_lane]; v2 ++) {
         if (sub_graph.get(warpMapHead, v1, v2)) {
+          #ifndef INTERSECTION
           counter += sub_graph.intersect_num_thread(warpMapHead, (list_size[warp_lane] - 1) / 32 + 1,v1, v2);
+          #endif
         }
       }
     }

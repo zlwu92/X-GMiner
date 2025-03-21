@@ -21,7 +21,10 @@ clique4_warp_vertex_subgraph(vidType nv, GraphGPU g, vidType *vlists, vidType ma
       vidType search_size = g.get_degree(v0_ptr[i]);
       for (int j = thread_lane; j < v0_size; j += WARP_SIZE) {
         unsigned active = __activemask();
-        bool flag = (j!=i) && binary_search(search, v0_ptr[j], search_size);
+        bool flag = false;
+        #ifndef INTERSECTION
+        flag = (j!=i) && binary_search(search, v0_ptr[j], search_size);
+        #endif
         __syncwarp(active);
         // set binary_encode
         sub_graph.warp_cover(warpMapHead, i, j, flag);
@@ -32,7 +35,9 @@ clique4_warp_vertex_subgraph(vidType nv, GraphGPU g, vidType *vlists, vidType ma
     for (vidType v1 = thread_lane; v1 < v0_size; v1 += WARP_SIZE) {
       for (vidType v2 = 0; v2 < v0_size; v2 ++) {
         if (sub_graph.get(warpMapHead, v1, v2)) {
-          counter += sub_graph.intersect_num_thread(warpMapHead, (v0_size - 1) / 32 + 1,v1, v2);         
+          #ifndef INTERSECTION
+          counter += sub_graph.intersect_num_thread(warpMapHead, (v0_size - 1) / 32 + 1,v1, v2);  
+          #endif       
         }
       }
     }

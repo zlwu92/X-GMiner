@@ -23,7 +23,10 @@ clique7_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
     if (v0_size < 5 || v1_size < 5) {
       continue;
     } 
-    vidType count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    vidType count1 = 0;
+    #ifndef INTERSECTION
+    count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    #endif
     if (thread_lane == 0) list_size[warp_lane] = count1;
     __syncwarp();
     if (list_size[warp_lane] < 4) {
@@ -37,7 +40,10 @@ clique7_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
         vidType search_size = g.get_degree(vlist[i]);
         for (int j = thread_lane; j < list_size[warp_lane]; j += WARP_SIZE) {
           unsigned active = __activemask();
-          bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
+          bool flag = false;
+          #ifndef INTERSECTION
+          flag = (j!=i) && binary_search(search, vlist[j], search_size);
+          #endif
           __syncwarp(active);
           // set binary_encode
           unsigned mask = __ballot_sync(active, flag);
@@ -73,7 +79,10 @@ clique7_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
         vidType search_size = g.get_degree(vlist[i]);
         for (int j = thread_lane; j < list_size[warp_lane]; j += WARP_SIZE) {
           unsigned active = __activemask();
-          bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
+          bool flag = false;
+          #ifndef INTERSECTION
+          flag = (j!=i) && binary_search(search, vlist[j], search_size);
+          #endif
           __syncwarp(active);
           // set binary_encode
           sub_graph.warp_cover(warpMapHead, i, j, flag);
@@ -86,15 +95,21 @@ clique7_warp_edge_subgraph(eidType ne, GraphGPU g, vidType *vlists, vidType max_
         for (vidType v2 = 0; v2 < list_size[warp_lane]; v2++) {
           if (sub_graph.get(warpMapHead, v1, v2)){
             // v1 & v2 result store in register
+            #ifndef INTERSECTION
             sub_graph.intersect_thread(warpMapHead, countElement, v1, v2, v1v2);
+            #endif
             for (vidType v3 = 0; v3 < list_size[warp_lane]; v3++) {
               // if(sub_graph.get(warpMapHead, v1, v3) && sub_graph.get(warpMapHead, v2, v3)) {
               if (v1v2[v3 / BITMAP_WIDTH] & (1 << (v3 % BITMAP_WIDTH))) {
                 // Use register result of v1 & v2, compute (v1 & v2) & v3
+                #ifndef INTERSECTION
                 sub_graph.intersect_thread(warpMapHead, countElement, v1v2, v3, v1v2v3);
+                #endif
                 for (vidType v4 = 0; v4 < list_size[warp_lane]; v4++) {
                   if (v1v2v3[v4 / BITMAP_WIDTH] & (1 << (v4 % BITMAP_WIDTH))) {
+                    #ifndef INTERSECTION
                     counter += sub_graph.intersect_num_thread_pre(warpMapHead, countElement, v1v2v3, v4);
+                    #endif
                   }
                 }
               }

@@ -38,11 +38,15 @@ BS_edge(eidType ne,
     auto v0 = g.get_src(eid);
     auto v1 = g.get_dst(eid);
     if (v1 > v0) continue;
+    #ifndef INTERSECTION
     __intersect(meta, __get_vlist_from_graph(g, meta, /*vid=*/v0), __get_vlist_from_graph(g, meta, /*vid=*/v1), /*upper_bound=*/v1, /*output_slot=*/0);
+    #endif
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
+      #ifndef INTERSECTION
       count += __intersect_num(__get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/v2);
+      #endif
     }
   }
   // END OF CODEGEN

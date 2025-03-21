@@ -29,7 +29,7 @@ public:
     }
 
     void load_graph_data_from_file() {
-        patternID = 17;
+        // patternID = 17;
         local_patternId = patternID - 16;
         if (file_format == Input_FileFormat::BINARY) { // stored in CSR format
             if (local_patternId == 4 || local_patternId == 5 || local_patternId == 23 || local_patternId == 24) {
@@ -115,7 +115,7 @@ private:
     int select_device = 3;
     int use_lut = 0;
     std::vector<double> total_time;
-    int repeated = 5;
+    int repeated = 1;
     std::string output_path = "/home/wuzhenlin/workspace/2-graphmining/X-GMiner/scripts/";
     // if (argc > 3) select_device = atoi(argv[3]);
     // if (argc > 4) n_devices = atoi(argv[4]);

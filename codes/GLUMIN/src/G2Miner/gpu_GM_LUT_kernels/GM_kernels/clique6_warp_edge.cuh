@@ -16,28 +16,39 @@ clique6_warp_edge(eidType ne, GraphGPU g, vidType *vlists, vidType max_deg, AccT
     auto v1 = g.get_dst(eid);
     vidType v0_size = g.getOutDegree(v0);
     vidType v1_size = g.getOutDegree(v1);
-    auto count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    auto count1 = 0;
+    #ifndef INTERSECTION
+    count1 = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    #endif
     if (thread_lane == 0) list_size[warp_lane][0] = count1;
     __syncwarp();
     for (vidType idx1 = 0; idx1 < list_size[warp_lane][0]; idx1++) {
       vidType v2 = vlist[idx1];
       vidType v2_size = g.getOutDegree(v2);
       vidType w1_size = list_size[warp_lane][0];
-      auto count2 = intersect(vlist, w1_size, g.N(v2), v2_size, vlist+max_deg);
+      auto count2 = 0;
+      #ifndef INTERSECTION
+      count2 = intersect(vlist, w1_size, g.N(v2), v2_size, vlist+max_deg);
+      #endif
       if (thread_lane == 0) list_size[warp_lane][1] = count2;
       __syncwarp();
       for (vidType idx2 = 0; idx2 < list_size[warp_lane][1]; idx2++) {
         vidType v3 = vlist[max_deg+idx2];
         vidType v3_size = g.getOutDegree(v3);
         vidType w2_size = list_size[warp_lane][1];
-        auto count3 = intersect(vlist+max_deg, w2_size, g.N(v3), v3_size, vlist+max_deg*2);
+        auto count3 = 0;
+        #ifndef INTERSECTION
+        count3 = intersect(vlist+max_deg, w2_size, g.N(v3), v3_size, vlist+max_deg*2);
+        #endif
         if (thread_lane == 0) list_size[warp_lane][2] = count3;
         __syncwarp();
         for (vidType idx3 = 0; idx3 < list_size[warp_lane][2]; idx3++) {
           vidType v4 = vlist[max_deg*2+idx3];
           vidType v4_size = g.getOutDegree(v4);
           vidType w3_size = list_size[warp_lane][2];
+          #ifndef INTERSECTION
           counter += intersect_num(vlist+max_deg*2, w3_size, g.N(v4), v4_size);
+          #endif
         }
       }
     }

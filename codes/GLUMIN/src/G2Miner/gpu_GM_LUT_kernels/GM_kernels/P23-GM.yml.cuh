@@ -38,19 +38,27 @@ BS_edge(eidType ne,
     auto v0 = g.get_src(eid);
     auto v1 = g.get_dst(eid);
     if (v1 > v0) continue;
+    #ifndef INTERSECTION
     __intersect(meta, __get_vlist_from_graph(g, meta, /*vid=*/v0), __get_vlist_from_graph(g, meta, /*vid=*/v1), /*upper_bound=*/v1, /*output_slot=*/0);
+    #endif
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
+      #ifndef INTERSECTION
       __intersect(meta, __get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/v2, /*output_slot=*/1);
+      #endif
       auto candidate_v3 = __get_vlist_from_heap(g, meta, /*slot_id=*/1);
       for(vidType v3_idx = 0; v3_idx < candidate_v3.size(); v3_idx ++){
         auto v3 = candidate_v3[v3_idx];
+        #ifndef INTERSECTION
         __intersect(meta, __get_vlist_from_heap(g, meta, /*slot_id=*/1), __get_vlist_from_graph(g, meta, /*vid=*/v3), /*upper_bound=*/v3, /*output_slot=*/2);
+        #endif
         auto candidate_v4 = __get_vlist_from_heap(g, meta, /*slot_id=*/2);
         for(vidType v4_idx = 0; v4_idx < candidate_v4.size(); v4_idx ++){
           auto v4 = candidate_v4[v4_idx];
+          #ifndef INTERSECTION
           count += __intersect_num(__get_vlist_from_heap(g, meta, /*slot_id=*/2), __get_vlist_from_graph(g, meta, /*vid=*/v4), /*upper_bound=*/v4);
+          #endif
         }
       }
     }

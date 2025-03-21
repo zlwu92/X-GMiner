@@ -16,14 +16,19 @@ clique4_warp_edge(eidType ne, GraphGPU g, vidType *vlists, vidType max_deg, AccT
     auto v1 = g.get_dst(eid);
     vidType v0_size = g.getOutDegree(v0);
     vidType v1_size = g.getOutDegree(v1);
-    auto count = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    auto count = 0;
+    #ifndef INTERSECTION
+    count = intersect(g.N(v0), v0_size, g.N(v1), v1_size, vlist);
+    #endif
     if (thread_lane == 0) list_size[warp_lane] = count;
     __syncwarp();
     for (vidType i = 0; i < list_size[warp_lane]; i++) {
       vidType u = vlist[i];
       vidType u_size = g.getOutDegree(u);
       vidType v_size = list_size[warp_lane];
+      #ifndef INTERSECTION
       counter += intersect_num(vlist, v_size, g.N(u), u_size);
+      #endif
     }
   }
   AccType block_num = BlockReduce(temp_storage).Sum(counter);

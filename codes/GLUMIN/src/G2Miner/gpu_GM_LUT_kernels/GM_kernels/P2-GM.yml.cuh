@@ -37,11 +37,15 @@ P2_GM(eidType ne,
   for(eidType eid = warp_id; eid < ne; eid += num_warps){
     auto v0 = g.get_src(eid);
     auto v1 = g.get_dst(eid);
+    #ifndef INTERSECTION
     __intersect(meta, __get_vlist_from_graph(g, meta, /*vid=*/v0), __get_vlist_from_graph(g, meta, /*vid=*/v1), /*upper_bound=*/-1, /*output_slot=*/0);
+    #endif
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
+      #ifndef INTERSECTION
       count += __difference_num(__get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/v2);
+      #endif
     }
   }
   // END OF CODEGEN

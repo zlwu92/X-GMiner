@@ -74,6 +74,9 @@ TEST_SUITES = {
             "algorithm": "glumin_automine_lut",
         }
     },
+    "glumin": {
+        "name": "Run all in original GLUMIN",
+    }
 }
 
 # def load_config() -> dict:
@@ -129,6 +132,12 @@ def RUN_TEST8():
     cmd = ["python", "scripts/launch_exp.py", "--algorithm", "glumin_automine_lut"]
     utils.run_command(cmd, shell=False, error_msg="Failed to run test 8")
 
+
+def RUN_TEST_ALL_IN_ORIGINAL_GLUMIN():
+    cmd = ["python", "scripts/launch_separate_glumin.py"]
+    utils.run_command(cmd, shell=False, error_msg="Failed to run all in original GLUMIN")
+
+
 def show_menu():
     """显示交互式菜单"""
     print(f"{utils.Colors.OKBLUE}Which experiment do you want to launch?{utils.Colors.ENDC}")
@@ -136,6 +145,7 @@ def show_menu():
         print(f"{key} -- {suite['name']}")
     choice = input("Enter Testing ID: ").strip()
     return choice
+
 
 
 def testing_suites():
@@ -171,6 +181,8 @@ def testing_suites():
             RUN_TEST7()
         elif choice == "8":
             RUN_TEST8()
+        elif choice == "glumin":
+            RUN_TEST_ALL_IN_ORIGINAL_GLUMIN()
     except subprocess.CalledProcessError as e:
         print(f"Experiment failed with code {e.returncode}")
         sys.exit(e.returncode)
