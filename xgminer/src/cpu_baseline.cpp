@@ -1,7 +1,8 @@
 #include "cpu_baseline.h"
-
+#include <ittnotify.h>
 
 long long CPU_Baseline::run_graphpi_test() {
+    __itt_pause();
     printf("run_graphpi_test\n");
     // step 0: load data
     DataType my_type;
@@ -25,7 +26,7 @@ long long CPU_Baseline::run_graphpi_test() {
     }
     puts("");
     adj_mat -= pattern_size * pattern_size;
-
+    __itt_resume();
 
     // Step 1 : Define the pattern
     Pattern pattern(pattern_size, adj_mat);

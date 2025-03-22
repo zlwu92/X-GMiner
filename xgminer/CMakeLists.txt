@@ -37,6 +37,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
+
+
 # --ptxas-options=-v
 set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS} "-g -O3 -lineinfo --expt-extended-lambda -Wno-deprecated-gpu-targets \
                     -Wall -Wno-deprecated -arch=compute_86 --disable-warnings")
@@ -87,6 +89,11 @@ add_executable(xgminer ${SOURCES})
 #     "${PROJECT_SOURCE_DIR}/src/gpu_kernels/"
 #     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 # )
+
+set(ONEAPI_SDK_HOME "/opt/intel/oneapi/vtune/2025.0/sdk/")
+target_include_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/include")
+target_link_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/lib64")
+target_link_libraries(xgminer PUBLIC ittnotify ${CMAKE_DL_LIBS})
 
 set_target_properties(
     xgminer PROPERTIES CUDA_ARCHITECTURES "86;86"
