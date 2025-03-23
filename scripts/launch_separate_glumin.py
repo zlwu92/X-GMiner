@@ -113,7 +113,7 @@ def launch_glumin_test():
                 os.system(cmd)
                 cmd = f"../codes/GLUMIN/bin/pattern_gpu_GM_LUT {dataset_path} {pattern}"
                 print(f"Command: {cmd}")
-                os.system(cmd)
+                # os.system(cmd)
                 result = subprocess.run(
                             cmd, 
                             shell=True, 

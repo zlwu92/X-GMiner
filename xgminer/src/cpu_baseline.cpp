@@ -73,6 +73,8 @@ long long CPU_Baseline::run_graphpi_test() {
     long long ans = g->pattern_matching(schedule, thread_num);
     t2 = get_wall_time();
 
+    std::cout << "in_exclusion_optimize_redundancy: " << schedule.get_in_exclusion_optimize_redundancy() << "\n";
+
     printf("ans %lld\n", ans);
     printf("time %.6lf\n", t2 - t1);
     
