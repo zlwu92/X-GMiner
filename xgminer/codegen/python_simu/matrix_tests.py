@@ -36,7 +36,7 @@ benchmark_dir = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi
 
 datasets = [
     # "mico.txt",
-    ("synthetic/test_gr1.txt", "TestGr1"),
+    # ("synthetic/test_gr1.txt", "TestGr1"),
     ("synthetic/test_gr2.txt", "TestGr2"),
     # ("wiki-Vote.txt", "Wiki-Vote"),
     # ("cit-Patents.txt", "Patents"),
@@ -47,11 +47,14 @@ datasets = [
 ]
 
 patterns = [
-    ("P0", 4, "0110100110010110"),
-    # ("P1", 4, "0111100010001000"),
-    # ("P2", 4, "0111101111001100"),
-    # ("P3", 4, "0111101011001000"),
-    # ("P4", 4, "0111101111011110"),
+    # ("P0", 4, "0110100110010110"), # yes
+    ("P1", 4, "0110100110000100"), # 
+    # ("P1_1", 4, "0100101001010010"), # 
+    # ("P2", 4, "0111100010001000"), # yes
+    
+    # ("P3", 4, "0111101011001000"), # yes
+    # ("P4", 4, "0111101111001100"), # yes
+    # ("P5", 4, "0111101111011110"), # yes 4-clique
     # ("P5", 5, "0111110111110111110111110"),
     # ("P6", 5, "0111110010100011100010100"),
 
@@ -141,7 +144,22 @@ class MatrixTest:
                 print(f"{utils.Colors.OKBLUE}Pattern: {pattern}{utils.Colors.ENDC}")
                 if pattern == "P0":
                     self.TEST_P0(dataset_path, count)
+                elif pattern == "P1":
+                    self.TEST_P1(dataset_path, count)
+                elif pattern == "P2":
+                    self.TEST_P2(dataset_path, count)
+                elif pattern == "P3":
+                    self.TEST_P3(dataset_path, count)
+                elif pattern == "P4":
+                    self.TEST_P4(dataset_path, count)
+                elif pattern == "P5":
+                    self.TEST_P5(dataset_path, count)
+                elif pattern == "P6":
+                    self.TEST_P6(dataset_path, count)
                 count += 1
+
+        self.summary()
+
 
 
     def build_adjacency_matrix(self, file_path):
@@ -201,6 +219,7 @@ class MatrixTest:
         
         print(f"M{self.superscript(2)} = {M_super2}")
         
+        
         # 找到所有非对角元素中大于1的元素
         non_diagonal_elements = M_super2.flatten()[torch.eye(M_super2.size(0)).flatten() == 0]  # 获取非对角元素
         non_diagonal_elements_gt1 = non_diagonal_elements[non_diagonal_elements > 1]  # 获取大于1的元素
@@ -217,10 +236,174 @@ class MatrixTest:
         print(f"Sum of C(k, 2): {sum_combinations}")
         
         symmetric_redundancy_num = len(set(num for pair in self.restrictions[idx] for num in pair))
-        res = int(sum_combinations / 1)
+        res = int(sum_combinations / symmetric_redundancy_num)
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+        self.validation(res, idx)
+
+
+    def TEST_P2(self, dataset_path, idx):
+        print(f"Loading input graph: {dataset_path}")
+
+        self.adj_matrix = self.build_adjacency_matrix(dataset_path)
+        print(f"Adjacency matrix: {self.adj_matrix}")
+        
+        # Sum of C(k, 3) for each row, where k is the number of 1s in the row
+        sum_combinations = sum(len(list(combinations(range(int(row.sum().item())), 3))) for row in self.adj_matrix)
+        print(f"Sum of C(k, 3) for each row: {sum_combinations}")
+        
+        symmetric_redundancy_num = 1
+        res = int(sum_combinations / symmetric_redundancy_num)
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+        self.validation(res, idx)
+
+
+    def TEST_P4(self, dataset_path, idx):
+        print(f"Loading input graph: {dataset_path}")
+
+        self.adj_matrix = self.build_adjacency_matrix(dataset_path)
+        print(f"Adjacency matrix: {self.adj_matrix}")
+        
+        M_super2 = torch.matmul(self.adj_matrix, self.adj_matrix)
+        print(f"M{self.superscript(2)} = {M_super2}")
+        
+        res_matrix = M_super2 * self.adj_matrix
+        print(f"M{self.superscript(2)}*M: {res_matrix}")
+        
+        # 找到所有非对角元素中大于1的元素
+        non_diagonal_elements = res_matrix.flatten()[torch.eye(res_matrix.size(0)).flatten() == 0]  # 获取非对角元素
+        non_diagonal_elements_gt1 = non_diagonal_elements[non_diagonal_elements > 1]  # 获取大于1的元素
+        sum_combinations = sum(len(list(combinations(range(int(val.item())), 2))) for val in non_diagonal_elements_gt1)
+        # print(f"Sum of C(k, 2): {sum_combinations}")
+        
+        symmetric_redundancy_num = 2
+        res = int(sum_combinations / symmetric_redundancy_num)
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+        self.validation(res, idx)
+
+
+    def TEST_P3(self, dataset_path, idx):
+        print(f"Loading input graph: {dataset_path}")
+
+        self.adj_matrix = self.build_adjacency_matrix(dataset_path)
+        print(f"Adjacency matrix: {self.adj_matrix}")
+        res = 0
+        for i in range(self.adj_matrix.size(0)):
+            neighbors = self.adj_matrix[i].nonzero().flatten()
+            # only consider degree >= 3
+            if len(neighbors) >= 3:
+                subgraph_adj = self.adj_matrix[neighbors][:, neighbors]
+                
+                res += sum(subgraph_adj.flatten()) // 2 * (len(neighbors) - 2)
+                
+        symmetric_redundancy_num = 1
+        res = int(res / symmetric_redundancy_num)
         print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
         self.validation(res, idx)
         
+
+    def TEST_P5(self, dataset_path, idx):
+        print(f"Loading input graph: {dataset_path}")
+
+        self.adj_matrix = self.build_adjacency_matrix(dataset_path)
+        print(f"Adjacency matrix: {self.adj_matrix}")
+        
+        # M_super2 = torch.matmul(self.adj_matrix, self.adj_matrix)
+        # print(f"M{self.superscript(2)} = {M_super2}")
+        
+        # res_matrix = M_super2 * self.adj_matrix
+        # print(f"M{self.superscript(2)}*M: {res_matrix}")
+        
+        # # 找到所有非对角元素中大于1的元素
+        # non_diagonal_elements = res_matrix.flatten()[torch.eye(res_matrix.size(0)).flatten() == 0]
+        
+
+        res = 0
+        symmetric_redundancy_num = 4
+        # subgraph_pattern
+        for i in range(self.adj_matrix.size(0)):
+            # get the neighbors of vertex i
+            neighbors = self.adj_matrix[i].nonzero().flatten()
+            print(f"Neighbors of vertex {i}: {neighbors}")
+            subgraph_adj = self.adj_matrix[neighbors][:, neighbors]
+            # print(f"Subgraph adjacency matrix: {subgraph_adj}")
+            
+            # find triangles
+            M_super2 = torch.matmul(subgraph_adj, subgraph_adj)
+            # print(f"M{self.superscript(2)} = {M_super2}")
+            res_matrix = M_super2 * subgraph_adj
+            # print(f"M{self.superscript(2)}*M: {res_matrix}")
+            
+            # count all nonzero elements for triangles
+            triangle_redundancy = 6
+            res += sum(res_matrix.flatten()) / triangle_redundancy
+            
+        res = int(res / symmetric_redundancy_num)
+            
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+        self.validation(res, idx)
+
+
+    def TEST_P1(self, dataset_path, idx):
+        print(f"Loading input graph: {dataset_path}")
+
+        self.adj_matrix = self.build_adjacency_matrix(dataset_path)
+        print(f"Adjacency matrix: {self.adj_matrix}")
+        
+        M_super2 = torch.matmul(self.adj_matrix, self.adj_matrix)
+        M_super3 = torch.matmul(M_super2, self.adj_matrix)
+        print(f"M{self.superscript(3)} = {M_super3}")
+        
+        # non_diagonal_elements = M_super3.flatten()[torch.eye(M_super3.size(0)).flatten() == 0]  # 获取非对角元素
+        # symmetric_redundancy_num = 1
+        
+        res = 0
+        for i in range(self.adj_matrix.size(0)):
+            neighbors = self.adj_matrix[i].nonzero().flatten()
+            # only consider degree >= 2
+            if len(neighbors) >= 2:
+                subgraph_adj = self.adj_matrix[neighbors][:, neighbors]
+                
+                res += sum(subgraph_adj.flatten()) // 2 * (len(neighbors) - 2)
+        
+        symmetric_redundancy_num = 1
+        res = int(res / symmetric_redundancy_num)
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+        # self.validation(res, idx)
+
+        # restriction [(0, 1)] ==> chain of 3-hop path, v2 <- v0 -> v1 -> v3
+        res = 0
+        for i in range(self.adj_matrix.size(0)): # level v0
+            neighbors = self.adj_matrix[i].nonzero().flatten()
+            if len(neighbors) >= 2:
+                v0 = i
+                for j in range(len(neighbors)):
+                    neigh = neighbors[j]
+                    if neigh > v0: # level v1
+                        v1 = neigh
+                        for k in range(len(neighbors)):
+                            if neighbors[k] != v1:
+                                v2 = neighbors[k]
+                                neigh2 = self.adj_matrix[v1].nonzero().flatten()
+                                for l in range(len(neigh2)):
+                                    if neigh2[l] != v0 and neigh2[l] != v2:
+                                        v3 = neigh2[l]
+                                        # print(f" {v2},  {v0},  {v1},  {v3}")
+                                        res += 1
+        print(f"{utils.Colors.OKGREEN}Result: {res}{utils.Colors.ENDC}")
+
+
+    def summary(self):
+        count = 0
+        for dataset, dataname in datasets:
+            dataset_path = benchmark_dir + dataset
+            print(f"{utils.Colors.OKBLUE}{dataname}: ", end="")
+            for pattern, pattern_size, pattern_adj_mat in patterns:
+                print(f"{pattern}:{self.reference_res[count]} ", end="")
+                count += 1
+            print(f"{utils.Colors.ENDC}")
+        
+
+
 
 if __name__ == "__main__":
     
