@@ -28,6 +28,15 @@ __forceinline__ __device__ T intersect_bs(T* a, T size_a, T* b, T size_b, T* c) 
       found = 1;
     unsigned mask = __ballot_sync(active, found);
     auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+    if (/*eid == 0 && */threadIdx.x == 0) {
+      // printf("%d %d %d %d\n", thread_lane, warp_lane, size_a, size_b);
+      // print each bit of mask
+      // for (int i = 0; i < WARP_SIZE; i++) {
+      //   printf("%d", (mask >> i) & 1);
+      // }
+      // printf("\n");
+      // printf("idx: %d\n", idx);
+    }
     if (found) c[count[warp_lane]+idx-1] = key;
     if (thread_lane == 0) count[warp_lane] += __popc(mask);
   }
@@ -138,6 +147,7 @@ __forceinline__ __device__ T intersect(T* a, T size_a, T *b, T size_b, T* c) {
   //  return intersect_merge(a, size_a, b, size_b, c);
   //else
     return intersect_bs_cache(a, size_a, b, size_b, c);
+    // return intersect_bs(a, size_a, b, size_b, c);
 }
 
 template <typename T = vidType>

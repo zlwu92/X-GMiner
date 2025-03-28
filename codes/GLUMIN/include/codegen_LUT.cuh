@@ -229,7 +229,8 @@ __device__ __host__ struct LUT{
 
 template <typename T = bitmapType, int W = BITMAP_WIDTH>
 class LUTManager{
-  private:
+  // private:
+public:
     T* heap_head_;
     uint32_t LUT_num_;
     size_t max_LUT_size_;

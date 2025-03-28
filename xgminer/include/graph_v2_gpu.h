@@ -6,7 +6,8 @@
 #include "glumin/timer.h"
 
 class GraphGPU {
-protected:
+// protected:
+public:
     vidType num_vertices;             // number of vertices
     eidType num_edges;                // number of edges
     int device_id, n_gpu;             // no. of GPUs
@@ -126,6 +127,7 @@ public:
     
     // this is for single-GPU only
     size_t init_edgelist(Graph_V2 &hg, bool sym_break = false, bool ascend = false) {
+      std::cout << "Initializing edgelist on GraphGPU " << device_id << "\n";
       auto nnz = num_edges;
       if (sym_break) nnz = nnz/2;
       size_t mem_el = size_t(nnz)*sizeof(vidType);
@@ -147,6 +149,9 @@ public:
       } else {
         std::cout << __LINE__ << " here\n";
         hg.init_edgelist(sym_break, ascend);
+        for (int i = 0; i < num_edges; ++i) {
+          std::cout << "src = " << hg.get_src(i) << " dst = " << hg.get_dst(i) << "\n";
+        }
         copy_edgelist_to_device(nnz, hg.get_src_ptr(), hg.get_dst_ptr(), sym_break);
       }
       return nnz;
@@ -163,6 +168,7 @@ public:
       copy_edgelist_to_device(0, nnz, h_src_list, h_dst_list, sym_break);
     }
     void copy_edgelist_to_device(size_t begin, size_t end, vidType* h_src_list, vidType* h_dst_list, bool sym_break) {
+      std::cout << "Copying edgelist to GPU " << device_id << " [" << begin << ", " << end << ")\n";
       auto n = end - begin;
       eidType n_tasks_per_gpu = eidType(n-1) / eidType(n_gpu) + 1;
       eidType start = begin + device_id * n_tasks_per_gpu;

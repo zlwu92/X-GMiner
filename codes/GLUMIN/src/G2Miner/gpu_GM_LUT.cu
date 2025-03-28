@@ -56,8 +56,8 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   n_bitmaps = 3;
 
   vidType switch_lut = 1;
-  switch_lut = Select_func(nv, ne, md);
-
+  // switch_lut = Select_func(nv, ne, md);
+  std::cout << "switch_lut = " << switch_lut << "\n";
   size_t per_block_vlist_size = nwarps * n_lists * size_t(md) * sizeof(vidType);
   size_t per_block_bitmap_size = nwarps * n_bitmaps * ((size_t(md) + BITMAP_WIDTH-1)/BITMAP_WIDTH) * sizeof(vidType);
 
@@ -94,7 +94,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
 
   LUTManager<> lut_manager(nblocks * nwarps, WARP_LIMIT, WARP_LIMIT, true); 
-
+  std::cout << "WARP_LIMIT: " << WARP_LIMIT << ", BLOCK_LIMIT: " << BLOCK_LIMIT << "\n";
   // split vertex tasks
   std::vector<vidType> vid_warp, vid_block, vid_global;
 
@@ -119,6 +119,14 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   vidType *d_vid_block;
   CUDA_SAFE_CALL(cudaMalloc((void **)&d_vid_block, vid_block_size * sizeof(vidType)));
   CUDA_SAFE_CALL(cudaMemcpy(d_vid_block, vid_block.data(), vid_block_size * sizeof(vidType), cudaMemcpyHostToDevice));
+
+  std::ofstream out("/home/zlwu/workspace/2-graphmining/X-GMiner/results/g2miner_glumin_memory_profiling.csv", std::ios::app);
+  out << nv << "," << ne << "," << md << ",";
+  size_t graphsize = (nv+1)*sizeof(eidType) + 2*ne*sizeof(vidType);
+  out << (double)graphsize / 1024.0 / 1024.0 << ",";
+  out << (double)list_size / 1024.0 / 1024.0 + (double)bitmap_size / 1024.0 / 1024.0 + 
+        (double)lut_manager.max_LUT_size_ * lut_manager.LUT_num_ * sizeof(vidType) / 1024.0 / 1024.0 << ",";
+  return;
 
   Timer t;
   t.Start();
@@ -149,12 +157,16 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   else if (k == 2) {
     std::cout << "P2 G2Miner + LUT\n";
     if (switch_lut){
-      if (WARP_LIMIT != 0) P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+      if (WARP_LIMIT != 0) {
+        P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+      }
       if (vid_block_size) {
+        std::cout << __LINE__ << "vid_block_size: " << vid_block_size << "\n";
         lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
         P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       }
       if (vid_global_size){
+        std::cout << __LINE__ << "vid_global_size: " << vid_global_size << "\n";
         lut_manager.recreate(1, md, md, true);
         nblocks = BLOCK_GROUP;
         for (vidType i = 0; i < vid_global_size; i++) {

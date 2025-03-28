@@ -307,9 +307,24 @@ eidType Graph::init_edgelist(bool sym_break, bool ascend) {
   for (vidType v = 0; v < V(); v ++) {
     // if (v == 0) 
     {
-    for (auto u : N(v)) {
-      if (u == v) continue; // no selfloops
-      // if (v == 0) printf("v=%d, u=%d\n", v, u);
+    // for (auto u : N(v)) {
+    //   if (u == v) continue; // no selfloops
+    //   // if (v == 0) printf("v=%d, u=%d\n", v, u);
+    //   if (ascend) {
+    //     if (sym_break && v > u) continue;  
+    //   } else {
+    //     if (sym_break && v < u) break;  
+    //   }
+    //   src_list[i] = v;
+    //   if (sym_break) dst_list[i] = u;
+    //   sizes[v] ++;
+    //   i ++;
+    // }
+
+    for (eidType e = edge_begin(v); e < edge_end(v); e++) {
+      auto u = getEdgeDst(e);
+      if (v == u) continue; // no selfloops
+      // printf("v = %d, u = %d\n", v, u);
       if (ascend) {
         if (sym_break && v > u) continue;  
       } else {

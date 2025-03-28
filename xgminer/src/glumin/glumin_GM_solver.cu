@@ -188,7 +188,7 @@ void GLUMIN::PatternSolver_on_G2Miner(Graph_V2& g) {
     CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
 
     LUTManager<> lut_manager(nblocks * nwarps, WARP_LIMIT, WARP_LIMIT, true); 
-
+    std::cout << "nblocks*nwarps = " << nblocks * nwarps << " WARP_LIMIT = " << WARP_LIMIT << "\n";
     // split vertex tasks
     std::vector<vidType> vid_warp, vid_block, vid_global;
 
@@ -227,6 +227,7 @@ void GLUMIN::PatternSolver_on_G2Miner(Graph_V2& g) {
     }
     else if (k == 3){
       std::cout << "P3 Run G2Miner\n";
+      std::cout << "nblocks = " << nblocks << " nthreads = " << nthreads << " ne = " << ne << " md = " << md << "\n";
       P3_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
     }
     else if (k == 6){

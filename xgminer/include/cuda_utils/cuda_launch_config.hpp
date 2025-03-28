@@ -349,6 +349,7 @@ template<typename T>
 inline __host__
 std::size_t maximum_residency(T t, size_t CTA_SIZE, size_t dynamic_smem_bytes)
 {
+  std::cout << "In maximum_residency" << __FILE__ << __LINE__ << std::endl;
   cudaError_t err;
   cudaFuncAttributes attributes;
   err = cudaFuncGetAttributes(&attributes, t);

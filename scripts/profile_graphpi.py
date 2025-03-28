@@ -54,7 +54,7 @@ def profile_intersection_in_graphpi():
                 f.write(f"{pattern},{dataset},")
             f.close()
             
-            report = "graphpi_" + dataname + "_" + pattern
+            report = "../results/profile_graphpi/graphpi_" + dataname + "_" + pattern
             
             os.system(f"rm -rf {report}/")
             

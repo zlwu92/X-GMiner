@@ -305,6 +305,7 @@ void Graph_V2::print_graph() const {
 }
 
 eidType Graph_V2::init_edgelist(bool sym_break, bool ascend) {
+  std::cout << "Initializing the edgelist on Graph_V2\n";
   Timer t;
   t.Start();
   if (nnz != 0) return nnz; // already initialized

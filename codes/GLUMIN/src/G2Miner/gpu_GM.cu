@@ -121,6 +121,13 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   CUDA_SAFE_CALL(cudaMalloc((void **)&d_vid_block, vid_block_size * sizeof(vidType)));
   CUDA_SAFE_CALL(cudaMemcpy(d_vid_block, vid_block.data(), vid_block_size * sizeof(vidType), cudaMemcpyHostToDevice));
 
+  std::ofstream out("/home/zlwu/workspace/2-graphmining/X-GMiner/results/g2miner_glumin_memory_profiling.csv", std::ios::app);
+  out << nv << "," << ne << "," << md << ",";
+  size_t graphsize = (nv+1)*sizeof(eidType) + 2*ne*sizeof(vidType);
+  out << (double)graphsize / 1024.0 / 1024.0 << ",";
+  out << (double)list_size / 1024.0 / 1024.0 << ",";
+  return;
+
   Timer t;
   t.Start();
   // G2Miner
@@ -242,6 +249,7 @@ void CliqueSolver(Graph &g, int k, uint64_t &total, int, int) {
   size_t nb = (memsize - mem_graph) / per_block_vlist_size;
   if (nb < nblocks) nblocks = nb;
 
+  std::cout << "Finish init GPUGraph edgelist.\n";
   cudaDeviceProp deviceProp;
   CUDA_SAFE_CALL(cudaGetDeviceProperties(&deviceProp, 0));
   int max_blocks_per_SM = maximum_residency(clique4_warp_edge, nthreads, 0);

@@ -32,23 +32,52 @@ P2_GM(eidType ne,
   meta.global_warp_id = warp_id;
   meta.local_warp_id = warp_lane;
   __syncwarp();
-
+  // if (thread_id == 0) printf("@@@ %d %d\n", g.d_src_list[0], g.d_dst_list[0]);
   // BEGIN OF CODEGEN
   for(eidType eid = warp_id; eid < ne; eid += num_warps){
+  // for(eidType eid = warp_id; eid < 1; eid += num_warps){
     auto v0 = g.get_src(eid);
     auto v1 = g.get_dst(eid);
-    #ifndef INTERSECTION
-    __intersect(meta, __get_vlist_from_graph(g, meta, /*vid=*/v0), __get_vlist_from_graph(g, meta, /*vid=*/v1), /*upper_bound=*/-1, /*output_slot=*/0);
-    #endif
+    // if (warp_id == 0 && threadIdx.x == 0)
+    if (eid == 0 && threadIdx.x == 0) {
+      // printf("eid: %ld, thread_id: %d, warp_id: %d, v0: %d, v1: %d\n", eid, thread_id, warp_id, v0, v1);
+    // printf("eid: %d, v0: %d, v1: %d\n", eid, v0, v1);
+      VertexArrayView vv = __get_vlist_from_graph(g, meta, /*vid=*/v0);
+      printf("v0: %d, size: %d\n", v0, vv.size());
+      for (int i = 0; i < vv.size_; i++) {
+        printf("%d ", vv.ptr_[i]);
+      }
+      printf("\n");
+      VertexArrayView vv1 = __get_vlist_from_graph(g, meta, /*vid=*/v1);
+      printf("v1: %d, size: %d\n", v1, vv1.size_);
+      for (int i = 0; i < vv1.size_; i++) {
+        printf("%d ", vv1.ptr_[i]);
+      }
+      printf("\n");
+    }
+    VertexArrayView vav = __intersect(meta, __get_vlist_from_graph(g, meta, /*vid=*/v0), __get_vlist_from_graph(g, meta, /*vid=*/v1), /*upper_bound=*/-1, /*output_slot=*/0);
+    if (eid == 0 && threadIdx.x == 0) {
+      // printf("eid: %ld, thread_id: %d, warp_id: %d, v0: %d, v1: %d\n", eid, thread_id, warp_id, v0, v1);
+      printf("vav.size_: %d\n", vav.size_);
+      // print vav.ptr_
+      for(vidType v2_idx = 0; v2_idx < vav.size_; v2_idx ++){
+        printf("%d ", vav.ptr_[v2_idx]);
+      }
+      printf("\n");
+    }
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
-      #ifndef INTERSECTION
+      if (eid == 0 && threadIdx.x == 0) {
+        printf("v2: %d\n", v2);
+      }
       count += __difference_num(__get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/v2);
-      #endif
+      // count += __intersect_num(__get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/-1);
     }
   }
   // END OF CODEGEN
-
+  // if (count > 0 && threadIdx.x == 0)
+  // if (count > 0)
+  // printf("warpId: %d, thread_id: %d, count: %d\n", warp_id, thread_id, count);
   atomicAdd(&counter[0], count);
 }

@@ -5,7 +5,7 @@ project(xgminer)
 enable_language(CXX CUDA)
 
 find_package(OpenMP REQUIRED)
-find_package(nlohmann_json REQUIRED)
+#find_package(nlohmann_json REQUIRED)
 
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -91,9 +91,9 @@ add_executable(xgminer ${SOURCES})
 # )
 
 set(ONEAPI_SDK_HOME "/opt/intel/oneapi/vtune/2025.0/sdk/")
-target_include_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/include")
-target_link_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/lib64")
-target_link_libraries(xgminer PUBLIC ittnotify ${CMAKE_DL_LIBS})
+#target_include_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/include")
+#target_link_directories(xgminer PUBLIC "${ONEAPI_SDK_HOME}/lib64")
+#target_link_libraries(xgminer PUBLIC ittnotify ${CMAKE_DL_LIBS})
 
 set_target_properties(
     xgminer PROPERTIES CUDA_ARCHITECTURES "86;86"
@@ -105,6 +105,6 @@ set_target_properties(
 
 target_link_libraries(xgminer PRIVATE 
     OpenMP::OpenMP_CXX 
-    nlohmann_json::nlohmann_json
+    #    nlohmann_json::nlohmann_json
     ${MPI_CXX_LIBRARIES}
 )

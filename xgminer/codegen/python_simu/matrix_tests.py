@@ -52,9 +52,9 @@ patterns = [
     # ("P1_1", 4, "0100101001010010"), # 
     # ("P2", 4, "0111100010001000"), # yes
     
-    # ("P3", 4, "0111101011001000"), # yes
+    ("P3", 4, "0111101011001000"), # yes
     # ("P4", 4, "0111101111001100"), # yes
-    # ("P5", 4, "0111101111011110"), # yes 4-clique
+    ("P5", 4, "0111101111011110"), # yes 4-clique
     # ("P5", 5, "0111110111110111110111110"),
     # ("P6", 5, "0111110010100011100010100"),
 
@@ -177,13 +177,13 @@ class MatrixTest:
 
         # 初始化邻接矩阵 (n_vertices x n_vertices)，初始值为 0
         self.adj_matrix = torch.zeros((n_vertices, n_vertices), dtype=torch.float32)
-
+        self.reverse_adj_matrix = torch.zeros((n_vertices, n_vertices), dtype=torch.float32)
         # 遍历后续行，解析每条边
         for line in lines[1:]:
             u, v = map(int, line.strip().split())
             self.adj_matrix[u][v] = 1  # 设置边 u -> v
             self.adj_matrix[v][u] = 1  # 如果是无向图，设置边 v -> u
-
+        self.reverse_adj_matrix = self.adj_matrix.clone()
         return self.adj_matrix
 
 
@@ -353,17 +353,35 @@ class MatrixTest:
         M_super3 = torch.matmul(M_super2, self.adj_matrix)
         print(f"M{self.superscript(3)} = {M_super3}")
         
-        # non_diagonal_elements = M_super3.flatten()[torch.eye(M_super3.size(0)).flatten() == 0]  # 获取非对角元素
-        # symmetric_redundancy_num = 1
+        mask = ~torch.eye(self.adj_matrix.size(0), dtype=torch.bool)
+
+        # 对非对角线元素取反
+        self.reverse_adj_matrix[mask] = 1 - self.adj_matrix[mask]
+        print(f"Reverse adjacency matrix: {self.reverse_adj_matrix}")
+        res_mat = M_super3 * self.reverse_adj_matrix
+        print(f"M{self.superscript(3)}*M_inv: {res_mat}")
+        print(f"Sum of M{self.superscript(3)}*M_inv: {res_mat.sum()}")
+        
         
         res = 0
         for i in range(self.adj_matrix.size(0)):
             neighbors = self.adj_matrix[i].nonzero().flatten()
+            print(f"Neighbors of vertex {i}: {neighbors}")
             # only consider degree >= 2
             if len(neighbors) >= 2:
                 subgraph_adj = self.adj_matrix[neighbors][:, neighbors]
+                if i == 0:
+                    print(f"Subgraph adjacency matrix: {subgraph_adj}")
+                # res += sum(subgraph_adj.flatten()) // 2 * (self.adj_matrix.size(0) - 2)
+                # print("count: ", sum(subgraph_adj.flatten()).item() // 2 * (self.adj_matrix.size(0) - 2))
                 
-                res += sum(subgraph_adj.flatten()) // 2 * (len(neighbors) - 2)
+                all_vertices = torch.arange(self.adj_matrix.size(0))
+                remaining_vertices = all_vertices[all_vertices != i]
+                print(f"Remaining vertices: {remaining_vertices}")
+                subgraph_adj = self.adj_matrix[remaining_vertices][:, remaining_vertices]
+                if i == 0:
+                    print(f"Subgraph adjacency matrix: {subgraph_adj}")
+        
         
         symmetric_redundancy_num = 1
         res = int(res / symmetric_redundancy_num)

@@ -189,6 +189,8 @@ __device__ struct VertexMapView {
 // bitmap only
 __device__ VertexMapView
 __get_vmap_from_lut(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound=-1) {
+  // if (threadIdx.x == 0) 
+  // printf("here!! rowid: %d upperbound: %d\n", vidx_rowid, upper_bound);
   auto lut = meta.lut;
   if (upper_bound < 0){
     auto vmap = VertexMapView(VertexArrayView(lut.vlist_, lut.size_), lut.row(vidx_rowid));

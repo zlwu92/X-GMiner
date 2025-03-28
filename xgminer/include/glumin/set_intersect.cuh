@@ -137,7 +137,7 @@ __forceinline__ __device__ T intersect(T* a, T size_a, T *b, T size_b, T* c) {
   //if (size_a > ADJ_SIZE_THREASHOLD && size_b > ADJ_SIZE_THREASHOLD)
   //  return intersect_merge(a, size_a, b, size_b, c);
   //else
-    return intersect_bs_cache(a, size_a, b, size_b, c);
+    return intersect_bs_cache(a, size_a, b, size_b, c);  // this is the original code, need to be 
 }
 
 template <typename T = vidType>

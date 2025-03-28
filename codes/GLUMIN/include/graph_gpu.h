@@ -4,7 +4,8 @@
 #include "cutil_subset.h"
 
 class GraphGPU {
-protected:
+// protected:
+public:
   vidType num_vertices;             // number of vertices
   eidType num_edges;                // number of edges
   int device_id, n_gpu;             // no. of GPUs
@@ -142,6 +143,9 @@ public:
       //t.Stop();
     } else {
       hg.init_edgelist(sym_break, ascend);
+      // for (int i = 0; i < num_edges; ++i) {
+      //   std::cout << "src = " << hg.get_src(i) << " dst = " << hg.get_dst(i) << "\n";
+      // }
       copy_edgelist_to_device(nnz, hg.get_src_ptr(), hg.get_dst_ptr(), sym_break);
     }
     return nnz;

@@ -338,6 +338,7 @@ __device__ __forceinline__ VertexArrayView
 __intersect(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
+  if (threadIdx.x == 0) printf("v.size: %d, u.size: %d\n", v.size(), u.size());
   if(upper_bound < 0) {
     cnt = intersect(v.ptr(), v.size(), u.ptr(), u.size(), buffer);
   } else {
