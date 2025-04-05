@@ -1,5 +1,8 @@
 #FROM nvidia/cuda:12.0.1-devel-ubuntu22.04
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+# FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y libtbb-dev libboost-all-dev libfmt-dev libtbb-dev libopenblas-dev libblas-dev\
     build-essential \
     ninja-build \

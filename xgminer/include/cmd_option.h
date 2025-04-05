@@ -42,7 +42,8 @@ public:
             ("pattern-adj-mat", "Pattern adjacency matrix", cxxopts::value<std::string>()->default_value("011101110"))
             ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"))
             ("patternID", "Pattern ID", cxxopts::value<int>()->default_value("1"))
-            ("do-validation", "Do validation", cxxopts::value<int>()->default_value("0"));
+            ("do-validation", "Do validation", cxxopts::value<int>()->default_value("0"))
+            ("vert-induced", "Vertex induced", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -109,6 +110,11 @@ public:
                 PRINT_GREEN("Do validation: " << do_validation);
             }
 
+            if (result.count("vert-induced")) {
+                vert_induced = result["vert-induced"].as<int>();
+                PRINT_GREEN("Vertex induced: " << vert_induced);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -135,6 +141,8 @@ public:
         program.add_argument("--patternID").help("Pattern ID").default_value(1).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--do-validation").help("Do validation").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--vert-induced").help("Vertex induced").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -197,6 +205,11 @@ public:
                 PRINT_GREEN("Do validation: " << do_validation);
             }
 
+            if (program.get<int>("--vert-induced") != 0) {
+                vert_induced = program.get<int>("--vert-induced");
+                PRINT_GREEN("Vertex induced: " << vert_induced);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -228,6 +241,7 @@ public:
     int pattern_size = 3;
     int patternID = 1;
     int do_validation = 0;
+    int vert_induced = 0;
     
 private:
     int argc;

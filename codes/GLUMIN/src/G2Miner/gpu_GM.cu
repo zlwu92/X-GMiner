@@ -19,6 +19,8 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "clique6_warp_edge.cuh"
 #include "clique7_warp_edge.cuh"
 
+#include "pattern_test_kernels.cuh"
+
 // #define THREAD_PARALLEL
 
 __global__ void clear(AccType *accumulators) {
@@ -122,11 +124,11 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   CUDA_SAFE_CALL(cudaMemcpy(d_vid_block, vid_block.data(), vid_block_size * sizeof(vidType), cudaMemcpyHostToDevice));
 
   std::ofstream out("/home/zlwu/workspace/2-graphmining/X-GMiner/results/g2miner_glumin_memory_profiling.csv", std::ios::app);
-  out << nv << "," << ne << "," << md << ",";
-  size_t graphsize = (nv+1)*sizeof(eidType) + 2*ne*sizeof(vidType);
-  out << (double)graphsize / 1024.0 / 1024.0 << ",";
-  out << (double)list_size / 1024.0 / 1024.0 << ",";
-  return;
+  // out << nv << "," << ne << "," << md << ",";
+  // size_t graphsize = (nv+1)*sizeof(eidType) + 2*ne*sizeof(vidType);
+  // out << (double)graphsize / 1024.0 / 1024.0 << ",";
+  // out << (double)list_size / 1024.0 / 1024.0 << ",";
+  // return;
 
   Timer t;
   t.Start();
@@ -138,7 +140,8 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   }
   else if (k == 2){
     std::cout << "P2 Run G2Miner\n";
-    P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+    // P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+    P2_GM_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
   }
   else if (k == 3){
     std::cout << "P3 Run G2Miner\n";

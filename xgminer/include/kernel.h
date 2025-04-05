@@ -31,6 +31,9 @@ public:
     void motif4_glumin_p1_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
                                             long long& total_count, std::vector<int>& embedding);
 
+    void motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
+                                            long long& total_count, std::vector<int>& embedding, int vert_induced);
+
 
     void motif4_glumin_p3_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
                                             long long& total_count, std::vector<int>& embedding);

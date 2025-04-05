@@ -114,6 +114,14 @@ def parse_args():
         dest="do-validation",
         help="Pattern ID (default: 1 for triangle)"
     )
+    parser.add_argument(
+        "--vert-induced",
+        type=int,
+        default=0,
+        # required=True,
+        dest="vert-induced",
+        help="Whether to perform vertex induced (default: 0)"
+    )
     
     """显示交互式菜单"""
     print(f"{utils.Colors.OKBLUE}>> Choose input dataset:{utils.Colors.ENDC}")
@@ -169,6 +177,7 @@ def parse_args():
     print("3 -- Diamond (size = 4)")
     print(" For GLUMIN (>16)")
     print("17 -- P1 in GLUMIN (size = 4)")
+    print("18 -- P2 in GLUMIN (size = 4)")
     print("19 -- P3 in GLUMIN (size = 4)")
     choice = input("Enter Pattern ID: ").strip()
     args = parser.parse_args()
@@ -188,9 +197,18 @@ def parse_args():
         setattr(args, "pattern-size", 4)  # 动态设置 pattern-size
         setattr(args, "pattern-adj-mat", "0111100010001000")
         setattr(args, "patternID", 17)
+    if (choice == "18"):
+        setattr(args, "pattern-size", 4)  # 动态设置 pattern-size
+        setattr(args, "pattern-adj-mat", "0111101111001100")
+        setattr(args, "patternID", 18)
     if (choice == "19"):
         setattr(args, "pattern-size", 4)
         setattr(args, "pattern-adj-mat", "0111101011001000")
         setattr(args, "patternID", 19)
+    print("0 -- Edge Induced")
+    print("1 -- Vertex Induced")
+    choice = input("Perform Vertex Induced? ").strip()
+    if (choice == "1"):
+        setattr(args, "vert-induced", 1)
     # return parser.parse_args()
     return args

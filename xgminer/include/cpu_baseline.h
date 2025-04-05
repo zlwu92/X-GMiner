@@ -23,6 +23,7 @@ public:
         patternID = opts.patternID;
         file_format = getFileFormat(data_path);
         do_validation = opts.do_validation;
+        vert_induced = opts.vert_induced;
     }
 
     ~CPU_Baseline() {
@@ -62,14 +63,15 @@ public:
             int source, target;
             int real_vnum = 0, real_enum = 0;
             while (file >> source >> target) {
-                // edgeLists[source].insert(target);
-                // edgeLists[target].insert(source);
+                edgeLists[source].insert(target);
+                edgeLists[target].insert(source);
                 // printf("source=%d target=%d\n", source, target);
 
-                if(!id_map.count(source))    id_map[source] = real_vnum++;
-                if(!id_map.count(target))    id_map[target] = real_vnum++;
-                source = id_map[source];
-                target = id_map[target];
+                // if(!id_map.count(source))    id_map[source] = real_vnum++;
+                // if(!id_map.count(target))    id_map[target] = real_vnum++;
+                // source = id_map[source];
+                // target = id_map[target];
+                
                 edgeLists[source].insert(target);
                 edgeLists[target].insert(source);
                 real_enum += 2;
@@ -81,13 +83,13 @@ public:
                 LOG_ERROR("Invalid vertex num / edge num.");
             }
 
-            // for (int i = 0; i < vertices; i++) {
-            //     std::cout << "Vertex " << i << " edges: ";
-            //     for (int edge : edgeLists[i]) {
-            //         std::cout << edge << " ";
-            //     }
-            //     std::cout << std::endl;
-            // }
+            for (int i = 0; i < vertices; i++) {
+                std::cout << "Vertex " << i << " edges: ";
+                for (int edge : edgeLists[i]) {
+                    std::cout << edge << " ";
+                }
+                std::cout << std::endl;
+            }
 
             file.close();
         } else {
@@ -124,6 +126,7 @@ private:
     Input_FileFormat file_format = Input_FileFormat::SNAP_TXT;
 
     bool do_validation = true;
+    int vert_induced = 0;
 
     CPUTimer timer;
     Kernel kernel;

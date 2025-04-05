@@ -10,7 +10,7 @@ CUSTOM_FLAGS ?=
 NVFLAGS += $(CUSTOM_FLAGS)
 
 # 强制每次运行 make 时都重新编译
-MAKEFLAGS += -B
+# MAKEFLAGS += -B
 
 all: pattern_gpu_GM_LUT pattern_gpu_GM
 

@@ -86,12 +86,14 @@ long long CPU_Baseline::run_graphpi_test() {
 
 
 void CPU_Baseline::run_our_baseline_test() {
-    
+    LOG_INFO("Running our baseline test.");
     timer.start();
     if (patternID == XGMinerPatternType::RECTANGLE) {
         kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
     } else if (patternID == XGMinerPatternType::P1_GLUMIN) {
         kernel.motif4_glumin_p1_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+    } else if (patternID == XGMinerPatternType::P2_GLUMIN) {
+        kernel.motif4_glumin_p2_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding, vert_induced);
     } else if (patternID == XGMinerPatternType::P3_GLUMIN) {
         kernel.motif4_glumin_p3_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
     } else {
@@ -112,7 +114,7 @@ void CPU_Baseline::run_our_baseline_test() {
 
 
 void CPU_Baseline::run_baseline_with_graphpi_sched() {
-    
+    LOG_INFO("Running baseline with graphpi schedule.");
     // step 0: load data
     DataType my_type;
     Graph *g;

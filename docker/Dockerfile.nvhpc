@@ -1,0 +1,82 @@
+#FROM nvidia/cuda:12.0.1-devel-ubuntu22.04
+# FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y libtbb-dev libboost-all-dev libfmt-dev libtbb-dev \
+    libopenblas-dev libblas-dev libopenmpi-dev libomp-dev \
+    build-essential \
+    ninja-build \
+    git wget vim \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-Linux-x86_64.sh \
+    -q -O /tmp/cmake-install.sh \
+    && chmod u+x /tmp/cmake-install.sh \
+    && mkdir /opt/cmake-3.26.4 \
+    && /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake-3.26.4 \
+    && rm /tmp/cmake-install.sh \
+    && ln -s /opt/cmake-3.26.4/bin/* /usr/local/bin
+
+# Install NVHPC SDK
+RUN wget https://developer.download.nvidia.com/hpc-sdk/24.1/nvhpc_2024_241_Linux_x86_64_cuda_12.3.tar.gz && \
+    tar xpzf nvhpc_2024_241_Linux_x86_64_cuda_12.3.tar.gz && \
+    nvhpc_2024_241_Linux_x86_64_cuda_12.3/install --quiet && \
+    rm -rf nvhpc_2024_241_Linux_x86_64_cuda_12.3 nvhpc_2024_241_Linux_x86_64_cuda_12.3.tar.gz
+
+ENV PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/compilers/bin:$PATH
+ENV PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/comm_libs/mpi/bin:$PATH
+ENV LD_LIBRARY_PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/cuda/lib64:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/comm_libs/mpi/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/comm_libs/nvshmem/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/math_libs/lib64:$LD_LIBRARY_PATH
+ENV CUDA_HOME /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/cuda
+
+RUN echo "source /opt/nvidia/hpc_sdk/Linux_x86_64/24.1/comm_libs/12.3/hpcx/latest/hpcx-init.sh; hpcx_load" >>  /root/.bashrc
+
+# Install newer NCCL for compatibility with PyTorch 2.2.1+
+RUN cd /opt && \
+    git clone --branch v2.20.3-1 https://github.com/NVIDIA/nccl.git && \
+    cd nccl && \
+    make -j src.build NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_86,code=sm_86 -gencode=arch=compute_90,code=sm_90" CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.1/cuda
+ENV LD_LIBRARY_PATH /opt/nccl/build/lib:$LD_LIBRARY_PATH
+
+
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+# RUN apt-get update
+# RUN apt-get install -y vim
+# RUN apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+# RUN apt-get install -y openssh-server
+
+ENV PATH="/root/miniconda3/bin:${PATH}"
+RUN wget -q\
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh 
+RUN conda --version
+RUN conda install pip
+RUN conda init bash
+RUN /bin/bash -c "source /root/.bashrc"
+RUN conda install -y numpy scipy pandas seaborn -c conda-forge
+
+# RUN git clone https://github.com/llvm/llvm-project.git \
+#     && cd llvm-project \
+#     && git checkout release/17.x 
+
+# RUN mkdir llvm-project/build \
+#     && cd llvm-project/build \
+#     && cmake -G Ninja -DCMAKE_BUILD_TYPE="Release" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_TARGETS_TO_BUILD="X86" \
+#         -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DLLVM_ENABLE_RTTI=ON ../llvm \
+#     && ninja \
+#     && ninja install -j4
+
+# RUN llvm-as --version \
+#     && clang --version
+# RUN apt-get install -y nsight-compute-2020.1.0
+
+# RUN apt-get update -y
+ENV PATH="/X-GMiner:${PATH}"
+WORKDIR /home/wuzhenlin/workspace/2-graphmining/
+

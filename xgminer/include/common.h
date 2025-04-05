@@ -196,7 +196,7 @@ enum XGMinerPatternType {
     CLIQUE_7_MINUS = 16, // Clique_7_Minus  supported by GraphPi
 
     P1_GLUMIN = 17,
-
+    P2_GLUMIN = 18,
     P3_GLUMIN = 19,
 };
 
