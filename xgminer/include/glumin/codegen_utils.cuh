@@ -22,34 +22,34 @@ __device__ struct StorageMeta {
   bitmapType* lut_sram;
 #endif
 
-  __device__ vidType* buffer(int slot_id) {
+  __device__ __forceinline__ vidType* buffer(int slot_id) {
     return base
       + slot_size * capacity * global_warp_id // begin of this warp
       + slot_size * slot_id; // begin of this slot
   }
 
-  __device__ vidType* buffer_size_addr(int slot_id) {
+  __device__ __forceinline__ vidType* buffer_size_addr(int slot_id) {
     return base_size + WARPS_PER_BLOCK * slot_id + local_warp_id;
   }
 
-  __device__ bitmapType* bitmap(int bitmap_id) {
+  __device__ __forceinline__ bitmapType* bitmap(int bitmap_id) {
     return bitmap_base
       + bitmap_size * bitmap_capacity * global_warp_id // begin of this warp
       + bitmap_size * bitmap_id; // begin of this bitmap
   }
 
-  __device__ vidType* bitmap_size_addr(int bitmap_id) {
+  __device__ __forceinline__ vidType* bitmap_size_addr(int bitmap_id) {
     return bitmap_base_size + WARPS_PER_BLOCK * bitmap_id + local_warp_id;
   }
 
 #ifdef LOAD_SRAM
-  __device__ bitmapType* sram_lut_row(int bitmap_id) {
+  __device__ __forceinline__ bitmapType* sram_lut_row(int bitmap_id) {
     return lut_sram 
       + sram_lut_size * sram_lut_capacity * local_warp_id
       + sram_lut_size * bitmap_id;
   }
 
-  __device__ bitmapType* sram_lut_row(vidType deg, int bitmap_id) {
+  __device__ __forceinline__ bitmapType* sram_lut_row(vidType deg, int bitmap_id) {
     return lut_sram 
     + sram_lut_size * sram_lut_capacity * local_warp_id
     + (deg + BITMAP_WIDTH - 1) / BITMAP_WIDTH * bitmap_id;
@@ -69,32 +69,32 @@ __device__ struct VertexArrayView {
   __device__ VertexArrayView() {}
   __device__ VertexArrayView(vidType* ptr, vidType size): ptr_(ptr), size_(size) {}
 
-  __device__ void init(vidType* ptr, vidType size) {
+  __device__ __forceinline__ void init(vidType* ptr, vidType size) {
     ptr_ = ptr;
     size_ = size;
   }
 
-  __device__ vidType size() {
+  __device__ __forceinline__ vidType size() {
     return size_;
   }
 
-  __device__ vidType* ptr() {
+  __device__ __forceinline__ vidType* ptr() {
     return ptr_;
   }
 
-  __device__ vidType operator[](size_t i) {
+  __device__ __forceinline__ vidType operator[](size_t i) {
     return ptr_ == NULL ? i : ptr_[i];
   }
 };
 
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __get_vlist_from_graph(GraphGPU& g, StorageMeta& meta, vidType vid) {
   vidType* vlist = g.N(vid);
   vidType size = g.getOutDegree(vid);
   return VertexArrayView(vlist, size);
 }
 
-__device__ VertexArrayView
+__device__ __forceinline__ VertexArrayView
 __get_vlist_from_heap(GraphGPU& g, StorageMeta& meta, int slot_id) {
   // A hack to represent all vertices
   if (slot_id < 0) {
@@ -125,38 +125,38 @@ __device__ struct VertexMapView {
   __device__ VertexMapView(VertexArrayView vlist, VertexArrayView index): vlist_(vlist), index_(index) {}
   __device__ VertexMapView(VertexArrayView vlist, Bitmap1DView<> bitmap, VertexArrayView index): vlist_(vlist), bitmap_(bitmap), index_(index) {}
 
-  __device__ void use_zero(){
+  __device__ __forceinline__ void use_zero(){
     use_one = false;
   }
 
-  __device__ uint32_t get_numElement() {
+  __device__ __forceinline__ uint32_t get_numElement() {
     return bitmap_.get_numElement(vlist_.size());
   }
    
-  __device__ Bitmap1DView<> get_bitmap() {
+  __device__ __forceinline__ Bitmap1DView<> get_bitmap() {
     return bitmap_;
   }
 
-  __device__ vidType* raw_list() {
+  __device__ __forceinline__ vidType* raw_list() {
     return vlist_.ptr();
   }
 
-  __device__ vidType size() {
+  __device__ __forceinline__ vidType size() {
     return index_.size();
   }
 
-  __device__ vidType* ptr() {
+  __device__ __forceinline__ vidType* ptr() {
     return index_.ptr();
   }
 
-  __device__ vidType operator[](size_t i) {
+  __device__ __forceinline__ vidType operator[](size_t i) {
     return index_.ptr()==NULL ? i : index_[i];
   }
 };
 
 #ifdef ROARING
 // bitmap only
-  __device__ VertexMapView
+  __device__ __forceinline__ VertexMapView
   __get_vmap_from_lut(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, bool is_warp, int bitmap_id, int upper_bound=-1) {
     auto lut = meta.lut;
     auto bitmap_ptr = meta.bitmap(bitmap_id);
@@ -174,7 +174,7 @@ __device__ struct VertexMapView {
     }
   }
   
-  __device__ VertexMapView
+  __device__ __forceinline__ VertexMapView
   __get_vmap_from_lut_vid_limit(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, bool is_warp, int bitmap_id, int upper_bound) {
     auto lut = meta.lut;
     auto bitmap_ptr = meta.bitmap(bitmap_id);
@@ -187,7 +187,7 @@ __device__ struct VertexMapView {
 #endif
 
 // bitmap only
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __get_vmap_from_lut(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound=-1) {
   auto lut = meta.lut;
   if (upper_bound < 0){
@@ -201,7 +201,7 @@ __get_vmap_from_lut(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool con
   }
 }
 
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __get_vmap_from_lut_vid_limit(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound) {
   auto lut = meta.lut;
   auto vmap = VertexMapView(VertexArrayView(lut.vlist_, lut.size_), lut.row_limit(vidx_rowid, upper_bound));
@@ -210,7 +210,7 @@ __get_vmap_from_lut_vid_limit(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid
 }
 
 // optional bitmapa and optinalindex
-__device__ VertexMapView
+__device__ __forceinline__ VertexMapView
 __get_vmap_from_heap(GraphGPU& g, StorageMeta& meta, int bitmap_id, int slot_id) {
   auto lut = meta.lut;
   auto raw_list = VertexArrayView(lut.vlist_, lut.size_);
@@ -247,34 +247,34 @@ __get_vmap_from_heap(GraphGPU& g, StorageMeta& meta, int bitmap_id, int slot_id)
  * optimization instruction (with considerable cost and potential benefit)
  *****************************************************************************/
 
-__device__ void
+__device__ __forceinline__ void
 __build_LUT(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build(g, target.ptr(), target.size());
 }
 
-__device__ void
+__device__ __forceinline__ void
 __build_LUT_block(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_block(g, target.ptr(), target.size());
 }
 
-__device__ void
+__device__ __forceinline__ void
 __build_LUT_global(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_global(g, target.ptr(), target.size());
 }
 
-__device__ void
+__device__ __forceinline__ void
 __set_LUT_para(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.set_LUT_para(g, target.ptr(), target.size());
 }
 
-__device__ void 
+__device__ __forceinline__ void 
 __build_index_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
   vidType* index = meta.buffer(slot_id);
   vidType* index_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
   vmap.bitmap_._to_index(vmap.use_one, index, index_size_addr);
 }
 
-__device__ void 
+__device__ __forceinline__ void 
 __build_vlist_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int slot_id) {
   vidType* vlist = meta.buffer(slot_id);
   vidType* vlist_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
@@ -282,7 +282,7 @@ __build_vlist_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int 
 }
 
 // warp-level
-__device__ void 
+__device__ __forceinline__ void 
 __build_bitmap_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int bitmap_id) {
   vidType* bitmap_result = meta.bitmap(bitmap_id);
   vidType* bitmap_addr_size = meta.bitmap_size_addr(bitmap_id);
@@ -307,7 +307,7 @@ __build_bitmap_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int
   }
 }
 
-__device__ vidType
+__device__ __forceinline__ vidType
 __build_vid_from_vidx(GraphGPU& g, StorageMeta& meta, vidType vidx){
   return meta.lut.vid(vidx);
 }

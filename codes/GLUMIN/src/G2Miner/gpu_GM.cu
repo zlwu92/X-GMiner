@@ -130,6 +130,12 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   // out << (double)list_size / 1024.0 / 1024.0 << ",";
   // return;
 
+  vidType* d_work_depth_each_warp;
+  int num_warps = std::min((vidType)nblocks, vid_block_size) * nwarps;//nblocks * WARPS_PER_BLOCK;//
+  CUDA_SAFE_CALL(cudaMalloc((void **)&d_work_depth_each_warp, num_warps * sizeof(vidType)));
+  CUDA_SAFE_CALL(cudaMemset(d_work_depth_each_warp, 0, num_warps * sizeof(vidType)));
+  std::vector<vidType> work_depth_each_warp(num_warps);
+
   Timer t;
   t.Start();
   // G2Miner
@@ -141,7 +147,8 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   else if (k == 2){
     std::cout << "P2 Run G2Miner\n";
     // P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
-    P2_GM_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+    P2_GM_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, 
+                          frontier_bitmap, md, d_counts, lut_manager, d_work_depth_each_warp);
   }
   else if (k == 3){
     std::cout << "P3 Run G2Miner\n";
@@ -226,6 +233,15 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   for (size_t i = 0; i < npatterns; i ++) accum[i] = h_counts[i];
   t.Stop();
 
+  CUDA_SAFE_CALL(cudaMemcpy(work_depth_each_warp.data(), d_work_depth_each_warp, num_warps * sizeof(vidType), cudaMemcpyDeviceToHost));
+  out.close();
+  out.open("/data-ssd/home/zhenlin/workspace/graphmining/X-GMiner/results/work_depth_per_warp_glumin_g2miner.csv", std::ios::app);
+  out << "P" << k << ",";
+  for (size_t i = 0; i < work_depth_each_warp.size(); i++) {
+    out << work_depth_each_warp[i];
+    if (i < work_depth_each_warp.size() - 1)  out << ",";
+  }
+  out << "\n";
 
   std::cout << "runtime [G2Miner] = " << t.Seconds() << " sec\n";
   CUDA_SAFE_CALL(cudaFree(d_counts));

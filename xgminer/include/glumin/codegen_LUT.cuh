@@ -19,7 +19,7 @@ __device__ __host__ struct LUT{
   Bitmap2DView<T,W> bitmap_;
 
 #ifdef ROARING
-  __device__ __host__ void init(T* heap_head, typeType * types_head, uint32_t max_size){
+  __device__ __host__ __forceinline__ void init(T* heap_head, typeType * types_head, uint32_t max_size){
     heap_ = heap_head;
     types_ = types_head;
     max_size_ = max_size;

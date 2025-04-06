@@ -45,6 +45,10 @@ int main(int argc, char *argv[]) {
         LOG_INFO("Running GLUMIN+G2Miner+LUT algorithm.");
         GLUMIN glumin(opts);
         glumin.run();
+    } else if (opts.algo == "bitmap_opt1") {
+        LOG_INFO("Running GLUMIN+G2Miner+Bitmap Opt.1");
+        XGMiner xgminer(opts);
+        xgminer.run();
     } else {
         LOG_ERROR("Unsupported algorithm: " + opts.algo);
         return 1;

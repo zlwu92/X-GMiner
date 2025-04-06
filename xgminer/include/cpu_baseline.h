@@ -27,7 +27,7 @@ public:
     }
 
     ~CPU_Baseline() {
-        // std::cout << "CPU_Baseline destructor" << std::endl;
+        std::cout << "CPU_Baseline destructor" << std::endl;
     }
 
     void run_baseline_with_graphpi_sched();

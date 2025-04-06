@@ -866,6 +866,7 @@ __device__ struct Bitmap2DView{
   }
 
   __device__ void build_block(GraphGPU& g, vidType* vlist, vidType size) {
+    // printf("here!!!\n");
     int thread_lane = threadIdx.x & (WARP_SIZE - 1);
     int warp_lane = threadIdx.x / WARP_SIZE;
     for (vidType i = warp_lane; i < size; i += WARPS_PER_BLOCK) {
@@ -873,7 +874,49 @@ __device__ struct Bitmap2DView{
       vidType search_size = g.getOutDegree(vlist[i]);
       for (int j = thread_lane; j < size; j += WARP_SIZE) {
         bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
-        warp_set(i, j, flag);
+        // warp_set(i, j, flag);
+        warp_set_test(i, j, flag, vlist);
+        if (size == 4 && vlist[0] == 1 && vlist[1] == 2 && vlist[2] == 4 && vlist[3] == 5) {
+          // printf("warp_lane %d, thread_lane %d, i %d, j %d, flag %d\n", warp_lane, thread_lane, i, j, flag);
+          if (i == 1) {
+            // printf("warp_lane %d, thread_lane %d, i %d, j %d, flag %d\n", warp_lane, thread_lane, i, j, flag);
+          //   printf("vlist[%d]:%d, searhsize:%d\n", i, vlist[i], search_size);
+          //   for (int k = 0; k < search_size; k++) {
+          //     printf("search[%d]:%d\n", k, search[k]);
+          //   }
+          }
+        }
+      }
+    }
+  }
+
+  __device__ void warp_set_test(uint32_t x, uint32_t y, bool flag, vidType* vlist) {
+    uint32_t thread_lane = threadIdx.x & (WARP_SIZE-1);
+    uint32_t element = y / W; // should be the same value in this warp
+    uint32_t activemask = __activemask();
+    uint32_t mask = __ballot_sync(activemask, flag);
+    // if (vlist[0] == 1 && vlist[1] == 2 && vlist[2] == 4 && vlist[3] == 5 && x == 1) {
+    //   printf("thread_lane: %d, nrow_:%d, padded_rowsize_: %d, element:%d x %d, y %d, flag %d, mask %d\n", 
+    //           thread_lane, nrow_, padded_rowsize_, element, x, y, flag, mask);
+    // }
+    if (thread_lane == 0) {
+      ptr_[x * padded_rowsize_ + element] = mask;
+      if (vlist[0] == 1 && vlist[1] == 2 && vlist[2] == 4 && vlist[3] == 5) {
+        // printf("nrow_:%d, padded_rowsize_: %d, element:%d x %d, y %d, flag %d, mask %d\n", 
+        //         nrow_, padded_rowsize_, element, x, y, flag, mask);
+        if (x == 1) {
+          // print each bit of mask
+          // printf("mask: ");
+          // for (int i = 0; i < W; i++) {
+          //   printf("%d", (mask >> (31-i)) & 1);
+          // }
+          // printf("\n");
+          // printf("activemask: ");
+          // for (int i = 0; i < W; i++) {
+          //   printf("%d", (activemask >> (31-i)) & 1);
+          // }
+          // printf("\n");
+        }
       }
     }
   }

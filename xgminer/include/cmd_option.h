@@ -8,7 +8,7 @@
 #include "argparse.hpp"
 #include <getopt.h>
 
-#define PRINT_GREEN(x) std::cout << "\033[1;32m" << x << "\033[0m" << std::endl
+#define PRINT_GREEN(x) std::cout << "\033[1;36m" << x << "\033[0m" << std::endl
 
 class Command_Option {
 public:
@@ -16,14 +16,14 @@ public:
     Command_Option(int argc, char* argv[]) : argc(argc), argv(argv) {
         std::cout << "Command Line Arguments: ";
         auto app_name = std::filesystem::path(argv[0]).filename().string();
-        std::cout << "\033[1;32m" << app_name << " [" << "\033[0m";
+        std::cout << "\033[1;34m" << app_name << " [" << "\033[0m";
         for (int i = 1; i < argc; i++) {
-            std::cout << "\033[1;32m" << argv[i] << "\033[0m";
+            std::cout << "\033[1;34m" << argv[i] << "\033[0m";
             if (i < argc - 1) std::cout << " ";
         }
-        std::cout << "\033[1;32m" << "]" << "\033[0m" << "\n";
-
-        // show_header();
+        std::cout << "\033[1;34m" << "]" << "\n";
+        std::cout << "-------------------------------------------------------------------------------------\033[0m";
+        show_header();
     }
 
     void parseByCxxOpts() {
@@ -43,7 +43,9 @@ public:
             ("pattern-size", "Pattern size", cxxopts::value<int>()->default_value("3"))
             ("patternID", "Pattern ID", cxxopts::value<int>()->default_value("1"))
             ("do-validation", "Do validation", cxxopts::value<int>()->default_value("0"))
-            ("vert-induced", "Vertex induced", cxxopts::value<int>()->default_value("0"));
+            ("vert-induced", "Vertex induced", cxxopts::value<int>()->default_value("0"))
+            ("tunek", "Tune k", cxxopts::value<int>()->default_value("0"))
+            ("setk", "Set k", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -115,6 +117,16 @@ public:
                 PRINT_GREEN("Vertex induced: " << vert_induced);
             }
 
+            if (result.count("tunek")) {
+                tune_k = result["tunek"].as<int>();
+                PRINT_GREEN("Tune k: " << tune_k);
+            }
+
+            if (result.count("setk")) {
+                set_k = result["setk"].as<int>();
+                PRINT_GREEN("Set k: " << set_k);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -143,6 +155,10 @@ public:
         program.add_argument("--do-validation").help("Do validation").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--vert-induced").help("Vertex induced").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--tunek").help("Tune k").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--setk").help("Set k").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -210,6 +226,16 @@ public:
                 PRINT_GREEN("Vertex induced: " << vert_induced);
             }
 
+            if (program.get<int>("--tunek") != 0) {
+                tune_k = program.get<int>("--tunek");
+                PRINT_GREEN("Tune k: " << tune_k);
+            }
+
+            if (program.get<int>("--setk") != 0) {
+                set_k = program.get<int>("--setk");
+                PRINT_GREEN("Set k: " << set_k);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -218,15 +244,25 @@ public:
     }
 
     void show_header() {
-        std::cout << "(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)\n";
-        std::cout << "(+    ____    ____     _    _    _   _    ____      _          ____     _           _       ____   +)\n";
-        std::cout << "(+   / ___|  |  _ \\   | |  | |  | \\ | |  |  __|    / \\        | ___)   | |         / \\     / ___|  +)\n";
-        std::cout << "(+  | |  _   | |_) |  | |  | |  |  \\| |  | |__    / _ \\   --- | |_ 、  | |        / _ \\    \\`___   +)\n";
-        std::cout << "(+  | |_| |  |  __/   | |__| |  | . `.|  |  __|  / ___ \\      | |_) |  | |___、  / ___ \\    ___)|  +)\n";
-        std::cout << "(+   \\____/  |_|       \\____/   |_|\\__|  |_|    /_/   \\_\\     |____/   |_____|  /_/   \\_\\  |____/  +)\n";
-        std::cout << "(+                                                                                                 +)\n";
-        std::cout << "(+                      GPU-based NFA Processing Engine Using BLAS Operations                      +)\n";
-        std::cout << "(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)\n\n";
+        const std::string xgminer_logo = R"(
+(++++++++++++++++++++++++++++++++++++++++++++++++++)
+(+   __  __      ____ __  __ _                    +)
+(+   \ \/ /     / ___|  \/  (_)_ __   ___ _ __    +)
+(+    \  /_____| |  _| |\/| | | '_ \ / _ \ '__|   +)
+(+    /  \_____| |_| | |  | | | | | |  __/ |      +)
+(+   /_/\_\     \____|_|  |_|_|_| |_|\___|_|      +)
+(+                                                +)
+(+      GPU-accelerated Graph Mining Engine       +)
+)";
+        std::cout << "\033[1;32m" << xgminer_logo;
+        // std::cout << "Author: Zhenlin Wu" << std::endl;
+        std::time_t now = std::time(nullptr);
+        std::tm* local_time = std::localtime(&now);
+        char buffer[80];
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", local_time);
+        std::cout << "(+  X-GMiner version: v0.1 @ " << buffer << "  +)" << std::endl;
+        std::cout << "(++++++++++++++++++++++++++++++++++++++++++++++++++)\033[0m\n";
+        // std::cout << "Description: A GPU-accelerated graph mining engine for pattern matching." << std::endl;
     }
 
     std::string datagraph_file = "";
@@ -242,6 +278,8 @@ public:
     int patternID = 1;
     int do_validation = 0;
     int vert_induced = 0;
+    int tune_k = 0; // control bitmap bucket number
+    int set_k = 0; // set a specific bitmap bucket number mannually
     
 private:
     int argc;

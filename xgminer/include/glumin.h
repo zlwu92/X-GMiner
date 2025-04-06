@@ -25,7 +25,7 @@ public:
     }
 
     ~GLUMIN() {
-        // std::cout << "CPU_Baseline destructor" << std::endl;
+        std::cout << "GLUMIN destructor" << std::endl;
     }
 
     void load_graph_data_from_file() {

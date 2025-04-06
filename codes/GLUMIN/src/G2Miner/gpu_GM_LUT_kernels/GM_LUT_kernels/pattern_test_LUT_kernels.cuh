@@ -46,6 +46,20 @@ __difference_num_test(VertexMapView v, VertexMapView u, vidType upper_bound) {
 }
 
 
+// __device__ void build_block(GraphGPU& g, vidType* vlist, vidType size) {
+//   // printf("here!!!\n");
+//   int thread_lane = threadIdx.x & (WARP_SIZE - 1);
+//   int warp_lane = threadIdx.x / WARP_SIZE;
+//   for (vidType i = warp_lane; i < size; i += WARPS_PER_BLOCK) {
+//     auto search = g.N(vlist[i]);
+//     vidType search_size = g.getOutDegree(vlist[i]);
+//     for (int j = thread_lane; j < size; j += WARP_SIZE) {
+//       bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
+//       warp_set(i, j, flag);
+//     }
+//   }
+// }
+
 __global__ void __launch_bounds__(BLOCK_SIZE, 8)
 P2_GM_LUT_block_test(vidType begin, vidType end, 
                   vidType *vid_list,
@@ -121,9 +135,20 @@ P2_GM_LUT_block_test(vidType begin, vidType end,
     //   }
     //   printf("\n");
     }
+    // if (v0 == 0) {
+    //   printf("")
+    // }
     __build_LUT_block(g, meta, __get_vlist_from_graph(g, meta, /*vid=*/v0));;
     __syncthreads();
-    if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] = 1;
+    if (v0 == 0 && threadIdx.x == 0) {
+      auto bitmap = meta.lut.bitmap_;
+      // printf("after build_LUT_block, 2Dbitmap.size_: %d\n", bitmap.nrow_);
+      // for (int i = 0; i < bitmap.nrow_; i++) {
+      //   printf("%d ", bitmap.ptr_[i]);
+      // }
+      // printf("\n"); 
+    }
+    if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
     // if (v0 == 0)
     {
     for (vidType v1_idx = warp_lane; v1_idx < candidate_v1.size(); v1_idx += WARPS_PER_BLOCK) { // 1 2 4 5
@@ -139,14 +164,14 @@ P2_GM_LUT_block_test(vidType begin, vidType end,
         //   printf("%d ", vlist.ptr_[i]);
         // }
         // printf("\n");
-        // printf("bitmap.size(): %d\n", bitmap.size_);
+        // printf("1Dbitmap.size(): %d\n", bitmap.size_);
         // for (int i = 0; i < bitmap.size_; i++) {
         //   printf("%d ", bitmap.ptr_[i]);
         //     // print each bit of ptr
-        //     for (int j = 0; j < 32; j++) {
-        //       printf("%d", (bitmap.ptr_[i] >> (31-j)) & 1);
-        //     }
-        //     printf("\n");
+        //     // for (int j = 0; j < 32; j++) {
+        //     //   printf("%d", (bitmap.ptr_[i] >> (31-j)) & 1);
+        //     // }
+        //     // printf("\n");
         // }
         // printf("\n");
       }
@@ -165,10 +190,11 @@ P2_GM_LUT_block_test(vidType begin, vidType end,
         // }
         // printf("\n");
       }
-      if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] = 2;
+      if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
       for(vidType v2_idx_idx = thread_lane; v2_idx_idx < candidate_v2_idx.size(); v2_idx_idx += WARP_SIZE){
         auto v2_idx = candidate_v2_idx[v2_idx_idx];
-        // count += __difference_num(__get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), /*upper_bound=*/v2_idx);
+        count += __difference_num(__get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), /*upper_bound=*/v2_idx);
+      #if 0
         // auto cnt = __difference_num_test(
         //                 __get_vmap_from_lut(g, meta, /*idx_id=*/v1_idx, /*connected=*/true, /*upper_bound=*/-1), 
         //                 __get_vmap_from_lut(g, meta, /*idx_id=*/v2_idx, /*connected=*/false, /*upper_bound=*/-1), 
@@ -219,8 +245,8 @@ P2_GM_LUT_block_test(vidType begin, vidType end,
           printf("v2_idx: %d, v2: %d, thread_lane: %d, warp_lane %d, cnt: %d, limit: %d\n", 
                   v2_idx, v2, thread_lane, warp_lane, cnt, limit);
         }
-        
-        if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] = 3;
+      #endif  
+        if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
         // if (thread_lane == 0) printf("block_id:%d, warp_lane:%d\n", block_id, warp_lane);
 
       }

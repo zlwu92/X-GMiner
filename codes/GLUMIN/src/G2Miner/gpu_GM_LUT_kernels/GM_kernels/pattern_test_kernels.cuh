@@ -138,7 +138,9 @@ P2_GM_test(eidType ne,
                   bitmapType* bitmaps,
                   vidType max_deg,
                   AccType *counter,
-                  LUTManager<> LUTs){
+                  LUTManager<> LUTs,
+                  vidType* d_work_depth_each_warp
+                ){
   __shared__ vidType list_size[WARPS_PER_BLOCK * 2];
   __shared__ vidType bitmap_size[WARPS_PER_BLOCK * 1];
   __shared__ typename BlockReduce::TempStorage temp_storage;
@@ -162,6 +164,7 @@ P2_GM_test(eidType ne,
   meta.global_warp_id = warp_id;
   meta.local_warp_id = warp_lane;
   __syncwarp();
+  int glb_warp_lane = thread_id & (WARP_SIZE-1);
   // if (thread_id == 0) printf("@@@ %d %d\n", g.d_src_list[0], g.d_dst_list[0]);
   // BEGIN OF CODEGEN
   for(eidType eid = warp_id; eid < ne; eid += num_warps){
@@ -195,6 +198,7 @@ P2_GM_test(eidType ne,
       }
       // printf("\n");
     }
+    if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
@@ -204,49 +208,32 @@ P2_GM_test(eidType ne,
     //   if (thread_lane == 0)
     //   printf("v0: %d, v1: %d, v2: %d: ", v0, v1, v2);
     //   count += __difference_num(__get_vlist_from_heap(g, meta, /*slot_id=*/0), __get_vlist_from_graph(g, meta, /*vid=*/v2), /*upper_bound=*/v2);
-    auto cnt = __difference_num_test(
-                __get_vlist_from_heap(g, meta, /*slot_id=*/0), 
-                // vav,
-                __get_vlist_from_graph(g, meta, /*vid=*/v2), 
-                /*upper_bound=*/v2
-            );
+      auto cnt = __difference_num_test(
+                  __get_vlist_from_heap(g, meta, /*slot_id=*/0), 
+                  // vav,
+                  __get_vlist_from_graph(g, meta, /*vid=*/v2), 
+                  /*upper_bound=*/v2
+              );
         count += cnt;
         // __syncwarp();
-        if (cnt > 0 && thread_lane == 1 && warp_lane == 0) {
-          // if (cnt > 0) {
-            printf("thread_lane: %d warp_lane %d, cnt: %d eid: %ld blockid: %d\n", thread_lane, warp_lane, cnt, eid, blockIdx.x);
-            printf("v0: %d, v1: %d, v2: %d\n", v0, v1, v2);
-            // print vlist
-            auto vlist1 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
-            printf("vlist1: ");
-            for (int i = 0; i < vlist1.size_; i++) {
-                printf("%d ", vlist1.ptr_[i]);
-            }
-            printf("vlist2: ");
-            auto vlist2 = __get_vlist_from_graph(g, meta, /*vid=*/v2);
-            for (int i = 0; i < vlist2.size_; i++) {
-                printf("%d ", vlist2.ptr_[i]);
-            }
-            printf("\n");
-        }
-        // VertexArrayView vav1 = __difference_test(
-        //     meta, 
-        //     __get_vlist_from_heap(g, meta, /*slot_id=*/0), 
-        //     __get_vlist_from_graph(g, meta, /*vid=*/v2), 
-        //     /*upper_bound=*/v2,
-        //     /*output_slot=*/-1
-        // );
-        // count += vav1.size_;
-        // if (vav1.size_ > 0 && threadIdx.x == 0) {
-        //     printf("vav1.size_: %d\n", vav1.size_);
-        //   // print candidates
-        // //   printf("v0: %d, v1: %d, v2: %d, candidates: ", v0, v1, v2);
-        //     for(vidType v3_idx = 0; v3_idx < vav1.size_; v3_idx ++){
-        //         printf("v0: %d, v1: %d, v2: %d, candidates: ", v0, v1, v2);
-        //         printf("%d ", vav1.ptr_[v3_idx]);
+        // if (cnt > 0 && thread_lane == 1 && warp_lane == 0) {
+        //   // if (cnt > 0) {
+        //     printf("thread_lane: %d warp_lane %d, cnt: %d eid: %ld blockid: %d\n", thread_lane, warp_lane, cnt, eid, blockIdx.x);
+        //     printf("v0: %d, v1: %d, v2: %d\n", v0, v1, v2);
+        //     // print vlist
+        //     auto vlist1 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
+        //     printf("vlist1: ");
+        //     for (int i = 0; i < vlist1.size_; i++) {
+        //         printf("%d ", vlist1.ptr_[i]);
+        //     }
+        //     printf("vlist2: ");
+        //     auto vlist2 = __get_vlist_from_graph(g, meta, /*vid=*/v2);
+        //     for (int i = 0; i < vlist2.size_; i++) {
+        //         printf("%d ", vlist2.ptr_[i]);
         //     }
         //     printf("\n");
         // }
+        if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
     }
   }
   // END OF CODEGEN

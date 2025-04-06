@@ -147,11 +147,11 @@ public:
         //CUDA_SAFE_CALL(cudaDeviceSynchronize());
         //t.Stop();
       } else {
-        std::cout << __LINE__ << " here\n";
+        // std::cout << __LINE__ << " here\n";
         hg.init_edgelist(sym_break, ascend);
-        for (int i = 0; i < num_edges; ++i) {
-          std::cout << "src = " << hg.get_src(i) << " dst = " << hg.get_dst(i) << "\n";
-        }
+        // for (int i = 0; i < num_edges; ++i) {
+        //   std::cout << "src = " << hg.get_src(i) << " dst = " << hg.get_dst(i) << "\n";
+        // }
         copy_edgelist_to_device(nnz, hg.get_src_ptr(), hg.get_dst_ptr(), sym_break);
       }
       return nnz;

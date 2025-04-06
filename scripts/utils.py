@@ -20,9 +20,17 @@ datasets = {
     "Wiki-Vote": "/data-ssd/home/zhenlin/workspace/graphmining/X-GMiner/codes/GraphPi/dataset/wiki-vote_input",
     "TestGr1": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/synthetic/test_gr1.txt",
     "TestGr2": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/synthetic/test_gr2.txt",
+    
     "TestGr2_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/testgr2/",
     "TestGr1_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/testgr1/",
-    "mico_bin" : "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/mico/",
+    "mico_bin" : "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/mico/",
+    "YT_bin" : "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/youtube/",
+    "orkut_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/dataset2/orkut/",
+    "livej_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/dataset2/livej/",
+    "cp_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/dataset2/cit-Patents/",
+    "dblp_bin": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/dataset2/com-dblp/",
+
+    
     "MiCo": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/mico.txt",
     "Patents": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/cit-Patents.txt",
     "DBLP": "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/graphpi_data/datasets/com-dblp.ungraph.txt",

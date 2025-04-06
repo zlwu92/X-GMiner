@@ -98,17 +98,24 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   std::cout << "WARP_LIMIT: " << WARP_LIMIT << ", BLOCK_LIMIT: " << BLOCK_LIMIT << "\n";
   // split vertex tasks
   std::vector<vidType> vid_warp, vid_block, vid_global;
-
+  printf("nv: %d, ne: %d, md: %d\n", nv, ne, md);
+  int count = 0;
   for (int vid = 0; vid < nv; ++vid) {
     auto degree = g.get_degree(vid);
+    // std::cout << "degree: " << degree << "\n";
     if (degree <= WARP_LIMIT) {
+        // printf("here!!!\n");
         vid_warp.push_back(vid);
     } else if (degree <= BLOCK_LIMIT) {
         vid_block.push_back(vid);
+        count++;
     } else {
+        // printf("here~~~\n");
         vid_global.push_back(vid);
     }
   }
+  // std::cout << "vid_warp: " << vid_warp.size() << " vid_block: " << vid_block.size() << " vid_global: " << vid_global.size() << "\n";
+  // std::cout << "count: " << count << "\n";
   vidType vid_warp_size = vid_warp.size();
   vidType vid_block_size = vid_block.size();
   vidType vid_global_size = vid_global.size();
@@ -130,7 +137,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   // return;
 
   vidType* d_work_depth_each_warp;
-  int num_warps = nv * nwarps;//nblocks * WARPS_PER_BLOCK;//
+  int num_warps = std::min((vidType)nblocks, vid_block_size) * nwarps;//nblocks * WARPS_PER_BLOCK;//
   CUDA_SAFE_CALL(cudaMalloc((void **)&d_work_depth_each_warp, num_warps * sizeof(vidType)));
   CUDA_SAFE_CALL(cudaMemset(d_work_depth_each_warp, 0, num_warps * sizeof(vidType)));
   std::vector<vidType> work_depth_each_warp(num_warps);
@@ -165,15 +172,17 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
     std::cout << "P2 G2Miner + LUT\n";
     if (switch_lut){
       if (WARP_LIMIT != 0) {
+        std::cout << __LINE__ << " vid_warp_size: " << vid_warp_size << ", nthreads: " << nthreads << "\n";
         P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       }
       if (vid_block_size) {
-        std::cout << __LINE__ << "vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
+        std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
         lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
         // P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         P2_GM_LUT_block_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
                                                   frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
-                                                  d_work_depth_each_warp);
+                                                  d_work_depth_each_warp
+                                                );
       }
       if (vid_global_size){
         std::cout << __LINE__ << "vid_global_size: " << vid_global_size << "\n";
@@ -614,10 +623,11 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
 
   CUDA_SAFE_CALL(cudaMemcpy(work_depth_each_warp.data(), d_work_depth_each_warp, num_warps * sizeof(vidType), cudaMemcpyDeviceToHost));
   out.close();
-  out.open("/data-ssd/home/zhenlin/workspace/graphmining/X-GMiner/results/work_depth_per_warp_glumin_lut.csv", std::ios::app);
-  out << ",P" << k << "_LUT,";
+  out.open("/data-ssd/home/zhenlin/workspace/graphmining/X-GMiner/results/work_depth_per_warp_glumin_g2miner_lut.csv", std::ios::app);
+  out << "P" << k << "_LUT,";
   for (size_t i = 0; i < work_depth_each_warp.size(); i++) {
-    out << work_depth_each_warp[i] << ",";
+    out << work_depth_each_warp[i];
+    if (i < work_depth_each_warp.size() - 1)  out << ",";
   }
   out << "\n";
 
