@@ -180,7 +180,7 @@ void Graph_V2::build_reverse_graph() {
 }
 
 VertexSet Graph_V2::N(vidType vid) const {
-  printf("vid = %d\n", vid);
+  // printf("vid = %d\n", vid);
   assert(vid >= 0);
   assert(vid < n_vertices);
   eidType begin = vertices[vid], end = vertices[vid+1];
@@ -319,24 +319,9 @@ eidType Graph_V2::init_edgelist(bool sym_break, bool ascend) {
   std::cout << "nnz = " << nnz << " sym_break = " << sym_break << " ascend = " << ascend << " V = " << V() << "\n";
   std::cout << "Generating the edgelist\n";
   for (vidType v = 0; v < V(); v ++) {
-    // if (v == 0) 
-    {
-    // for (auto u : N(v)) {
-    //   if (u == v) continue; // no selfloops
-    //   // printf("v = %d, u = %d\n", v, u);
-    //   if (ascend) {
-    //     if (sym_break && v > u) continue;  
-    //   } else {
-    //     if (sym_break && v < u) break;  
-    //   }
-    //   src_list[i] = v;
-    //   if (sym_break) dst_list[i] = u;
-    //   sizes[v] ++;
-    //   i ++;
-    // }
-    for (eidType e = edge_begin(v); e < edge_end(v); e++) {
-      auto u = getEdgeDst(e);
-      if (v == u) continue; // no selfloops
+
+    for (auto u : N(v)) {
+      if (u == v) continue; // no selfloops
       // printf("v = %d, u = %d\n", v, u);
       if (ascend) {
         if (sym_break && v > u) continue;  
@@ -348,7 +333,22 @@ eidType Graph_V2::init_edgelist(bool sym_break, bool ascend) {
       sizes[v] ++;
       i ++;
     }
-    }
+    
+    // for (eidType e = edge_begin(v); e < edge_end(v); e++) {
+    //   auto u = getEdgeDst(e);
+    //   if (v == u) continue; // no selfloops
+    //   // printf("v = %d, u = %d\n", v, u);
+    //   if (ascend) {
+    //     if (sym_break && v > u) continue;  
+    //   } else {
+    //     if (sym_break && v < u) break;  
+    //   }
+    //   src_list[i] = v;
+    //   if (sym_break) dst_list[i] = u;
+    //   sizes[v] ++;
+    //   i ++;
+    // }
+
   }
   // std::cout << "i = " << i << " nnz = " << nnz << "\n";
   //assert(i == nnz);

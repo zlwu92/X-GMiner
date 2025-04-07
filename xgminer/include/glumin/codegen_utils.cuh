@@ -8,6 +8,7 @@ __device__ struct StorageMeta {
   vidType* base;
   vidType* base_size;
   bitmapType* bitmap_base;
+  bitmap64_Type* bitmap64_base;
   vidType* bitmap_base_size;
   vidType nv;
   size_t slot_size;
@@ -40,6 +41,12 @@ __device__ struct StorageMeta {
 
   __device__ __forceinline__ vidType* bitmap_size_addr(int bitmap_id) {
     return bitmap_base_size + WARPS_PER_BLOCK * bitmap_id + local_warp_id;
+  }
+
+  __device__ __forceinline__ bitmap64_Type* bitmap64(int bitmap_id) {
+    return bitmap64_base
+      + bitmap_size * bitmap_capacity * global_warp_id // begin of this warp
+      + bitmap_size * bitmap_id; // begin of this bitmap
   }
 
 #ifdef LOAD_SRAM

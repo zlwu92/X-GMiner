@@ -8,6 +8,7 @@
 #include "kernel.h"
 #include <memory> // std::unique_ptr
 
+
 class XGMiner {
 public:
     XGMiner(Command_Option &opts) {
@@ -44,12 +45,12 @@ public:
         }
     }
 
-    void run_bitmap_opt1();
+    void run_bitmap_bigset_opt();
 
     void run() {
         load_graph_data_from_file();
-        if (algo == "bitmap_opt1") {
-            run_bitmap_opt1();
+        if (algo == "bitmap_bigset_opt") {
+            run_bitmap_bigset_opt();
         }
         else {
             LOG_ERROR("Unsupported algorithm: " + algo);

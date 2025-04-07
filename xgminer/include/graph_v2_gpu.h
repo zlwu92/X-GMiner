@@ -50,6 +50,15 @@ public:
     inline __device__ __host__ vlabel_t* get_vlabel_ptr() { return d_vlabels; }
     inline __device__ __host__ elabel_t* get_elabel_ptr() { return d_elabels; }
   
+
+    // inline __device__ __host__ vidType* N(vidType vid, vidType bound)  {
+    //   // return d_colidx + d_rowptr[vid]; neighbors that < bound
+    //   auto start = d_rowptr[vid];
+    //   auto end = d_rowptr[vid+1];
+    //   auto size = end - start;
+    //   if (size == 0) return NULL;
+    // }
+
     inline __device__ __host__ bool is_freq_vertex(vidType v, int threshold) {
       auto label = int(d_vlabels[v]);
       assert(label <= num_vertex_classes);

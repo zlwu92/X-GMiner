@@ -160,6 +160,11 @@ typedef int64_t e_index_t;
 
 /*********************************** X-GMiner *******************************/
 
+#define BITMAP64_WIDTH 64
+#define bitmap64_Type uint64_t
+
+
+
 enum Input_FileFormat {
     SNAP_TXT = 0,
     BINARY = 1,

@@ -144,7 +144,7 @@ void XGMiner::run_glumin_cliques() {
 }
 #endif
 
-void XGMiner::run_bitmap_opt1() {
+void XGMiner::run_bitmap_bigset_opt() {
     if (local_patternId == 4 || local_patternId == 5 || local_patternId == 23 || local_patternId == 24) {
         k_num = local_patternId;
         if (local_patternId == 23) k_num = 6;
