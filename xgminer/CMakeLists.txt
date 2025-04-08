@@ -37,7 +37,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
+set(DEFAULT_TEMPLATE_PARAM_BMAP_BUCKET_NUM 4) # k
 
+if(NOT DEFINED BMAP_BUCKET_NUM)
+    set(BMAP_BUCKET_NUM ${DEFAULT_TEMPLATE_PARAM_BMAP_BUCKET_NUM} CACHE STRING "Template parameter for CUDA kernel")
+endif()
+
+# 将模板参数值传递给编译器
+add_definitions(-DBMAP_BUCKET_NUM=${BMAP_BUCKET_NUM})
 
 # --ptxas-options=-v
 set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS} "-g -O3 -lineinfo --expt-extended-lambda -Wno-deprecated-gpu-targets \

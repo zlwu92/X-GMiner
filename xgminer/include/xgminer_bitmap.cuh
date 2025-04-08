@@ -24,7 +24,8 @@ struct XGMiner_BITMAP {
     vidType bigset_bucket_num = 0;
     std::vector<vidType> bucket_vlists_;
     std::vector<vidType> bucket_sizelists_;
-    std::vector<std::vector<uint64_t>> bitmaps_;
+    // std::vector<std::vector<uint64_t>> bitmaps_;
+    std::vector<uint64_t> bitmaps_;
     vidType* d_bucket_vlists_ = nullptr;
     vidType* d_bucket_sizelists_ = nullptr;
     T* d_bitmaps_ = nullptr;
@@ -209,15 +210,16 @@ struct XGMiner_BITMAP {
         eidType ne = g.num_edges();
         // bucket_vlists_.resize(nv);
         bucket_sizelists_.resize(nv * bigset_bucket_num, 0);
-        bitmaps_.resize(nv);
+        // bitmaps_.resize(nv);
         int bmap_size = bigset_bucket_num / W;
+        bitmaps_.resize(nv * bmap_size, 0x0);
         for (int i = 0; i < nv; i++) {
             // auto vlist = g.N(i);
             auto edge_beg = g.edge_begin(i);
             auto edge_end = g.edge_end(i);
             // bucket_vlists_[i].resize(bigset_bucket_num);
-            std::cout << "vertex " << i << ": ";
-            bitmaps_[i].resize(bigset_bucket_num / W, 0x0);
+            // std::cout << "vertex " << i << ": ";
+            // bitmaps_[i].resize(bigset_bucket_num / W, 0x0);
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
                 int bucket_id = neigh & (bigset_bucket_num - 1);
@@ -226,14 +228,15 @@ struct XGMiner_BITMAP {
                 
                 int bucket_ele = bucket_id / W;
                 int bucket_bit = bucket_id % W;
-                std::cout << neigh << "[" << bucket_id << " " << bucket_ele << " " << bucket_bit << "] ";
-                bitmaps_[i][bucket_ele] |= (1ULL << (W - 1 - bucket_bit));
+                // std::cout << neigh << "[" << bucket_id << " " << bucket_ele << " " << bucket_bit << "] ";
+                // bitmaps_[i][bucket_ele] |= (1ULL << (W - 1 - bucket_bit));
+                bitmaps_[i * bmap_size + bucket_ele] |= (1ULL << (W - 1 - bucket_bit));
                 // for (int s = 0; s < 64; ++s) {
                 //     printf("%lu", (bitmaps_[i][bucket_ele] >> (W-1-s)) & 1);
                 // }
                 // std::cout << "\n";
             }
-            std::cout << "\n";
+            // std::cout << "\n";
             // for (int s = 0; s < 64; ++s) {
             //     printf("%lu", (bitmaps_[i][0] >> (W-1-s)) & 1);
             // }
@@ -243,17 +246,18 @@ struct XGMiner_BITMAP {
         //     printf("%lu", (bitmaps_[0][0] >> (63-i)) & 1);
         // }
         // std::cout << "\n";
-        for (auto val : bitmaps_[0]) {
-            std::cout << val << " ";
-        }
-        std::cout << "\n";
+        // for (auto val : bitmaps_[0]) {
+        //     std::cout << val << " ";
+        // }
+        // std::cout << "\n";
 
         // copy bitmaps_ to device
         CUDA_SAFE_CALL(cudaMalloc((void **)&d_bitmaps_, sizeof(T) * nv * (bigset_bucket_num / W)));
-        for (int i = 0; i < nv; i++) {
-            CUDA_SAFE_CALL(cudaMemcpy(d_bitmaps_ + i * (bigset_bucket_num / W), 
-                            bitmaps_[i].data(), sizeof(T) * (bigset_bucket_num / W), cudaMemcpyHostToDevice));
-        }
+        // for (int i = 0; i < nv; i++) {
+        //     CUDA_SAFE_CALL(cudaMemcpy(d_bitmaps_ + i * (bigset_bucket_num / W), 
+        //                     bitmaps_[i].data(), sizeof(T) * (bigset_bucket_num / W), cudaMemcpyHostToDevice));
+        // }
+        CUDA_SAFE_CALL(cudaMemcpy(d_bitmaps_, bitmaps_.data(), sizeof(T) * nv * bmap_size, cudaMemcpyHostToDevice));
 
         // copy bucket_vlists_ to device
         CUDA_SAFE_CALL(cudaMalloc((void **)&d_bucket_vlists_, sizeof(vidType) * bucket_vlists_.size()));

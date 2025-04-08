@@ -79,7 +79,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
     std::cout << "max_blocks_per_SM = " << max_blocks_per_SM << "\n";
   } 
   size_t max_blocks = max_blocks_per_SM * deviceProp.multiProcessorCount;
-
+  std::cout << "max_blocks = " << max_blocks << "\n";
   nblocks = std::min(6*max_blocks, nblocks);
 
   nblocks = 640;
@@ -178,11 +178,11 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
       if (vid_block_size) {
         std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
         lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-        // P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
-        P2_GM_LUT_block_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
-                                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
-                                                  d_work_depth_each_warp
-                                                );
+        P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+        // P2_GM_LUT_block_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+        //                                           frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
+        //                                           d_work_depth_each_warp
+        //                                         );
       }
       if (vid_global_size){
         std::cout << __LINE__ << "vid_global_size: " << vid_global_size << "\n";

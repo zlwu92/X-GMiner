@@ -24,6 +24,7 @@ public:
         file_format = getFileFormat(data_path);
         do_validation = opts.do_validation;
         vert_induced = opts.vert_induced;
+        std::cout << "vertex induced: " << vert_induced << std::endl;
     }
 
     ~CPU_Baseline() {
@@ -72,26 +73,73 @@ public:
                 // source = id_map[source];
                 // target = id_map[target];
                 
-                edgeLists[source].insert(target);
-                edgeLists[target].insert(source);
+                // edgeLists[source].insert(target);
+                // edgeLists[target].insert(source);
                 real_enum += 2;
             }
 
             if (real_vnum != vertices || real_enum != edges * 2) {
+                std::cout << "real_vnum=" << real_vnum << " real_enum=" << real_enum << std::endl;
                 // delete g;
                 file.close();
                 LOG_ERROR("Invalid vertex num / edge num.");
             }
 
-            for (int i = 0; i < vertices; i++) {
-                std::cout << "Vertex " << i << " edges: ";
-                for (int edge : edgeLists[i]) {
-                    std::cout << edge << " ";
-                }
-                std::cout << std::endl;
-            }
+            // for (int i = 0; i < vertices; i++) {
+            //     std::cout << "Vertex " << i << " edges: ";
+            //     for (int edge : edgeLists[i]) {
+            //         std::cout << edge << " ";
+            //     }
+            //     std::cout << std::endl;
+            // }
 
             file.close();
+        } else if (file_format == Input_FileFormat::BINARY) {
+            std::string inputfile_path;
+            std::string prefix = data_path + "/graph";
+            std::string name_;
+            size_t i = prefix.rfind('/', prefix.length());
+            if (i != std::string::npos) inputfile_path = prefix.substr(0, i);
+            i = inputfile_path.rfind('/', inputfile_path.length());
+            if (i != std::string::npos) name_ = inputfile_path.substr(i+1);
+            std::cout << "input file path: " << inputfile_path << ", graph name: " << name_ << "\n";
+
+            std::cout << prefix + ".meta.txt" << "\n";
+            std::ifstream f_meta((prefix + ".meta.txt").c_str());
+            assert(f_meta);
+            int vid_size = 0, eid_size = 0, vlabel_size = 0, elabel_size = 0;
+            eidType n_edges;
+            vidType n_vertices;
+            vidType max_degree;
+            int feat_len;
+            int num_vertex_classes;
+            int num_edge_classes;
+            f_meta >> n_vertices;
+            f_meta >> n_edges >> vid_size >> eid_size >> vlabel_size >> elabel_size
+                    >> max_degree >> feat_len >> num_vertex_classes >> num_edge_classes;
+            LOG_INFO("Graph meta information: |V|: " + std::to_string(n_vertices) + 
+                    ", |E|: " + std::to_string(n_edges) + ", Max Degree: " + std::to_string(max_degree));
+            LOG_INFO("vid_size: " + std::to_string(vid_size) + ", eid_size: " + std::to_string(eid_size) + 
+                    ", vlabel_size: " + std::to_string(vlabel_size) + ", elabel_size: " + std::to_string(elabel_size));
+            LOG_INFO("Vertex-|\u03A3|: " + std::to_string(num_vertex_classes) + ", Edge-|\u03A3|: " + std::to_string(num_edge_classes));
+
+            vidType *edges1;
+            eidType *vertices1;
+
+            // read row pointers
+            read_file(prefix + ".vertex.bin", vertices1, n_vertices+1);
+            // read column indices
+            read_file(prefix + ".edge.bin", edges1, n_edges);
+
+            vertices = n_vertices;
+            edges = n_edges;
+            edgeLists.resize(vertices);
+            for (int i = 0; i < vertices; i++) {
+                for (int j = vertices1[i]; j < vertices1[i+1]; j++) {
+                    edgeLists[i].insert(edges1[j]);
+                }
+            }
+
         } else {
             LOG_ERROR("Invalid file format.");
         }
@@ -137,7 +185,7 @@ private:
     std::vector<int> embedding;
     Input_FileFormat file_format = Input_FileFormat::SNAP_TXT;
 
-    bool do_validation = true;
+    bool do_validation = false;
     int vert_induced = 0;
 
     CPUTimer timer;

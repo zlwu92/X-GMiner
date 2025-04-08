@@ -173,6 +173,8 @@ enum Input_FileFormat {
     INVALID = 4,
 };
 
+constexpr int TEMPLATE_BUCKET_NUM = BMAP_BUCKET_NUM;
+
 
 bool checkFileExtension(std::string filename, const std::string& extension);
 

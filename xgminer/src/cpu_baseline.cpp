@@ -106,7 +106,7 @@ void CPU_Baseline::run_our_baseline_test() {
 
     std::ofstream out(output_path + "overall_performance.csv", std::ios::app);
     out << data_name << ",P" << local_patternId << ",our_baseline" << "," << total_count << "," << timer.elapsed() << "\n";
-    if (do_validation) {
+    if (do_validation && !vert_induced) {
         validation();
     }
     

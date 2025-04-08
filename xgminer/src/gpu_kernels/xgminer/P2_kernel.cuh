@@ -105,7 +105,7 @@ xgminer_bitmap_bigset_opt_P2_edge_induced(
 
 
 template<vidType BUCKET_NUM>
-__global__ void __launch_bounds__(BLOCK_SIZE_128, 4)
+__global__ void //__launch_bounds__(BLOCK_SIZE_128, 4)
 xgminer_bitmap_bigset_opt_P2_vertex_induced(
                                         GraphGPU g, 
                                         vidType *vlists,

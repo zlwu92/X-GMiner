@@ -4,7 +4,7 @@
 void Kernel::motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
                                             long long& total_count, std::vector<int>& embedding, int vert_induced) {
     LOG_INFO("Running motif4_glumin_p2_baseline_cpu_kernel.");
-
+    LOG_INFO("vert_induced: " + std::to_string(vert_induced));
     for (int i = 0; i < vertices; i++) { // level 1
         int candidate_0 = i;
         embedding.push_back(candidate_0);
@@ -23,10 +23,10 @@ void Kernel::motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std:
                                 embedding.push_back(candidate_3);
                                 total_count++;
                                 // print out the embedding
-                                for (int v : embedding) {
-                                    std::cout << v << " ";
-                                }
-                                std::cout << std::endl;
+                                // for (int v : embedding) {
+                                //     std::cout << v << " ";
+                                // }
+                                // std::cout << std::endl;
                                 embedding.pop_back();
                             } else {
                                 // candidate_3 should not be neighbors of candidate_2
@@ -34,10 +34,10 @@ void Kernel::motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std:
                                     embedding.push_back(candidate_3);
                                     total_count++;
                                     // print out the embedding
-                                    for (int v : embedding) {
-                                        std::cout << v << " ";
-                                    }
-                                    std::cout << std::endl;
+                                    // for (int v : embedding) {
+                                    //     std::cout << v << " ";
+                                    // }
+                                    // std::cout << std::endl;
                                     embedding.pop_back();
                                 }
                             }

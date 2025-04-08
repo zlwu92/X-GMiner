@@ -16,8 +16,8 @@ print(f"[{current_time}]")
 benchmark_dir = "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/"
 datasets = [
     # ("../testgr1/", "TestGr1"),
-    ("../testgr2/", "TestGr2"),
-    # ("mico/", "mico"),
+    # ("../testgr2/", "TestGr2"),
+    ("mico/", "mico"),
     # ("youtube/", "YT"),
     # ("com-dblp/", "dblp"),
     # ("cit-Patents/", "cp"),
@@ -35,11 +35,21 @@ patterns = [
     # ("P6", 22),
 ]
 
+bucket_num = [
+    8,
+    16,
+    # 32,
+    # 64,
+    # 128,
+    # 256,
+]
+
 
 def test_bitmap_opt1():
     
-    cmd = f"cd ../build && cmake .. && make xgminer && cd ../scripts/"
-    os.system(cmd)
+    cmd = f"cd ../build && cmake .. -DBMAP_BUCKET_NUM=8 && make xgminer && cd ../scripts/"
+    # cmd = f"cd ../build && make xgminer && cd ../scripts/"
+    # os.system(cmd)
             
     for pattern, pattern_id in patterns:
         # for dataset in datasets:
@@ -47,21 +57,27 @@ def test_bitmap_opt1():
             dataset_path = benchmark_dir + dataset
             print(f"Dataset: {dataset_path}")
                 
-            
-            cmd = f"../xgminer/bin/xgminer "
-            cmd += f"--graph {dataset_path} "
-            cmd += f"--dataname {dataset_name} "
-            cmd += f"--algorithm bitmap_opt1 "
-            cmd += f"--patternID {pattern_id} "
-            print(f"Command: {cmd}")
-            subprocess.run(cmd, shell=True)
+            for bucket_k in bucket_num:
+                cmd = f"cd ../build && cmake .. -DBMAP_BUCKET_NUM={bucket_k} && make xgminer && cd ../scripts/"
+                os.system(cmd)
+
+                cmd = f"../xgminer/bin/xgminer "
+                cmd += f"--graph {dataset_path} "
+                cmd += f"--dataname {dataset_name} "
+                cmd += f"--algorithm bitmap_bigset_opt "
+                cmd += f"--patternID {pattern_id} "
+                # cmd += f"--setk 8 "
+                cmd += f"--vert-induced 1 "
+                # cmd += f"--do-validation 1 "
+                print(f"Command: {cmd}")
+                subprocess.run(cmd, shell=True)
 
 
 
 def parse_args():            
     """显示交互式菜单"""
     print(f"{utils.Colors.OKBLUE}>> Choose experiment:{utils.Colors.ENDC}")
-    print("0 -- test_bitmap_opt1: bitmap bucket compression")
+    print("0 -- bitmap_bigset_opt: bigset bitmap optimization")
     
     choice = input("Enter Exp. ID: ").strip()
     if (choice == "0"):
@@ -70,5 +86,6 @@ def parse_args():
 
 if __name__ == "__main__":
     
-    args = parse_args()
+    # args = parse_args()
+    test_bitmap_opt1()
 

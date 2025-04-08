@@ -23,6 +23,8 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "P2_kernel.cuh"
 
 
+
+
 void XGMiner::clique_solver(Graph_V2& g) {
 
 }
@@ -30,7 +32,8 @@ void XGMiner::clique_solver(Graph_V2& g) {
 
 void XGMiner::motif_solver(Graph_V2& g) {
     LOG_INFO("Running motif solver");
-
+    constexpr int BUCKET_NUM = calculate_value(TEMPLATE_BUCKET_NUM);
+    LOG_INFO("Calculated BUCKET_NUM = " + std::to_string(BUCKET_NUM));
     int k = local_patternId;
     assert(k >= 1);
     size_t memsize = print_device_info(0);
@@ -43,10 +46,15 @@ void XGMiner::motif_solver(Graph_V2& g) {
     if (memsize < mem_graph) std::cout << "Graph too large. Unified Memory (UM) required\n";
     // CUDA_SAFE_CALL(cudaSetDevice(CUDA_SELECT_DEVICE));
     
-    std::cout << "bucket_k = " << bucket_k << "\n";
-    XGMiner_BITMAP<> bitmap(bucket_k);
+    std::cout << "bucket_k = " << TEMPLATE_BUCKET_NUM << "\n";
+    XGMiner_BITMAP<> bitmap(TEMPLATE_BUCKET_NUM);
     bitmap.bigset_bitmap_processing(g);
     
+    // for (int i = 0; i < nv; ++i) {
+    //     if (g.get_degree(i) == 0) {
+    //         std::cout << "vertex " << i << " degree 0\n";
+    //     }
+    // }
     
     GraphGPU gg(g);
     gg.init_edgelist(g);
@@ -113,13 +121,20 @@ void XGMiner::motif_solver(Graph_V2& g) {
     gputimer.start();
     if (k == 2) {
         if (algo == "bitmap_bigset_opt") {
-            xgminer_bitmap_bigset_opt_P2_vertex_induced<4><<<nblocks, nthreads>>>(gg, 
-                                                                frontier_list,
-                                                                frontier_bitmap, 
-                                                                bitmap, 
-                                                                bitmap.bigset_bucket_num / BITMAP64_WIDTH,
-                                                                md, 
-                                                                d_counts);
+            // xgminer_bitmap_bigset_opt_P2_vertex_induced<4><<<nblocks, nthreads>>>(gg, 
+            //                                                     frontier_list,
+            //                                                     frontier_bitmap, 
+            //                                                     bitmap, 
+            //                                                     bitmap.bigset_bucket_num / BITMAP64_WIDTH,
+            //                                                     md, 
+            //                                                     d_counts);
+            xgminer_bitmap_bigset_opt_P2_vertex_induced<BUCKET_NUM><<<nblocks, nthreads>>>(gg, 
+                                                                    frontier_list,
+                                                                    frontier_bitmap, 
+                                                                    bitmap, 
+                                                                    bitmap.bigset_bucket_num / BITMAP64_WIDTH,
+                                                                    md, 
+                                                                    d_counts);
         }
     }
     gputimer.end_with_sync();
@@ -133,4 +148,8 @@ void XGMiner::motif_solver(Graph_V2& g) {
         std::cout << "P" << k << "[bitmap_bigset_opt] = " << gputimer.elapsed() / 1000 << " s\n";
     }
     CUDA_SAFE_CALL(cudaFree(d_counts));
+
+    if (do_validation) {
+        cpu_base->validate_with_our_cpu_baseline(total[0]);
+    }
 }

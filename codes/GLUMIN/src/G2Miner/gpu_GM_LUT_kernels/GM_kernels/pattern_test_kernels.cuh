@@ -202,8 +202,17 @@ P2_GM_test(eidType ne,
     auto candidate_v2 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
     for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx ++){
       auto v2 = candidate_v2[v2_idx];
-      if (eid == 0 && threadIdx.x == 0) {
-        // printf("v2: %d\n", v2);
+      if (eid == 1 && blockIdx.x == 0 && warp_lane == 1) {
+         // count how many threads active here
+        //  unsigned active = __activemask();
+        //   __syncwarp(active);
+          // print each bit of active
+          // for (int i = 0; i < WARP_SIZE; i++) {
+          //   if ((active >> (31-i)) & 1) {
+          //     printf("thread_lane: %d warp_lane %d, active: %d\n", thread_lane, warp_lane, i);
+          //   }
+          // }
+          // printf("%lu", __popc(active));
       }
     //   if (thread_lane == 0)
     //   printf("v0: %d, v1: %d, v2: %d: ", v0, v1, v2);
@@ -216,10 +225,12 @@ P2_GM_test(eidType ne,
               );
         count += cnt;
         // __syncwarp();
-        // if (cnt > 0 && thread_lane == 1 && warp_lane == 0) {
-        //   // if (cnt > 0) {
-        //     printf("thread_lane: %d warp_lane %d, cnt: %d eid: %ld blockid: %d\n", thread_lane, warp_lane, cnt, eid, blockIdx.x);
-        //     printf("v0: %d, v1: %d, v2: %d\n", v0, v1, v2);
+        if (cnt > 0/* && thread_lane == 1 && warp_lane == 0*/) {
+          // if (
+          //   //v2_idx == 0 /*cnt > 0 */&& 
+          //   blockIdx.x == 0 && warp_lane == 1) {
+            printf("thread_lane: %d warp_lane %d, cnt: %d eid: %ld warpid: %d v0: %d, v1: %d, v2: %d\n", 
+                    thread_lane, warp_lane, cnt, eid, warp_id, v0, v1, v2);
         //     // print vlist
         //     auto vlist1 = __get_vlist_from_heap(g, meta, /*slot_id=*/0);
         //     printf("vlist1: ");
@@ -232,7 +243,10 @@ P2_GM_test(eidType ne,
         //         printf("%d ", vlist2.ptr_[i]);
         //     }
         //     printf("\n");
-        // }
+            // unsigned active = __activemask();
+            // __syncwarp(active);
+            // printf("thread_lane: %d, %lu, cnt:%d\n", thread_lane, __popc(active), cnt);
+        }
         if (glb_warp_lane == 0) d_work_depth_each_warp[warp_id] += 1;
     }
   }

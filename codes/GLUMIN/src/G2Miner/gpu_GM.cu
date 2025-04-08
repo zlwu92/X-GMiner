@@ -146,9 +146,9 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   }
   else if (k == 2){
     std::cout << "P2 Run G2Miner\n";
-    // P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
-    P2_GM_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, 
-                          frontier_bitmap, md, d_counts, lut_manager, d_work_depth_each_warp);
+    P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+    // P2_GM_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, 
+    //                       frontier_bitmap, md, d_counts, lut_manager, d_work_depth_each_warp);
   }
   else if (k == 3){
     std::cout << "P3 Run G2Miner\n";

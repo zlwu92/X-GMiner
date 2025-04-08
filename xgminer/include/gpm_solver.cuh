@@ -7,7 +7,12 @@
 #include "cmd_option.h"
 #include "kernel.h"
 #include <memory> // std::unique_ptr
+#include "cpu_baseline.h"
 
+// 编译期计算 pow(2, N) / 64
+constexpr int calculate_value(int N) {
+    return (1 << N) / BITMAP64_WIDTH; // 使用位移代替 pow(2, N)
+}
 
 class XGMiner {
 public:
@@ -25,6 +30,18 @@ public:
         bucket_k = opts.set_k;
         total.resize(num_patterns, 0);
         total_time.resize(num_patterns, 0);
+        if (do_validation) {
+            opts.run_our_baseline = 1;
+            // std::filesystem::path absolutePath = data_path;
+            // size_t found = absolutePath.string().find(benchmarkset_name);
+            // if (found != std::string::npos) {
+            //     // 截取 "graphmine_bench" 前面的部分
+            //     std::string commonPrefix = absolutePath.string().substr(0, found);  
+            //     std::cout << "commonPrefix: " << commonPrefix << std::endl;
+            //     opts.datagraph_file = commonPrefix + "graphpi_data/datasets/";
+            // }
+            cpu_base = new CPU_Baseline(opts);
+        }
     }
 
     ~XGMiner() {
@@ -115,6 +132,8 @@ private:
     bool do_validation = true;
     int bucket_k = 8; // for bitmap bucket number
     bool tune_k = false;
+    CPU_Baseline* cpu_base;
+    std::string benchmarkset_name = "graphmine_bench";
 
     CPUTimer timer;
     Kernel kernel;
