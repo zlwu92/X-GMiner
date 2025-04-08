@@ -162,8 +162,8 @@ typedef int64_t e_index_t;
 
 #define BITMAP64_WIDTH 64
 #define bitmap64_Type uint64_t
-
-
+#define BLOCK_SIZE_128 128
+#define WARP_PER_BLOCK_128 (BLOCK_SIZE_128 / WARP_SIZE)
 
 enum Input_FileFormat {
     SNAP_TXT = 0,

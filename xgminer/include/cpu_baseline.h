@@ -106,6 +106,18 @@ public:
         }
     }
 
+    void validate_with_our_cpu_baseline(int ans) {
+        LOG_INFO("Running our baseline implementation.");
+        load_graph_data_from_file();
+        run_our_baseline_test();
+        
+        if (total_count == ans) {
+            LOG_INFO("Validation passed.");
+        } else {
+            LOG_ERROR("Validation failed.");
+        }
+    }
+
 private:
     int use_graphpi_sched = 1;
     int run_graphpi = 0;

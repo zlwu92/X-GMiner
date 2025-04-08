@@ -61,7 +61,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
 
     size_t n_lists;
     size_t n_bitmaps;
-    n_lists = 7;
+    n_lists = 5;
     n_bitmaps = 3;
 
     // vidType switch_lut = 1;
@@ -107,6 +107,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
     std::cout << "lut rows size: " << 1.0 * bitmap_size/(1024*1024) << " MB\n";
     bitmap64_Type *frontier_bitmap; // each thread has lut rows to store midresult of lut compute
     CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
+    CUDA_SAFE_CALL(cudaMemset(frontier_bitmap, 0x0, bitmap_size));
 
     GPUTimer gputimer;
     gputimer.start();
