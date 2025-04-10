@@ -57,7 +57,7 @@ xgminer_bitmap_bigset_opt_P2_edge_induced(
                                                         bitmaps.d_bitmaps_ + v1 * bmap_size, 
                                                         bmap_size, 
                                                         bmap_size,
-                                                        g, v0, v1,
+                                                        g, v0, v1, v1_idx,
                                                         meta,
                                                         0, 0,
                                                         nonzero_bucket_id,
@@ -153,46 +153,46 @@ xgminer_bitmap_bigset_opt_P2_vertex_induced(
     for(vidType v0_idx = block_id; v0_idx < candidate_v0.size(); v0_idx += num_blocks){
         auto v0 = v0_idx;//vid_list[v0_idx];
         auto candidate_v1 = __get_vlist_from_graph(g, meta, /*vid=*/v0); // v1 is in N(v0)
-        if (v0 == 18) 
+        // if (v0 == 18) 
         {
         for (vidType v1_idx = warp_lane; v1_idx < candidate_v1.size(); v1_idx += WARP_PER_BLOCK_128) { // 1 2 4 5
             auto v1 = candidate_v1[v1_idx];
-            if (v1 > v0 && v1_idx == 4) {
+            if (v1 > v0/* && v1_idx == 6*/) {
                 // perform intersection between N(v0) and N(v1)
                 auto candidate_v2 = bitmaps.intersection(
                                                         bitmaps.d_bitmaps_ + v0 * bmap_size, 
                                                         bitmaps.d_bitmaps_ + v1 * bmap_size, 
                                                         bmap_size, 
                                                         bmap_size,
-                                                        g, v0, v1, 
+                                                        g, v0, v1, v1_idx,
                                                         meta,
                                                         0, 0,
                                                         nonzero_bucket_id,
                                                         BUCKET_NUM
                                                     );
                 
-                if (warp_lane <= 1 && thread_lane == 0) {
-                    printf("warp_lane:%d, warp_id: %d, v0: %d, v1: %d\n", warp_lane, warp_id, v0, v1);
-                    // print each bit of output_bucket_bmap[0]
-                    // for (int i = 0; i < 64; ++i) {
-                    // //     printf("%lu", (output_bucket_bmap[0] >> (63-i)) & 1);
-                    //     printf("%lu", (bitmaps.d_bitmaps_[v1 * bmap_size] >> (63-i)) & 1);
-                    // }
-                    // printf("\n");
-                    // for (int i = 0; i < bmap_size; i++) {
-                    //     // printf("%ld ", output_bucket_bmap[i]);
-                    //     // printf("%ld ", bitmaps.d_bitmaps_[v0 * bmap_size + i]);
-                    //     // printf("%lu ", bitmaps.d_bitmaps_[v1 * bmap_size + i]);
-                    // }
-                    // for (int i = 0; i < BUCKET_NUM; i++) {
-                    //     printf("%d ", nonzero_bucket_id[warp_lane * BUCKET_NUM + i]);
-                    // }
-                    // printf("\n");
-                    for (int i = 0; i < candidate_v2.size(); i++) {
-                        printf("%d ", candidate_v2[i]);
-                    }
-                    printf("\n");
-                }
+                // if (v1_idx == 6 && thread_lane == 0) {
+                //     printf("warp_lane:%d, warp_id: %d, v0: %d, v1: %d\n", warp_lane, warp_id, v0, v1);
+                //     // print each bit of output_bucket_bmap[0]
+                //     // for (int i = 0; i < 64; ++i) {
+                //     // //     printf("%lu", (output_bucket_bmap[0] >> (63-i)) & 1);
+                //     //     printf("%lu", (bitmaps.d_bitmaps_[v1 * bmap_size] >> (63-i)) & 1);
+                //     // }
+                //     // printf("\n");
+                //     // for (int i = 0; i < bmap_size; i++) {
+                //     //     // printf("%ld ", output_bucket_bmap[i]);
+                //     //     // printf("%ld ", bitmaps.d_bitmaps_[v0 * bmap_size + i]);
+                //     //     // printf("%lu ", bitmaps.d_bitmaps_[v1 * bmap_size + i]);
+                //     // }
+                //     // for (int i = 0; i < BUCKET_NUM; i++) {
+                //     //     printf("%d ", nonzero_bucket_id[warp_lane * BUCKET_NUM + i]);
+                //     // }
+                //     // printf("\n");
+                //     for (int i = 0; i < candidate_v2.size(); i++) {
+                //         printf("%d ", candidate_v2[i]);
+                //     }
+                //     printf("\n");
+                // }
                 #if 1
                 // for(vidType v2_idx = thread_lane; v2_idx < candidate_v2.size(); v2_idx += WARP_SIZE){
                 for(vidType v2_idx = 0; v2_idx < candidate_v2.size(); v2_idx++) {

@@ -160,7 +160,7 @@ struct XGMiner_BITMAP {
 
     __device__ __forceinline__ VertexArrayView intersection(
                                                 T* bmap1, T* bmap2, int size1, int size2, 
-                                                GraphGPU& g, int v1, int v2,
+                                                GraphGPU& g, int v1, int v2, int v2_idx,
                                                 StorageMeta& meta, 
                                                 int bitmap_id, int slot_id,
                                                 int* nonzero_bucket_id,
@@ -192,7 +192,7 @@ struct XGMiner_BITMAP {
         }
         // __syncwarp();
         // __syncthreads();
-        // if (warp_lane <= 1 && thread_lane == 0) {
+        // if (v2_idx == 6 && thread_lane == 0) {
         //     printf("warp_lane:%d, count[0]: %d\n", warp_lane, count[warp_lane * 3]);
         //     for (int i = 0; i < BUCKET_NUM; i++) {
         //         printf("nonzero_bucket_id[%d]: %d\n", i, nonzero_bucket_id[warp_lane * BUCKET_NUM + i]);
@@ -231,17 +231,11 @@ struct XGMiner_BITMAP {
                 // printf("j:%d, %lu\n", j, bit);
                 unsigned mask = __ballot_sync(active, bit);
                 auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
-                if (bit) {
-                    buffer[meta.slot_size + count[warp_lane * 3 + 1]+idx-1] = result_idx * 64 + j;
-                    // int bucket_idx = result_idx * 64 + j;
-                    // for (int k = d_bucket_sizelists_[bucket_idx]; k < d_bucket_sizelists_[bucket_idx + 1]; k++) {
-                    //     buffer[atomicAdd(&count[warp_lane * 2 + 1], 1)] = d_bucket_vlists_[k];
-                    // }
-                }
+                if (bit)    buffer[meta.slot_size + count[warp_lane * 3 + 1]+idx-1] = result_idx * 64 + j;
                 if (thread_lane == 0)   count[warp_lane * 3 + 1] += __popc(mask);
             }
         }
-        // if (warp_lane <= 1 && thread_lane == 0) {
+        // if (v2_idx == 6 && thread_lane == 0) {
         //     printf("warp_lane:%d, count[1]: %d\n", warp_lane, count[warp_lane * 3 + 1]);
         //     for (int i = 0; i < count[warp_lane * 3 + 1]; i++) {
         //         printf("%d ", buffer[meta.slot_size + i]);
@@ -253,18 +247,16 @@ struct XGMiner_BITMAP {
         for (int i = 0; i < count[warp_lane * 3 + 1]; i++) {
             int bucket_idx = buffer[meta.slot_size + i];
             // intra-bucket binary search between 
-            // (d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx], 
-            // d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx + 1])
-            // and (d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx],
-            // d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx + 1])
             intersect_bs(d_bucket_vlists_, d_bucket_sizelists_, 
                         v1*bigset_bucket_num + bucket_idx,
                         v2*bigset_bucket_num + bucket_idx,
+                        bucket_idx,
                         g.edge_begin(v1), g.edge_begin(v2), 
+                        g.edge_end(v1), g.edge_end(v2), 
                         buffer, count[warp_lane * 3 + 2]);
             // if (thread_lane == 0) {
             //     // printf("bucket_idx:%d\n", bucket_idx);
-            //     if (bucket_idx == 32) {
+            //     if (bucket_idx == 255) {
             //         // for (int k = d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx]; 
             //         //         k < d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx + 1]; k++) {
             //         //     printf("d_bucket_vlists_[%d]: %d\n", k, d_bucket_vlists_[k]);
@@ -287,14 +279,18 @@ struct XGMiner_BITMAP {
 
     __device__ __forceinline__ void intersect_bs(vidType* d_bucket_vlists_, vidType* d_bucket_sizelists_,
                                         int v1_start_idx, int v2_start_idx, 
+                                        int bucket_idx,
                                         int v1_edge_off, int v2_edge_off,
+                                        int v1_edge_end, int v2_edge_end, 
                                         vidType* buffer, vidType& count) {
-                                            
+
         int thread_lane = threadIdx.x & (WARP_SIZE-1);
         vidType* lookup = d_bucket_vlists_ + v1_edge_off + d_bucket_sizelists_[v1_start_idx];
         vidType* search = d_bucket_vlists_ + v2_edge_off + d_bucket_sizelists_[v2_start_idx];
-        vidType lookup_size = d_bucket_sizelists_[v1_start_idx + 1] - d_bucket_sizelists_[v1_start_idx];
-        vidType search_size = d_bucket_sizelists_[v2_start_idx + 1] - d_bucket_sizelists_[v2_start_idx];
+        vidType lookup_size = bucket_idx == bigset_bucket_num - 1 ? v1_edge_end - d_bucket_sizelists_[v1_start_idx] - v1_edge_off:
+                            d_bucket_sizelists_[v1_start_idx + 1] - d_bucket_sizelists_[v1_start_idx];
+        vidType search_size = bucket_idx == bigset_bucket_num - 1 ? v2_edge_end - d_bucket_sizelists_[v2_start_idx] - v2_edge_off:
+                            d_bucket_sizelists_[v2_start_idx + 1] - d_bucket_sizelists_[v2_start_idx];
         if (lookup_size > search_size) {
             auto tmp = lookup;
             lookup = search;
@@ -303,13 +299,16 @@ struct XGMiner_BITMAP {
             lookup_size = search_size;
             search_size = tmp_size;
         }
-
+        // if (thread_lane == 0 && bucket_idx == 255) {
+        //     printf("lookup_size:%d, search_size:%d\n", lookup_size, search_size);
+        // }
         for (auto i = thread_lane; i < lookup_size; i += WARP_SIZE) {
             unsigned active = __activemask();
             __syncwarp(active);
 
             int found = 0;
             vidType key = lookup[i]; // each thread picks a vertex as the key
+            // printf("%d key:%d\n", bucket_idx, key);
             if (binary_search(search, key, search_size))    found = 1;
             unsigned mask = __ballot_sync(active, found);
             auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
@@ -477,7 +476,7 @@ struct XGMiner_BITMAP {
             auto edge_beg = g.edge_begin(i);
             auto edge_end = g.edge_end(i);
             // bucket_vlists_[i].resize(bigset_bucket_num);
-            if (i == 0 || i == 641)
+            if (i == 338 || i == 18)
             std::cout << "vertex " << i << ": \n";
             std::set<int> edgeSet;
             for (int j = edge_beg; j < edge_end; j++) {
@@ -489,7 +488,7 @@ struct XGMiner_BITMAP {
                 
                 int bucket_ele = bucket_id / W;
                 int bucket_bit = bucket_id % W;
-                if (i == 0 || i == 641)
+                if (i == 338 || i == 18)
                 std::cout << neigh << "[" << bucket_id << " " << bucket_ele << " " << bucket_bit << "] ";
                 bitmaps_[i * bmap_size + bucket_ele] |= (1ULL << (W - 1 - bucket_bit));
                 // for (int s = 0; s < 64; ++s) {
@@ -498,9 +497,9 @@ struct XGMiner_BITMAP {
                 // std::cout << "\n";
             }
 
-            if (i == 0 || i == 641)
+            if (i == 338 || i == 18)
             std::cout << "\n";
-            if (i == 0) {
+            if (i == 18) {
                 for (int t = 0; t < bmap_size; ++t) {
                     for (int s = 0; s < 64; ++s) {
                         printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
@@ -509,7 +508,7 @@ struct XGMiner_BITMAP {
                 }
                 printf("\n");
             }
-            if (i == 641) {
+            if (i == 338) {
                 for (int t = 0; t < bmap_size; ++t) {
                     for (int s = 0; s < 64; ++s) {
                         printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
@@ -563,10 +562,11 @@ struct XGMiner_BITMAP {
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
                 int bucket_id = neigh & (bigset_bucket_num - 1);
-                if ((i == 0 || i == 641) && neigh == 288) {
-                    printf("bucket_id: %d, %d %d %lu %d\n", 
+                if ((i == 18 || i == 338) && neigh == 767) {
+                    printf("bucket_id: %d, %d %d %lu %lu %d\n", 
                             bucket_id, i, g.edge_begin(i), 
                             g.edge_begin(i) + bucket_sizelists_[i * bigset_bucket_num + bucket_id] + temp_bucket_size[bucket_id], 
+                            g.edge_end(i),
                             neigh);
                     // printf("%d %d \n", bucket_sizelists_[i * bigset_bucket_num + bucket_id],
                     //         bucket_sizelists_[i * bigset_bucket_num + bucket_id + 1]);

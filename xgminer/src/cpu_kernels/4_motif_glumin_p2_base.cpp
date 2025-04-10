@@ -11,13 +11,13 @@ void Kernel::motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std:
     }
     for (int i = 0; i < vertices; i++) { // level 1
         int candidate_0 = i;
-        if (i == 18) 
+        // if (i == 18) 
         {
         embedding.push_back(candidate_0);
         // for (int candidate_1 : edge_vecList[i]) { // level 2
         for (int c1 = 0; c1 < edge_vecList[i].size(); c1++) {
             int candidate_1 = edge_vecList[i][c1];
-            if (candidate_1 > candidate_0 && c1 <= 100) 
+            if (candidate_1 > candidate_0/* && c1 <= 100*/) 
             {
                 embedding.push_back(candidate_1);
                 std::set<int> intersect;
@@ -50,10 +50,10 @@ void Kernel::motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std:
                                     embedding.push_back(candidate_3);
                                     total_count++;
                                     // print out the embedding
-                                    for (int v : embedding) {
-                                        std::cout << v << " ";
-                                    }
-                                    std::cout << std::endl;
+                                    // for (int v : embedding) {
+                                    //     std::cout << v << " ";
+                                    // }
+                                    // std::cout << std::endl;
                                     embedding.pop_back();
                                 }
                             }
