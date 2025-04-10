@@ -11,7 +11,7 @@
 
 // 编译期计算 pow(2, N) / 64
 constexpr int calculate_value(int N) {
-    return (1 << N) / BITMAP64_WIDTH; // 使用位移代替 pow(2, N)
+    return ((1 << N) + BITMAP64_WIDTH - 1) / BITMAP64_WIDTH; // 使用位移代替 pow(2, N)
 }
 
 class XGMiner {
@@ -45,7 +45,7 @@ public:
     }
 
     ~XGMiner() {
-        std::cout << "XGMiner destructor" << std::endl;
+        LOG_INFO("XGMiner destructor");
     }
 
     void load_graph_data_from_file() {

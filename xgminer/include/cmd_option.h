@@ -7,6 +7,7 @@
 #include "cxxopts.hpp"
 #include "argparse.hpp"
 #include <getopt.h>
+#include "utils.h"
 
 #define PRINT_GREEN(x) std::cout << "\033[1;36m" << x << "\033[0m" << std::endl
 

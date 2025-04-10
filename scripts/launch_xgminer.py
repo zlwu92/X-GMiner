@@ -17,7 +17,11 @@ benchmark_dir = "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/gl
 datasets = [
     # ("../testgr1/", "TestGr1"),
     # ("../testgr2/", "TestGr2"),
-    ("mico/", "mico"),
+    # ("../testgr3/", "TestGr3"),
+    # ("../testgr4/", "TestGr4"),
+    ("../testgr5/", "TestGr5"),
+    # ("ba_1k_150k/", "ba_1k"),
+    # ("mico/", "mico"),
     # ("youtube/", "YT"),
     # ("com-dblp/", "dblp"),
     # ("cit-Patents/", "cp"),
@@ -36,8 +40,9 @@ patterns = [
 ]
 
 bucket_num = [
+    # 4,
     8,
-    16,
+    # 16,
     # 32,
     # 64,
     # 128,
@@ -58,7 +63,7 @@ def test_bitmap_opt1():
             print(f"Dataset: {dataset_path}")
                 
             for bucket_k in bucket_num:
-                cmd = f"cd ../build && cmake .. -DBMAP_BUCKET_NUM={bucket_k} && make xgminer && cd ../scripts/"
+                cmd = f"cd ../build && cmake .. -DBMAP_BUCKET_NUM={bucket_k} && make xgminer -j && cd ../scripts/"
                 os.system(cmd)
 
                 cmd = f"../xgminer/bin/xgminer "
@@ -68,7 +73,7 @@ def test_bitmap_opt1():
                 cmd += f"--patternID {pattern_id} "
                 # cmd += f"--setk 8 "
                 cmd += f"--vert-induced 1 "
-                # cmd += f"--do-validation 1 "
+                cmd += f"--do-validation 1 "
                 print(f"Command: {cmd}")
                 subprocess.run(cmd, shell=True)
 

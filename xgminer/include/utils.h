@@ -25,6 +25,7 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
+#define PRINT_CYAN(x) std::cout << "\033[1;36m" << x << "\033[0m" << std::endl
 
 #define FULLMASK 0xffffffff
 #define WARPSIZE 32

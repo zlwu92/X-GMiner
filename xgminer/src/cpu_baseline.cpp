@@ -101,7 +101,7 @@ void CPU_Baseline::run_our_baseline_test() {
     }
     timer.stop();
     LOG_INFO("Elapsed time: " + std::to_string(timer.elapsed()) + " seconds.");
-    LOG_INFO("total embeddings: " + std::to_string(total_count));
+    LOG_INFO("total count: " + std::to_string(total_count));
     // LOG_INFO("unique embeddings: " + std::to_string(uniques.size()));
 
     std::ofstream out(output_path + "overall_performance.csv", std::ios::app);

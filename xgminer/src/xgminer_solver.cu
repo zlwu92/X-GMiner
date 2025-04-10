@@ -86,6 +86,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
     if (nb < nblocks) nblocks = nb;
 
     nblocks = std::min(nv, 640);
+    nblocks = 640;
     nthreads = BLOCK_SIZE_DENSE;
     nwarps = nthreads / WARP_SIZE;
     // cudaDeviceProp deviceProp;
@@ -132,7 +133,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
                                                                     frontier_list,
                                                                     frontier_bitmap, 
                                                                     bitmap, 
-                                                                    bitmap.bigset_bucket_num / BITMAP64_WIDTH,
+                                                                    UP_DIV(bitmap.bigset_bucket_num, BITMAP64_WIDTH),
                                                                     md, 
                                                                     d_counts);
         }
@@ -148,8 +149,4 @@ void XGMiner::motif_solver(Graph_V2& g) {
         std::cout << "P" << k << "[bitmap_bigset_opt] = " << gputimer.elapsed() / 1000 << " s\n";
     }
     CUDA_SAFE_CALL(cudaFree(d_counts));
-
-    if (do_validation) {
-        cpu_base->validate_with_our_cpu_baseline(total[0]);
-    }
 }

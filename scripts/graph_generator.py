@@ -4,6 +4,8 @@ import argparse
 import random
 from pathlib import Path
 import matplotlib.pyplot as plt
+import os
+import graph_format_conversion as gfc
 
 def generate_powerlaw_graph(v: int, e: int, alpha: float = 2.5) -> nx.Graph:
     """
@@ -91,14 +93,17 @@ def generate_synthetic_graph_file(vertex_count, edge_count, output_file):
             if source != target:  # 确保不是自环
                 edges.add((min(source, target), max(source, target)) )  # (1, 3) 和 (3, 1) 视为同一条边
 
-        for edge in edges:
+        # 按照 edge[0] 排序，如果 edge[0] 相同，则按照 edge[1] 排序
+        sorted_edges = sorted(edges, key=lambda x: (x[0], x[1]))
+        for edge in sorted_edges:
             file.write(f"{edge[0]} {edge[1]}\n")
             
-    return edges
+    return sorted_edges
 
 
 def visualize_graph_from_file(file_path):
     G = nx.Graph()
+    file_name, file_extension = os.path.splitext(file_path)
 
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -112,7 +117,7 @@ def visualize_graph_from_file(file_path):
     nx.draw(G, with_labels=True, node_color='skyblue', node_size=500, font_size=10, font_color='black')
     plt.axis('off')
 
-    plt.savefig("example_graph.pdf", format="pdf")
+    plt.savefig(f"{file_name}.pdf", format="pdf")
 
     print("Graph visualization saved as: graph_visualization.pdf")
 
@@ -200,19 +205,22 @@ if __name__ == "__main__":
     
 
     # 输入顶点数和边数
-    # vertex_count = int(input("Enter the number of vertices: "))
-    # edge_count = int(input("Enter the number of edges: "))
+    vertex_count = int(input("Enter the number of vertices: "))
+    edge_count = int(input("Enter the number of edges: "))
+    file_name = input("Enter the output file name (default: synthetic_graph.txt): ")
 
-    # output_file = "test_gr2.txt"
+    output_file = file_name
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/cit-Patents.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-dblp.ungraph.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-lj.ungraph.txt"
-    output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-youtube.ungraph.txt"
+    # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-youtube.ungraph.txt"
+    file_name, file_extension = os.path.splitext(file_name)
 
-    # edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
-
-    # print(f"Synthetic graph file generated: {output_file}")
+    edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
+    output_dir = f"/mnt/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/{file_name}/"
+    gfc.convert_graph(output_file, output_dir)
+    print(f"Synthetic graph file generated: {output_file}")
     
     # visualize_graph_from_file(output_file)
     
@@ -223,5 +231,5 @@ if __name__ == "__main__":
     # print(f"Number of triangles in the graph: {triangle_count}")
     
     # 示例用法
-    triangles = find_triangles(output_file)
+    # triangles = find_triangles(output_file)
     

@@ -1,4 +1,5 @@
 #include "gpm_solver.cuh"
+#include "utils.h"
 
 #if 0
 void XGMiner::run_glumin_g2miner() {
@@ -167,8 +168,14 @@ void XGMiner::run_bitmap_bigset_opt() {
         for (int r = 0; r < repeated; r++) {
             
             motif_solver(g);
-            for (int i = 0; i < num_patterns; i++)
-            std::cout << "Pattern P" << local_patternId << " count: " << total[i] << "\n";
+            for (int i = 0; i < num_patterns; i++) {
+                // std::cout << "Pattern P" << local_patternId << " count: " << total[i] << "\n";
+                PRINT_CYAN("Pattern P" + std::to_string(local_patternId) + " count: " + std::to_string(total[i]));
+
+                if (do_validation) {
+                    cpu_base->validate_with_our_cpu_baseline(total[i]);
+                }
+            }
         }
     }
 }

@@ -83,6 +83,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   nblocks = std::min(6*max_blocks, nblocks);
 
   nblocks = 640;
+  // nblocks = std::min(nv, 640);
   std::cout << "CUDA pattern listing (" << nblocks << " CTAs, " << nthreads << " threads/CTA)\n";
   size_t list_size = nblocks * per_block_vlist_size;
   std::cout << "frontier list size: " << list_size/(1024*1024) << " MB\n";

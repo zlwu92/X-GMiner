@@ -181,22 +181,22 @@ if __name__ == "__main__":
 
     # # 获取第一个参数作为输入文件路径
     # input_file = sys.argv[1]
-
+    input_file = "test_gr3.txt"
     # # 输出目录路径（硬编码）
-    # output_dir = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/testgr1/"
+    output_dir = "/mnt/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/testgr3/"
 
     # # 执行转换
-    # convert_graph(input_file, output_dir)
+    convert_graph(input_file, output_dir)
     
     # 输入文件路径
-    vertex_bin_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.vertex.bin"
-    edge_bin_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.edge.bin"
-    meta_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.meta.txt"
+    # vertex_bin_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.vertex.bin"
+    # edge_bin_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.edge.bin"
+    # meta_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/glumin_data/datasets/mico/graph.meta.txt"
 
-    # 输出文件路径
-    output_txt_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt"
+    # # 输出文件路径
+    # output_txt_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt"
 
-    # 执行转换
-    convert_bin_to_txt(vertex_bin_file, edge_bin_file, meta_file, output_txt_file)
+    # # 执行转换
+    # convert_bin_to_txt(vertex_bin_file, edge_bin_file, meta_file, output_txt_file)
 
-    print(f"Conversion complete. Output written to {output_txt_file}")
+    # print(f"Conversion complete. Output written to {output_txt_file}")
