@@ -46,7 +46,8 @@ public:
             ("do-validation", "Do validation", cxxopts::value<int>()->default_value("0"))
             ("vert-induced", "Vertex induced", cxxopts::value<int>()->default_value("0"))
             ("tunek", "Tune k", cxxopts::value<int>()->default_value("0"))
-            ("setk", "Set k", cxxopts::value<int>()->default_value("0"));
+            ("setk", "Set k", cxxopts::value<int>()->default_value("0"))
+            ("run-xgminer", "Run X-GMiner", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -128,6 +129,11 @@ public:
                 PRINT_GREEN("Set k: " << set_k);
             }
 
+            if (result.count("run-xgminer")) {
+                run_xgminer = result["run-xgminer"].as<int>();
+                PRINT_GREEN("Run X-GMiner: " << run_xgminer);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -160,6 +166,8 @@ public:
         program.add_argument("--tunek").help("Tune k").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--setk").help("Set k").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--run-xgminer").help("Run X-GMiner").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -237,6 +245,11 @@ public:
                 PRINT_GREEN("Set k: " << set_k);
             }
 
+            if (program.get<int>("--run-xgminer") != 0) {
+                run_xgminer = program.get<int>("--run-xgminer");
+                PRINT_GREEN("Run X-GMiner: " << run_xgminer);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -281,6 +294,7 @@ public:
     int vert_induced = 0;
     int tune_k = 0; // control bitmap bucket number
     int set_k = 0; // set a specific bitmap bucket number mannually
+    int run_xgminer = 0;
     
 private:
     int argc;

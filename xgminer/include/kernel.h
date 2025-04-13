@@ -29,7 +29,7 @@ public:
                                         std::vector< std::pair<int,int>>& restrict_pair);
 
     void motif4_glumin_p1_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
-                                            long long& total_count, std::vector<int>& embedding);
+                                            long long& total_count, std::vector<int>& embedding, int vert_induced);
 
     void motif4_glumin_p2_baseline_cpu_kernel(int vertices, std::vector<std::set<int>> edgeLists,
                                             long long& total_count, std::vector<int>& embedding, int vert_induced);

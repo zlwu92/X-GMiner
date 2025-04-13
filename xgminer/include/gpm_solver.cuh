@@ -28,6 +28,7 @@ public:
         algo = opts.algo;
         tune_k = opts.tune_k;
         bucket_k = opts.set_k;
+        run_xgminer = opts.run_xgminer;
         total.resize(num_patterns, 0);
         total_time.resize(num_patterns, 0);
         if (do_validation) {
@@ -67,6 +68,9 @@ public:
     void run() {
         load_graph_data_from_file();
         if (algo == "bitmap_bigset_opt") {
+            run_bitmap_bigset_opt();
+        }
+        else if (algo == "ideal_bitmap_test") {
             run_bitmap_bigset_opt();
         }
         else {
@@ -134,6 +138,7 @@ private:
     bool tune_k = false;
     CPU_Baseline* cpu_base;
     std::string benchmarkset_name = "graphmine_bench";
+    int run_xgminer = 0;
 
     CPUTimer timer;
     Kernel kernel;

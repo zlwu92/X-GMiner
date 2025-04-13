@@ -118,11 +118,15 @@ void XGMiner::motif_solver(Graph_V2& g) {
     CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
     CUDA_SAFE_CALL(cudaMemset(frontier_bitmap, 0x0, bitmap_size));
 
+    // ideal case: transform all CSR neighbor list to adjacency bitmap
+    double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
+    std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
+
     GPUTimer gputimer;
     gputimer.start();
     if (k == 2) {
         if (algo == "bitmap_bigset_opt") {
-            // xgminer_bitmap_bigset_opt_P2_vertex_induced<4><<<nblocks, nthreads>>>(gg, 
+            // xgminer_bitmap_bigset_opt_P2_edge_induced<BUCKET_NUM><<<nblocks, nthreads>>>(gg, 
             //                                                     frontier_list,
             //                                                     frontier_bitmap, 
             //                                                     bitmap, 
@@ -136,6 +140,10 @@ void XGMiner::motif_solver(Graph_V2& g) {
                                                                     UP_DIV(bitmap.bigset_bucket_num, BITMAP64_WIDTH),
                                                                     md, 
                                                                     d_counts);
+        }
+        if (algo == "ideal_bitmap_test") {
+            P2_GM_LUT_block_ideal_test<<<nblocks, nthreads>>>(gg, 
+                                                            bitmap.d_bitmap_all);
         }
     }
     gputimer.end_with_sync();

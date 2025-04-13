@@ -205,24 +205,25 @@ if __name__ == "__main__":
     
 
     # 输入顶点数和边数
-    vertex_count = int(input("Enter the number of vertices: "))
-    edge_count = int(input("Enter the number of edges: "))
-    file_name = input("Enter the output file name (default: synthetic_graph.txt): ")
+    # vertex_count = int(input("Enter the number of vertices: "))
+    # edge_count = int(input("Enter the number of edges: "))
+    # file_name = input("Enter the output file name (default: synthetic_graph.txt): ")
 
-    output_file = file_name
+    # output_file = file_name
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/mico.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/cit-Patents.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-dblp.ungraph.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-lj.ungraph.txt"
     # output_file = "/home/wuzhenlin/workspace/2-graphmining/graphmine_bench/graphpi_data/datasets/com-youtube.ungraph.txt"
-    file_name, file_extension = os.path.splitext(file_name)
+    # file_name, file_extension = os.path.splitext(file_name)
 
-    edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
-    output_dir = f"/mnt/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/{file_name}/"
-    gfc.convert_graph(output_file, output_dir)
-    print(f"Synthetic graph file generated: {output_file}")
+    # edges = generate_synthetic_graph_file(vertex_count, edge_count, output_file)
+    # output_dir = f"/mnt/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/{file_name}/"
+    # gfc.convert_graph(output_file, output_dir)
+    # print(f"Synthetic graph file generated: {output_file}")
     
     # visualize_graph_from_file(output_file)
+    visualize_graph_from_file("test_gr1.txt")
     
     # graph = read_graph_from_file(output_file)
     

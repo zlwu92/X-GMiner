@@ -214,11 +214,11 @@ xgminer_bitmap_bigset_opt_P2_vertex_induced(
                     // count += bitmaps.difference_num(candidate_v2, candidate_v3, /*upper_bound=*/v2);
                     // if (v2_idx == 0) 
                     {
-                    // auto cnt = bitmaps.difference_num_warp_count(
-                    //                                             bitmaps.d_bitmaps_ + v2 * bmap_size, 
-                    //                                             // bitmaps.d_rbitmaps_ + v2 * bmap_size, 
-                    //                                             // bmap_size, 
+                    // auto cnt = bitmaps.difference_num_warp_count_new(
+                    //                                             // bitmaps.d_bitmaps_ + v2 * bmap_size, 
+                    //                                             bitmaps.d_rbitmaps_ + v2 * bmap_size, 
                     //                                             bmap_size,
+                    //                                             g, v1, v2, v2_idx,
                     //                                             meta,
                     //                                             0, 0,
                     //                                             nonzero_bucket_id,
@@ -239,4 +239,14 @@ xgminer_bitmap_bigset_opt_P2_vertex_induced(
     }
 
     atomicAdd(&counter[0], count);
+}
+
+
+__global__ void __launch_bounds__(BLOCK_SIZE, 8)
+P2_GM_LUT_block_ideal_test(GraphGPU g,
+                            vidType* d_bitmap_all) {
+
+
+
+
 }

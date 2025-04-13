@@ -15,11 +15,11 @@ print(f"[{current_time}]")
 # benchmark_dir = "/mnt/microndisk/home/zlwu/graphmine_bench/glumin_data/datasets/dataset2/"
 benchmark_dir = "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/"
 datasets = [
-    # ("../testgr1/", "TestGr1"),
+    ("../testgr1/", "TestGr1"),
     # ("../testgr2/", "TestGr2"),
     # ("../testgr3/", "TestGr3"),
     # ("../testgr4/", "TestGr4"),
-    ("../testgr5/", "TestGr5"),
+    # ("../testgr5/", "TestGr5"),
     # ("ba_1k_150k/", "ba_1k"),
     # ("mico/", "mico"),
     # ("youtube/", "YT"),
@@ -69,9 +69,10 @@ def test_bitmap_opt1():
                 cmd = f"../xgminer/bin/xgminer "
                 cmd += f"--graph {dataset_path} "
                 cmd += f"--dataname {dataset_name} "
+                cmd += f"--run-xgminer 1 "
                 cmd += f"--algorithm bitmap_bigset_opt "
+                # cmd += f"--algorithm ideal_bitmap_test "
                 cmd += f"--patternID {pattern_id} "
-                # cmd += f"--setk 8 "
                 cmd += f"--vert-induced 1 "
                 cmd += f"--do-validation 1 "
                 print(f"Command: {cmd}")

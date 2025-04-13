@@ -169,7 +169,6 @@ void XGMiner::run_bitmap_bigset_opt() {
             
             motif_solver(g);
             for (int i = 0; i < num_patterns; i++) {
-                // std::cout << "Pattern P" << local_patternId << " count: " << total[i] << "\n";
                 PRINT_CYAN("Pattern P" + std::to_string(local_patternId) + " count: " + std::to_string(total[i]));
 
                 if (do_validation) {

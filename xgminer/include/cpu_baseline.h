@@ -85,13 +85,13 @@ public:
                 LOG_ERROR("Invalid vertex num / edge num.");
             }
 
-            // for (int i = 0; i < vertices; i++) {
-            //     std::cout << "Vertex " << i << " edges: ";
-            //     for (int edge : edgeLists[i]) {
-            //         std::cout << edge << " ";
-            //     }
-            //     std::cout << std::endl;
-            // }
+            for (int i = 0; i < vertices; i++) {
+                std::cout << "Vertex " << i << " edges: ";
+                for (int edge : edgeLists[i]) {
+                    std::cout << edge << " ";
+                }
+                std::cout << std::endl;
+            }
 
             file.close();
         } else if (file_format == Input_FileFormat::BINARY) {

@@ -258,3 +258,12 @@ P2_GM_LUT_block_test(vidType begin, vidType end,
 
   atomicAdd(&counter[0], count);
 }
+
+
+__global__ void __launch_bounds__(BLOCK_SIZE, 8)
+P2_GM_LUT_block_ideal_test(GraphGPU g) {
+
+
+
+
+}

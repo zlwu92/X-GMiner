@@ -118,57 +118,60 @@ __global__ void P1_fused_matching(vidType nv, vidType ne, GraphGPU g,
   AccType star3_count = 0;
   __syncthreads();
   for (vidType vid = warp_id; vid < nv;) {
-    vidType v0 = vid;
-    vidType v0_size = g.getOutDegree(v0);
-    for (vidType i = thread_lane; i < v0_size; i += WARP_SIZE) {
-      vlist[max_deg + i] = 0;
-    }
-    __syncwarp();
-    // build lut merge
-    for (int j = 0; j < v0_size; j++) {
-      vidType v1 = g.N(v0)[j];
-      vidType v1_size = g.getOutDegree(v1);
-      for (auto i = thread_lane; i < v0_size; i += WARP_SIZE) {
-        vidType key = g.N(v0)[i]; // each thread picks a vertex as the key
-        int is_smaller = key < v1 ? 1 : 0;
-        if (is_smaller && !binary_search(g.N(v1), key, v1_size))
-          atomicAdd(&vlist[max_deg + i], 1);
-      }
-    }
-    __syncwarp();
-    for (vidType v2_idx = 0; v2_idx < v0_size; v2_idx++) {
-      vidType v2 = g.N(v0)[v2_idx];
-      vidType v2_size = g.getOutDegree(v2);
-      vidType tmp_cnt = difference_num(g.N(v0), v0_size,
-                                   g.N(v2), v2_size, v2);
-      vidType warp_cnt = warp_reduce<AccType>(tmp_cnt);
-      __syncwarp();
-      if (thread_lane == 0)
-        star3_count += (warp_cnt * vlist[max_deg + v2_idx]);
-      __syncwarp();
-      auto dif_cnt = difference_set(g.N(v0), v0_size, g.N(v2),
-                                  v2_size, v2, vlist);
-      auto int_cnt = intersect(g.N(v0), v0_size, g.N(v2),
-                             v2_size, v2, &vlist[max_deg]); // y0y1
-      if (thread_lane == 0) {
-        list_size[warp_lane][0] = dif_cnt;
-        list_size[warp_lane][1] = int_cnt;
+      vidType v0 = vid;
+      vidType v0_size = g.getOutDegree(v0);
+      for (vidType i = thread_lane; i < v0_size; i += WARP_SIZE) {
+        vlist[max_deg + i] = 0;
       }
       __syncwarp();
-      for (vidType i = 0; i < list_size[warp_lane][1]; i++) {
-        vidType v3 = vlist[max_deg + i];
-        vidType v3_size = g.getOutDegree(v3);
-        for (auto j = thread_lane; j < list_size[warp_lane][0]; j += WARP_SIZE) {
-          auto key = vlist[j];
-          vidType key_size = g.getOutDegree(key);
-          if (key > v3 && !binary_search(g.N(key), v3, key_size))
-            count += 1;
+      // build lut merge
+      for (int j = 0; j < v0_size; j++) {
+        vidType v1 = g.N(v0)[j];
+        vidType v1_size = g.getOutDegree(v1);
+        for (auto i = thread_lane; i < v0_size; i += WARP_SIZE) {
+          vidType key = g.N(v0)[i]; // each thread picks a vertex as the key
+          int is_smaller = key < v1 ? 1 : 0;
+          if (is_smaller && !binary_search(g.N(v1), key, v1_size))
+            atomicAdd(&vlist[max_deg + i], 1);
         }
       }
-    }
-    if (thread_lane == 0) vid = atomicAdd(INDEX1, 1);
-    __syncwarp();
-    vid = __shfl_sync(0xffffffff, vid, 0);
+      __syncwarp();
+      for (vidType v2_idx = 0; v2_idx < v0_size; v2_idx++) {
+        vidType v2 = g.N(v0)[v2_idx];
+        vidType v2_size = g.getOutDegree(v2);
+        vidType tmp_cnt = difference_num(g.N(v0), v0_size,
+                                    g.N(v2), v2_size, v2);
+        vidType warp_cnt = warp_reduce<AccType>(tmp_cnt);
+        __syncwarp();
+        if (thread_lane == 0)
+          star3_count += (warp_cnt * vlist[max_deg + v2_idx]);
+        __syncwarp();
+        
+
+
+        auto dif_cnt = difference_set(g.N(v0), v0_size, g.N(v2),
+                                    v2_size, v2, vlist);
+        auto int_cnt = intersect(g.N(v0), v0_size, g.N(v2),
+                              v2_size, v2, &vlist[max_deg]); // y0y1
+        if (thread_lane == 0) {
+          list_size[warp_lane][0] = dif_cnt;
+          list_size[warp_lane][1] = int_cnt;
+        }
+        __syncwarp();
+        for (vidType i = 0; i < list_size[warp_lane][1]; i++) {
+          vidType v3 = vlist[max_deg + i];
+          vidType v3_size = g.getOutDegree(v3);
+          for (auto j = thread_lane; j < list_size[warp_lane][0]; j += WARP_SIZE) {
+            auto key = vlist[j];
+            vidType key_size = g.getOutDegree(key);
+            if (key > v3 && !binary_search(g.N(key), v3, key_size))
+              count += 1;
+          }
+        }
+      }
+      if (thread_lane == 0) vid = atomicAdd(INDEX1, 1);
+      __syncwarp();
+      vid = __shfl_sync(0xffffffff, vid, 0);
   }
   atomicAdd(&counters[0], star3_count);
   atomicAdd(&counters[1], count);

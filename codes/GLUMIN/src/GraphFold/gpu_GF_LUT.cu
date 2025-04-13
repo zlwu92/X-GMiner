@@ -20,14 +20,14 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "clique5_GF.cuh"
 
 // #define THREAD_PARALLEL
-
+#include "GF_test_kernels.cuh"
 
 __global__ void clear(AccType *accumulators) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   accumulators[i] = 0;
 }
 
-void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
+void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int vID) {
   assert(k >= 1);
   size_t memsize = print_device_info(0);
   vidType nv = g.num_vertices();
@@ -94,54 +94,66 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   Timer t;
   t.Start();
   // LUT vertex
-  if (k == 1) {
-    std::cout << "P1 GraphFold LUT\n";
-    P1_GF_LUT_warp<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
-    lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT);
-    P1_GF_LUT_block<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX1, lut_manager);
-    lut_manager.recreate(1, md, md);
-    nblocks = BLOCK_GROUP;
-    for (vidType i = 0; i < nv; i++) {
-      if (g.get_degree(i) > BLOCK_LIMIT) {
-        lut_manager.update_para(1, g.get_degree(i), g.get_degree(i));
-        clear_counterlist<<<nblocks, nthreads>>>(gg, frontier_list, md, i);
-        GF_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, i);
-        P1_GF_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, i);
+  // for (int i = 0; i < nv; ++i)
+  {
+    if (k == 1) {
+      std::cout << "P1 GraphFold LUT\n";
+      P1_GF_LUT_warp<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
+      lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT);
+      P1_GF_LUT_block<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX1, lut_manager);
+      lut_manager.recreate(1, md, md);
+      nblocks = BLOCK_GROUP;
+      for (vidType i = 0; i < nv; i++) {
+        if (g.get_degree(i) > BLOCK_LIMIT) {
+          lut_manager.update_para(1, g.get_degree(i), g.get_degree(i));
+          clear_counterlist<<<nblocks, nthreads>>>(gg, frontier_list, md, i);
+          GF_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, i);
+          P1_GF_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, i);
+        }
       }
     }
+    // BS Edge
+    else if (k == 2){
+      std::cout << "P1 GraphFold\n";
+      // P1_frequency_count<<<nblocks, nthreads>>>(nv, gg, frontier_list, md, d_counts, G_INDEX);
+      // P1_count_correction<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX2);
+      std::cout << "P1_fused_matching_test\n";
+      CUDA_SAFE_CALL(cudaMemset(d_counts, 0, sizeof(AccType) * npatterns));
+      CUDA_SAFE_CALL(cudaMemset(frontier_list, 0, list_size));
+      CUDA_SAFE_CALL(cudaMemcpy(G_INDEX, &nowindex, sizeof(AccType), cudaMemcpyHostToDevice));
+      // P1_frequency_count_test<<<nblocks, nthreads>>>(nv, gg, frontier_list, md, d_counts, G_INDEX);
+      // P1_count_correction_test<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX2);
+      P1_fused_matching_test<<<nblocks, nthreads>>>(nv, ne, gg, frontier_list, md, d_counts, G_INDEX, G_INDEX2, vID);
+    }
+    else if (k == 10) {
+      std::cout << "P10 GraphFold LUT\n";
+      P3_GF_LUT_warp_edge<<<nblocks, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
+      lut_manager.recreate(500, md, md);
+      P3_GF_LUT_block_edge<<<500, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX3, lut_manager);
+    }
+      else if (k == 11) {
+      std::cout << "P10 GraphFold\n";
+      P3_fused_matching<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX);
+    }
+    else if (k == 13) {
+      std::cout << "P13 GraphFold LUT\n";
+      P7_GF_LUT_warp<<<nblocks, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
+      lut_manager.recreate(500, md, md);
+      P7_GF_LUT_block<<<500, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX3, lut_manager);
+    }
+    else if (k == 14) {
+      std::cout << "P13 GraphFold\n";
+      P7_fused_matching<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX);
+    }
+    else {
+      std::cout << "Not supported right now\n";
+    }
+    CUDA_SAFE_CALL(cudaMemcpy(h_counts, d_counts, sizeof(AccType) * npatterns, cudaMemcpyDeviceToHost));
+    // for (size_t i = 0; i < npatterns; i ++) accum[i] = h_counts[i];
+    std::cout << "fuse matching count = " << h_counts[0] << "\n";
+    std::cout << "error correction count = " << h_counts[1] << "\n";
+    accum[0] = h_counts[0] - h_counts[1];
   }
-  // BS Edge
-  else if (k == 2){
-    std::cout << "P1 GraphFold\n";
-    P1_frequency_count<<<nblocks, nthreads>>>(nv, gg, frontier_list, md, d_counts, G_INDEX);
-    P1_count_correction<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX2);
-  }
-  else if (k == 10) {
-    std::cout << "P10 GraphFold LUT\n";
-    P3_GF_LUT_warp_edge<<<nblocks, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
-    lut_manager.recreate(500, md, md);
-    P3_GF_LUT_block_edge<<<500, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX3, lut_manager);
-  }
-    else if (k == 11) {
-    std::cout << "P10 GraphFold\n";
-    P3_fused_matching<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX);
-  }
-  else if (k == 13) {
-    std::cout << "P13 GraphFold LUT\n";
-    P7_GF_LUT_warp<<<nblocks, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX, lut_manager);
-    lut_manager.recreate(500, md, md);
-    P7_GF_LUT_block<<<500, nthreads>>>(0, ne, gg, frontier_list, frontier_bitmap, md, d_counts, G_INDEX3, lut_manager);
-  }
-  else if (k == 14) {
-    std::cout << "P13 GraphFold\n";
-    P7_fused_matching<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_counts, G_INDEX);
-  }
-  else {
-    std::cout << "Not supported right now\n";
-  }
-  CUDA_SAFE_CALL(cudaMemcpy(h_counts, d_counts, sizeof(AccType) * npatterns, cudaMemcpyDeviceToHost));
-  // for (size_t i = 0; i < npatterns; i ++) accum[i] = h_counts[i];
-  accum[0] = h_counts[0] - h_counts[1];
   // accum[0] = h_counts[1];
   t.Stop();
 

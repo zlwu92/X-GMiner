@@ -143,6 +143,11 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   CUDA_SAFE_CALL(cudaMemset(d_work_depth_each_warp, 0, num_warps * sizeof(vidType)));
   std::vector<vidType> work_depth_each_warp(num_warps);
 
+  // ideal case: transform all CSR neighbor list to adjacency bitmap
+  double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
+  std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
+
+
   Timer t;
   t.Start();
   // G2Miner + LUT

@@ -91,7 +91,7 @@ void CPU_Baseline::run_our_baseline_test() {
     if (patternID == XGMinerPatternType::RECTANGLE) {
         kernel.rectangle4_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
     } else if (patternID == XGMinerPatternType::P1_GLUMIN) {
-        kernel.motif4_glumin_p1_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding);
+        kernel.motif4_glumin_p1_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding, vert_induced);
     } else if (patternID == XGMinerPatternType::P2_GLUMIN) {
         kernel.motif4_glumin_p2_baseline_cpu_kernel(vertices, edgeLists, total_count, embedding, vert_induced);
     } else if (patternID == XGMinerPatternType::P3_GLUMIN) {

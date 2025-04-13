@@ -434,6 +434,206 @@ struct XGMiner_BITMAP {
     }
 
 
+    __device__ __forceinline__ vidType difference_num_warp_count_new(
+                                                // T* bmap1, int size1, 
+                                                T* bmap2, int size2, 
+                                                GraphGPU& g, int v1, int v2, int v2_idx,
+                                                StorageMeta& meta, 
+                                                int bitmap_id, int slot_id,
+                                                int* nonzero_bucket_id,
+                                                vidType BUCKET_NUM, vidType curr_v, vidType lower_bound
+                                            ) {
+        T* last_level_result = meta.bitmap64(bitmap_id);
+        T* curr_level_result = meta.bitmap64(bitmap_id + 1);
+        __shared__ vidType count[WARP_PER_BLOCK_128 * 3];
+        int warp_lane   = threadIdx.x / WARP_SIZE;
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+        if (thread_lane == 0) {
+            count[warp_lane * 3] = 0;
+            count[warp_lane * 3 + 1] = 0;
+            count[warp_lane * 3 + 2] = 0;
+        }
+        // if (warp_lane <= 1 && thread_lane == 0) {
+        //     printf("bmap2:\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (bmap2[0] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (bmap2[1] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (bmap2[2] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (bmap2[3] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        // }
+        for (auto i = thread_lane; i < size2; i += WARP_SIZE) {
+            unsigned active = __activemask();
+            __syncwarp(active);
+            // if (warp_lane <= 1) {
+            //     printf("warp_lane:%d, threadlane:%d, %lu\n", warp_lane, thread_lane, last_level_result[thread_lane]);
+            // }
+            // curr_level_result[i] = (last_level_result[i] ^ bmap2[i]) & last_level_result[i];
+            curr_level_result[i] = last_level_result[i] & bmap2[i];
+            bool found = curr_level_result[i] != 0;
+            unsigned mask = __ballot_sync(active, found);
+            auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+            // if (warp_lane <= 1) {
+            //     printf("warp_lane:%d, threadlane:%d, %d, idx:%d\n", warp_lane, thread_lane, found, idx);
+            // }
+            // if (i == 0) {
+            //     printf("@:");
+            //     for (int s = 0; s < 64; ++s) {
+            //         printf("%lu", (curr_level_result[i] >> (W-1-s)) & 1);
+            //         // printf("%lu", (bmap2[i] >> (W-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            // }
+            if (found)  nonzero_bucket_id[warp_lane * BUCKET_NUM + count[warp_lane * 3]+idx-1] = i+1;
+            if (thread_lane == 0)   count[warp_lane * 3] += __popc(mask);
+        }
+        // __syncwarp();
+        // __syncthreads();
+        // if (warp_lane <= 1 && thread_lane == 0) {
+        //     printf("curr_v:%d, count[0]: %d\n", curr_v, count[warp_lane * 3]);
+        //     for (int i = 0; i < BUCKET_NUM; i++) {
+        //         printf("nonzero_bucket_id[%d]: %d\n", i, nonzero_bucket_id[warp_lane * BUCKET_NUM + i]);
+        //     }
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (curr_level_result[0] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (curr_level_result[1] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (curr_level_result[2] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        //     for (int i = 0; i < 64; ++i) {
+        //         printf("%lu", (curr_level_result[3] >> (W-1-i)) & 1);
+        //     }
+        //     printf("\n");
+        // }
+        vidType* buffer = meta.buffer(slot_id);
+        for (int i = 0; i < count[warp_lane * 3]; i++) {
+            int result_idx = nonzero_bucket_id[warp_lane * BUCKET_NUM + i] - 1;
+            auto res = curr_level_result[result_idx];
+            #pragma unroll
+            for (int j = thread_lane; j < 64; j += WARP_SIZE) {
+                unsigned active = __activemask();
+                __syncwarp(active);
+                // get each bit of res
+                // bool condition = lower_bound >=0 ? j+result_idx*64 > lower_bound : j+result_idx*64 != curr_v;
+                // unsigned bit1 = (res >> (W - 1 - j)) & 1;
+                // unsigned bit = ((res >> (W - 1 - j)) & 1) && condition;
+                auto bit = (res >> (W - 1 - j)) & 1;
+                // printf("j:%d, %lu\n", j, bit);
+                unsigned mask = __ballot_sync(active, bit);
+                auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+                if (bit)    buffer[meta.slot_size + count[warp_lane * 3 + 1]+idx-1] = result_idx * 64 + j;
+                if (thread_lane == 0)   count[warp_lane * 3 + 1] += __popc(mask);
+            }
+            // if (warp_lane == 1 && thread_lane == 0) printf("@count[0]: %d\n", count[warp_lane]);
+        }
+
+        // if (warp_lane <= 1 && thread_lane == 0) {
+        //     printf("warp_lane:%d, curr_v:%d, count[1]:%d\n", warp_lane, curr_v, count[warp_lane * 3 + 1]);
+        // }
+        // return count[warp_lane * 3 + 1];
+        // stage 3
+        for (int i = 0; i < count[warp_lane * 3 + 1]; i++) {
+            int bucket_idx = buffer[meta.slot_size + i];
+            // intra-bucket binary search between 
+            intersect_bs_num(
+                        d_bucket_vlists_, d_rbucket_vlists_,
+                        d_bucket_sizelists_, d_rbucket_sizelists_,
+                        v1*bigset_bucket_num + bucket_idx,
+                        v2*bigset_bucket_num + bucket_idx,
+                        bucket_idx,
+                        g.edge_begin(v1), g.edge_begin(v2), 
+                        g.edge_end(v1), g.edge_end(v2), 
+                        // buffer, 
+                        count[warp_lane * 3 + 2], lower_bound);
+            // if (thread_lane == 0) {
+            //     // printf("bucket_idx:%d\n", bucket_idx);
+            //     if (bucket_idx == 255) {
+            //         // for (int k = d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx]; 
+            //         //         k < d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx + 1]; k++) {
+            //         //     printf("d_bucket_vlists_[%d]: %d\n", k, d_bucket_vlists_[k]);
+            //         // }
+            //         printf("v1:%d, %d %d %lu %lu %d\n", v1, d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx],
+            //                 d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx + 1],
+            //                 g.edge_begin(v1),
+            //                 g.edge_begin(v1) + d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx],
+            //                 d_bucket_vlists_[g.edge_begin(v1) + d_bucket_sizelists_[v1*bigset_bucket_num + bucket_idx]]);
+            //         printf("v2:%d, %d %d %lu %lu %d\n", v2, d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx],
+            //                 d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx + 1],
+            //                 g.edge_begin(v2),
+            //                 g.edge_begin(v2) + d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx],
+            //                 d_bucket_vlists_[g.edge_begin(v2) + d_bucket_sizelists_[v2*bigset_bucket_num + bucket_idx]]);
+            //     }
+            // }
+        }
+        return count[warp_lane * 3 + 2];
+    }
+
+
+    __device__ __forceinline__ void intersect_bs_num(
+                                        vidType* d_bucket_vlists1_, vidType* d_bucket_vlists2_, 
+                                        vidType* d_bucket_sizelists1_, vidType* d_bucket_sizelists2_,
+                                        int v1_start_idx, int v2_start_idx, 
+                                        int bucket_idx,
+                                        int v1_edge_off, int v2_edge_off,
+                                        int v1_edge_end, int v2_edge_end, 
+                                        // vidType* buffer, 
+                                        vidType& count,
+                                        vidType lower_bound) {
+
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+        vidType* lookup = d_bucket_vlists1_ + v1_edge_off + d_bucket_sizelists1_[v1_start_idx];
+        vidType* search = d_bucket_vlists2_ + v2_edge_off + d_bucket_sizelists2_[v2_start_idx];
+        vidType lookup_size = bucket_idx == bigset_bucket_num - 1 ? v1_edge_end - d_bucket_sizelists1_[v1_start_idx] - v1_edge_off:
+                            d_bucket_sizelists1_[v1_start_idx + 1] - d_bucket_sizelists1_[v1_start_idx];
+        vidType search_size = bucket_idx == bigset_bucket_num - 1 ? v2_edge_end - d_bucket_sizelists2_[v2_start_idx] - v2_edge_off:
+                            d_bucket_sizelists2_[v2_start_idx + 1] - d_bucket_sizelists2_[v2_start_idx];
+        if (lookup_size > search_size) {
+            auto tmp = lookup;
+            lookup = search;
+            search = tmp;
+            auto tmp_size = lookup_size;
+            lookup_size = search_size;
+            search_size = tmp_size;
+        }
+        // if (thread_lane == 0 && bucket_idx == 255) {
+        //     printf("lookup_size:%d, search_size:%d\n", lookup_size, search_size);
+        // }
+        for (auto i = thread_lane; i < lookup_size; i += WARP_SIZE) {
+            unsigned active = __activemask();
+            __syncwarp(active);
+
+            int found = 0;
+            vidType key = lookup[i]; // each thread picks a vertex as the key
+            // printf("%d key:%d\n", bucket_idx, key);
+            if (key > lower_bound) {
+                if (binary_search(search, key, search_size))    found = 1;
+            }
+            unsigned mask = __ballot_sync(active, found);
+            // auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+            
+            // if (found)  buffer[count+idx-1] = key;
+            if (thread_lane == 0)   count += __popc(mask);
+        }
+    }
+
+
+
     // template <typename D = vidType>
     __device__ __forceinline__ vidType difference_num_bs(vidType* a, vidType size_a, 
                                         vidType* b, vidType size_b, vidType lower_bound) {
@@ -467,10 +667,11 @@ struct XGMiner_BITMAP {
         bucket_sizelists_.resize(nv * bigset_bucket_num, 0);
         // bitmaps_.resize(nv);
         int bmap_size = UP_DIV(bigset_bucket_num, W);
-        std::set<int> fullSet;
-        for (int i = 0; i < nv; ++i) fullSet.insert(i);
+        // std::set<int> fullSet;
+        // for (int i = 0; i < nv; ++i) fullSet.insert(i);
         std::vector<std::vector<int>> r_edgeList(nv);
         bitmaps_.resize(nv * bmap_size, 0x0);
+        std::vector<bool> temp_bitmap(nv, 0);
         for (int i = 0; i < nv; i++) {
             // auto vlist = g.N(i);
             auto edge_beg = g.edge_begin(i);
@@ -478,10 +679,12 @@ struct XGMiner_BITMAP {
             // bucket_vlists_[i].resize(bigset_bucket_num);
             if (i == 338 || i == 18)
             std::cout << "vertex " << i << ": \n";
-            std::set<int> edgeSet;
+            // std::set<int> edgeSet;
+            std::fill(temp_bitmap.begin(), temp_bitmap.end(), 0);
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
                 // edgeSet.insert(neigh);
+                temp_bitmap[neigh] = 1;
                 int bucket_id = neigh & (bigset_bucket_num - 1);
                 // bucket_vlists_.push_back(neigh);
                 bucket_sizelists_[i * bigset_bucket_num + bucket_id]++;
@@ -517,12 +720,17 @@ struct XGMiner_BITMAP {
                 }
             }
             
-            std::set<int> difference;
+            // std::set<int> difference;
             // compute complement of edgeSet
             // std::set_difference(fullSet.begin(), fullSet.end(),
             //                     edgeSet.begin(), edgeSet.end(),
             //                     std::inserter(difference, difference.begin()));
             // r_edgeList[i].assign(difference.begin(), difference.end());
+            for (int j = 0; j < nv; ++j) {
+                if (temp_bitmap[j] == 0) {
+                    r_edgeList[i].push_back(j);
+                }
+            }
             // if (i == 0) {
             //     for (auto val : r_edgeList[i]) {
             //         printf("r_edgeList[%d]: %d\n", i, val);
@@ -673,5 +881,31 @@ struct XGMiner_BITMAP {
         CUDA_SAFE_CALL(cudaMemcpy(d_rbucket_sizelists_, rbucket_sizelists_.data(), 
                             sizeof(vidType) * rbucket_sizelists_.size(), cudaMemcpyHostToDevice));
     }
+
+
+    __host__ void transform_all_neighlist_to_bitmap(Graph_V2& g) {
+        LOG_INFO("Running transform all neighlist to bitmap");
+        vidType nv = g.num_vertices();
+        bitmap_all.resize(nv * UP_DIV(nv, 32), 0x0);
+
+        for (int i = 0; i < nv; i++) {
+            auto edge_beg = g.edge_begin(i);
+            auto edge_end = g.edge_end(i);
+            for (int j = edge_beg; j < edge_end; j++) {
+                auto neigh = g.out_colidx()[j];
+                auto index = neigh / 32;
+                auto bit = neigh & 31;
+                bitmap_all[i * UP_DIV(nv, 32) + index] |= (1 << (32 - 1 - bit));
+            }
+        }
+
+        // copy bitmap_all to device
+        CUDA_SAFE_CALL(cudaMalloc((void **)&d_bitmap_all, sizeof(vidType) * nv * UP_DIV(nv, 32)));
+        CUDA_SAFE_CALL(cudaMemcpy(d_bitmap_all, bitmap_all.data(), 
+                                sizeof(vidType) * nv * UP_DIV(nv, 32), cudaMemcpyHostToDevice));
+    }
+
+    std::vector<vidType> bitmap_all;
+    vidType* d_bitmap_all = nullptr;
 };
 

@@ -45,8 +45,9 @@ int main(int argc, char *argv[]) {
         LOG_INFO("Running GLUMIN+G2Miner+LUT algorithm.");
         GLUMIN glumin(opts);
         glumin.run();
-    } else if (opts.algo == "bitmap_bigset_opt") {
-        LOG_INFO("Running GLUMIN+G2Miner+Bitmap Opt.1");
+    } else if (opts.run_xgminer) {
+        // if (opts.algo == "bitmap_bigset_opt") {
+            // LOG_INFO("Running GLUMIN+G2Miner+Bitmap Opt.1");
         XGMiner xgminer(opts);
         xgminer.run();
     } else {

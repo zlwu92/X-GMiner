@@ -1,7 +1,7 @@
 #include "graph.h"
 #include "pattern.hh"
 
-void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int);
+void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int);
 void CliqueSolver(Graph &g, int k, uint64_t &total, int, int);
 
 int main(int argc, char *argv[]) {
@@ -23,9 +23,14 @@ int main(int argc, char *argv[]) {
   }
   std::cout << "P" << k << "(only for undirected graphs)\n";
   std::string use_lut;
-  if (argc > 3) use_lut = argv[3];
+  // if (argc > 3) use_lut = argv[3];
   int k_num = k;
   if (use_lut != "lut") k_num = k + 1;
+  int vID = 0;
+  if (argc > 3) {
+    // vID = atoi(argv[3]);
+  }
+  std::cout << "test vertex ID: " << vID << "\n";
   
   if (k_num == 5 || k_num == 6) {
     Graph g(argv[1], USE_DAG); // use DAG
@@ -53,7 +58,7 @@ int main(int argc, char *argv[]) {
     int num_patterns = 1;
     std::cout << "num_patterns: " << num_patterns << "\n";
     std::vector<uint64_t> total(num_patterns, 0);
-    PatternSolver(g, k_num, total, n_devices, chunk_size);
+    PatternSolver(g, k_num, total, n_devices, chunk_size, vID);
     for (int i = 0; i < num_patterns; i++)
       std::cout << "Pattern P" << k << " count: " << total[i] << "\n";
     return 0;
