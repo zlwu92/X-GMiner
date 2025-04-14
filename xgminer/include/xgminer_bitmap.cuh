@@ -677,13 +677,11 @@ struct XGMiner_BITMAP {
             auto edge_beg = g.edge_begin(i);
             auto edge_end = g.edge_end(i);
             // bucket_vlists_[i].resize(bigset_bucket_num);
-            if (i == 338 || i == 18)
-            std::cout << "vertex " << i << ": \n";
-            // std::set<int> edgeSet;
+            // if (i == 338 || i == 18)
+            // std::cout << "vertex " << i << ": \n";
             std::fill(temp_bitmap.begin(), temp_bitmap.end(), 0);
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
-                // edgeSet.insert(neigh);
                 temp_bitmap[neigh] = 1;
                 int bucket_id = neigh & (bigset_bucket_num - 1);
                 // bucket_vlists_.push_back(neigh);
@@ -691,8 +689,8 @@ struct XGMiner_BITMAP {
                 
                 int bucket_ele = bucket_id / W;
                 int bucket_bit = bucket_id % W;
-                if (i == 338 || i == 18)
-                std::cout << neigh << "[" << bucket_id << " " << bucket_ele << " " << bucket_bit << "] ";
+                // if (i == 338 || i == 18)
+                // std::cout << neigh << "[" << bucket_id << " " << bucket_ele << " " << bucket_bit << "] ";
                 bitmaps_[i * bmap_size + bucket_ele] |= (1ULL << (W - 1 - bucket_bit));
                 // for (int s = 0; s < 64; ++s) {
                 //     printf("%lu", (bitmaps_[i * bmap_size + bucket_ele] >> (W-1-s)) & 1);
@@ -700,25 +698,25 @@ struct XGMiner_BITMAP {
                 // std::cout << "\n";
             }
 
-            if (i == 338 || i == 18)
-            std::cout << "\n";
-            if (i == 18) {
-                for (int t = 0; t < bmap_size; ++t) {
-                    for (int s = 0; s < 64; ++s) {
-                        printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
-                    }
-                    printf("\n");
-                }
-                printf("\n");
-            }
-            if (i == 338) {
-                for (int t = 0; t < bmap_size; ++t) {
-                    for (int s = 0; s < 64; ++s) {
-                        printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
-                    }
-                    printf("\n");
-                }
-            }
+            // if (i == 338 || i == 18)
+            // std::cout << "\n";
+            // if (i == 18) {
+            //     for (int t = 0; t < bmap_size; ++t) {
+            //         for (int s = 0; s < 64; ++s) {
+            //             printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
+            //         }
+            //         printf("\n");
+            //     }
+            //     printf("\n");
+            // }
+            // if (i == 338) {
+            //     for (int t = 0; t < bmap_size; ++t) {
+            //         for (int s = 0; s < 64; ++s) {
+            //             printf("%lu", (bitmaps_[i * bmap_size + t] >> (W-1-s)) & 1);
+            //         }
+            //         printf("\n");
+            //     }
+            // }
             
             // std::set<int> difference;
             // compute complement of edgeSet
@@ -726,11 +724,11 @@ struct XGMiner_BITMAP {
             //                     edgeSet.begin(), edgeSet.end(),
             //                     std::inserter(difference, difference.begin()));
             // r_edgeList[i].assign(difference.begin(), difference.end());
-            for (int j = 0; j < nv; ++j) {
-                if (temp_bitmap[j] == 0) {
-                    r_edgeList[i].push_back(j);
-                }
-            }
+            // for (int j = 0; j < nv; ++j) {
+            //     if (temp_bitmap[j] == 0) {
+            //         r_edgeList[i].push_back(j);
+            //     }
+            // }
             // if (i == 0) {
             //     for (auto val : r_edgeList[i]) {
             //         printf("r_edgeList[%d]: %d\n", i, val);
@@ -770,15 +768,15 @@ struct XGMiner_BITMAP {
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
                 int bucket_id = neigh & (bigset_bucket_num - 1);
-                if ((i == 18 || i == 338) && neigh == 767) {
-                    printf("bucket_id: %d, %d %d %lu %lu %d\n", 
-                            bucket_id, i, g.edge_begin(i), 
-                            g.edge_begin(i) + bucket_sizelists_[i * bigset_bucket_num + bucket_id] + temp_bucket_size[bucket_id], 
-                            g.edge_end(i),
-                            neigh);
-                    // printf("%d %d \n", bucket_sizelists_[i * bigset_bucket_num + bucket_id],
-                    //         bucket_sizelists_[i * bigset_bucket_num + bucket_id + 1]);
-                }
+                // if ((i == 18 || i == 338) && neigh == 767) {
+                //     printf("bucket_id: %d, %d %d %lu %lu %d\n", 
+                //             bucket_id, i, g.edge_begin(i), 
+                //             g.edge_begin(i) + bucket_sizelists_[i * bigset_bucket_num + bucket_id] + temp_bucket_size[bucket_id], 
+                //             g.edge_end(i),
+                //             neigh);
+                //     // printf("%d %d \n", bucket_sizelists_[i * bigset_bucket_num + bucket_id],
+                //     //         bucket_sizelists_[i * bigset_bucket_num + bucket_id + 1]);
+                // }
                 bucket_vlists_[g.edge_begin(i) + bucket_sizelists_[i * bigset_bucket_num + bucket_id] + temp_bucket_size[bucket_id]++] = neigh;
             }
             // if (i == 0) {
@@ -817,9 +815,11 @@ struct XGMiner_BITMAP {
     std::vector<vidType> rbucket_vlists_;
     std::vector<vidType> rbucket_sizelists_;
     std::vector<uint64_t> rbitmaps_;
+    long length_per_bitmap = 0;
     vidType* d_rbucket_vlists_ = nullptr;
     vidType* d_rbucket_sizelists_ = nullptr;
     T* d_rbitmaps_ = nullptr;
+
 
     __host__ void generate_reverse_bitmap(Graph_V2& g, std::vector<std::vector<int>>& r_edgeList) {
         LOG_INFO("Running reverse bitmap processing");
@@ -886,26 +886,249 @@ struct XGMiner_BITMAP {
     __host__ void transform_all_neighlist_to_bitmap(Graph_V2& g) {
         LOG_INFO("Running transform all neighlist to bitmap");
         vidType nv = g.num_vertices();
-        bitmap_all.resize(nv * UP_DIV(nv, 32), 0x0);
-
+        std::cout << "nv: " << nv << "\n";
+        length_per_bitmap = UP_DIV(nv, 32);
+        long long bitmap_size = nv * length_per_bitmap;
+        std::cout << "max_size: " << bitmap_size << ", size_limit: " << bitmap_all.max_size() << "\n";
+        bitmap_all.resize(nv * length_per_bitmap, 0x0);
+        // bitmap_all.resize(734343988077, 0);
+        #if 1
         for (int i = 0; i < nv; i++) {
             auto edge_beg = g.edge_begin(i);
             auto edge_end = g.edge_end(i);
+            // std::cout << "vertex " << i << ": \n";
             for (int j = edge_beg; j < edge_end; j++) {
                 auto neigh = g.out_colidx()[j];
                 auto index = neigh / 32;
                 auto bit = neigh & 31;
-                bitmap_all[i * UP_DIV(nv, 32) + index] |= (1 << (32 - 1 - bit));
+                // bitmap_all[i * UP_DIV(nv, 32) + index] |= (1 << (32 - 1 - bit));
+                bitmap_all[i * length_per_bitmap + index] |= (1ULL << (31 - bit));
+                // std::cout << neigh << "[" << index << " " << bit << "] ";
+                // std::cout << neigh << " ";
             }
+            // std::cout << "\n";
         }
 
+        // for (int i = 0; i < 32; ++i) {
+        //     printf("%d", (bitmap_all[20 * UP_DIV(nv, 32)] >> (31-i)) & 1);
+        // }
+        // std::cout << "\n";
+        // printf("%d %d\n", 20 * UP_DIV(nv, 32), bitmap_all.size());
+
         // copy bitmap_all to device
-        CUDA_SAFE_CALL(cudaMalloc((void **)&d_bitmap_all, sizeof(vidType) * nv * UP_DIV(nv, 32)));
+        CUDA_SAFE_CALL(cudaMalloc((void **)&d_bitmap_all, sizeof(vidType) * nv * length_per_bitmap));
         CUDA_SAFE_CALL(cudaMemcpy(d_bitmap_all, bitmap_all.data(), 
-                                sizeof(vidType) * nv * UP_DIV(nv, 32), cudaMemcpyHostToDevice));
+                                sizeof(vidType) * nv * length_per_bitmap, cudaMemcpyHostToDevice));
+        #endif
     }
 
     std::vector<vidType> bitmap_all;
     vidType* d_bitmap_all = nullptr;
+
+    __device__ __forceinline__ void full_bitmap_intersect(
+                                                            GraphGPU& g, StorageMeta& meta, int bitmap_id,
+                                                            int v1, int v2, int limit
+                                                            
+                                                        ) {
+        vidType* result = meta.bitmap(bitmap_id);
+        // int warp_lane   = threadIdx.x / WARP_SIZE;
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+        limit = limit < 0 ? g.V() : limit;
+        int length = UP_DIV(g.V(), BITMAP_WIDTH);
+        int element_cnt = limit / BITMAP_WIDTH;
+        int remain_bits = limit % BITMAP_WIDTH;
+        for (int i = thread_lane; i < element_cnt; i += WARP_SIZE) {
+            // unsigned active = __activemask();
+            // __syncwarp(active);
+            
+            result[i] = d_bitmap_all[v1 * length + i] & d_bitmap_all[v2 * length + i];
+        }
+        if (remain_bits && thread_lane == 0) {
+            result[element_cnt] = d_bitmap_all[v1 * length + element_cnt] & d_bitmap_all[v2 * length + element_cnt];
+            // mask off the remaining bits
+            result[element_cnt] &= (~((1 << (BITMAP_WIDTH - remain_bits)) - 1));
+            // unsigned mask = (~((1 << (BITMAP_WIDTH - remain_bits)) - 1));
+            // for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //     printf("%d", (mask >> (BITMAP_WIDTH-1-s)) & 1);
+            // }
+            // printf("\n");
+        }
+        __syncwarp();
+        // if (thread_lane == 0) {
+        //     printf("result[%d]: %d, length:%d, remain_bits:%d\n", element_cnt, result[element_cnt], length, remain_bits);
+        //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+        //         printf("%d", (result[element_cnt] >> (BITMAP_WIDTH-1-s)) & 1);
+        //     }
+        //     printf("\n");
+        //     // printf("v1: %d, v2: %d", d_bitmap_all[v1 * length + 0], d_bitmap_all[v2 * length + 0]);
+        // }
+        // return VertexMapView(result, limit);
+    }
+
+    __device__ bool bitcheck(vidType* ptr_, int i) {
+        int idx = i / BITMAP_WIDTH;
+        int bit_loc = i % BITMAP_WIDTH;
+        uint32_t mask = (1u << (BITMAP_WIDTH - 1 - bit_loc));
+        return ptr_[idx] & mask;
+    }
+
+    __device__ __forceinline__ VertexArrayView get_index_from_bitmap(
+                                                            GraphGPU& g, StorageMeta& meta, 
+                                                            int bitmap_id, int slot_id,
+                                                            int limit
+                                                        ) {
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+        int warp_lane   = threadIdx.x / WARP_SIZE;
+
+        limit = limit < 0 ? g.V() : limit;
+        int remain = limit % WARP_SIZE;
+        vidType* result = meta.bitmap(bitmap_id);
+        vidType* index = meta.buffer(slot_id);
+        __shared__ vidType count[WARP_PER_BLOCK];
+        if (thread_lane == 0) {
+            count[warp_lane] = 0;
+        }
+
+        for (int key = thread_lane; key < limit - remain; key += WARP_SIZE) {
+            bool is_one = bitcheck(result, key);
+            // unsigned mask = __ballot_sync(FULL_MASK, found);
+            unsigned active = __activemask();
+            __syncwarp(active);
+            unsigned mask = __ballot_sync(active, is_one);
+            auto idx = __popc(mask << (WARP_SIZE - thread_lane - 1));
+            if (is_one) index[count[warp_lane] + idx - 1] = key;
+            if (thread_lane == 0)   count[warp_lane] += __popc(mask);
+        }
+
+        if(thread_lane < remain) {
+            int key = thread_lane + limit - remain;
+            bool is_one = bitcheck(result, key);
+            unsigned active = __activemask();
+            __syncwarp(active);
+            unsigned mask = __ballot_sync(active, is_one);
+            auto idx = __popc(mask << (WARP_SIZE - thread_lane - 1));
+            // printf("thread_lane:%d, is_one:%d\n", thread_lane, is_one);
+            if (is_one) index[count[warp_lane] + idx - 1] = key;
+            if (thread_lane == 0)   count[warp_lane] += __popc(mask);
+        }
+        __syncwarp();
+
+        return VertexArrayView(index, count[warp_lane]);
+    }
+
+    
+    __device__ __forceinline__ void full_bitmap_difference(
+                                                            GraphGPU& g, StorageMeta& meta, int bitmap_id,
+                                                            int v1, int v2, int limit
+                                                            
+                                                        ) {
+        vidType* result = meta.bitmap(bitmap_id);
+        // int warp_lane   = threadIdx.x / WARP_SIZE;
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+
+        int length = UP_DIV(g.V(), 32);
+        int element_cnt = limit / BITMAP_WIDTH;
+        int remain_bits = limit % BITMAP_WIDTH;
+        for (int i = thread_lane; i < element_cnt; i += WARP_SIZE) {
+            // unsigned active = __activemask();
+            // __syncwarp(active);
+            
+            result[i] = d_bitmap_all[v1 * length + i] & (~d_bitmap_all[v2 * length + i]);
+        }
+        if (remain_bits && thread_lane == 0) {
+            result[element_cnt] = d_bitmap_all[v1 * length + element_cnt] & d_bitmap_all[v2 * length + element_cnt];
+            // mask off the remaining bits
+            result[element_cnt] &= (~((1 << (BITMAP_WIDTH - remain_bits)) - 1));
+        }
+        __syncwarp();
+
+        // return VertexMapView(result, limit);
+    }
+
+
+    __device__ __forceinline__ vidType full_bitmap_difference_count_thread(
+                                                            GraphGPU& g, StorageMeta& meta, 
+                                                            int bitmap_id, int slot_id,
+                                                            int v2, int limit
+                                                            
+                                                        ) {
+        vidType* result = meta.bitmap(bitmap_id);
+        // int warp_lane   = threadIdx.x / WARP_SIZE;
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+
+        limit = limit < 0 ? g.V() : limit;
+        int length = UP_DIV(g.V(), BITMAP_WIDTH);
+        // int length = (g.V() + 31) / 32;
+        int countElement = limit / BITMAP_WIDTH;
+        int remain = limit % BITMAP_WIDTH;
+        int num = 0;
+        for (auto i = 0; i < countElement; i++) {
+            auto element = result[i] & (~d_bitmap_all[v2 * length + i]);
+            num += __popc(element);
+            // printf("@@ v2:%d, num:%d\n", v2, num);
+        }
+        if (remain) {
+            auto element = result[countElement] & (~d_bitmap_all[v2 * length + countElement]);
+            num += __popc(element & (~((1 << (BITMAP_WIDTH - remain)) - 1)));
+            // if (thread_lane == 1) {
+            //     printf("v2:%d, num:%d, countElement:%d, length:%d\n", v2, num, countElement, length);
+            //     unsigned mask = (~((1 << (BITMAP_WIDTH - remain)) - 1));
+            //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //         printf("%d", (mask >> (BITMAP_WIDTH-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            //     printf("result[countElement]:%d\n", result[countElement]);
+            //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //         printf("%d", (result[countElement] >> (BITMAP_WIDTH-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            //     printf("element:%d\n", element);
+            //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //         printf("%d", (element >> (BITMAP_WIDTH-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            //     // int v2bitmap = d_bitmap_all[v2 * length + countElement];
+            //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //         printf("%d", (d_bitmap_all[v2 * length] >> (BITMAP_WIDTH-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            //     for (int s = 0; s < BITMAP_WIDTH; ++s) {
+            //         printf("%d", (d_bitmap_all[v2 * UP_DIV(g.V(), 32)] >> (BITMAP_WIDTH-1-s)) & 1);
+            //     }
+            //     printf("\n");
+            //     printf("%d %d\n", length, UP_DIV(g.V(), 32));
+            //     printf("%d %d\n", d_bitmap_all[v2 * length], d_bitmap_all[v2 * UP_DIV(g.V(), 32)]);
+            //     printf("%d %d %d\n", v2 * length, v2 * UP_DIV(g.V(), 32), 20*UP_DIV(g.V(), 32));
+            // }
+        }
+        return num;
+    }
+
+
+    __device__ __forceinline__ vidType full_bitmap_difference_count_warp(
+                                                            GraphGPU& g, StorageMeta& meta, 
+                                                            int bitmap_id, int slot_id,
+                                                            int v2, int limit
+                                                            
+                                                        ) {
+        vidType* result = meta.bitmap(bitmap_id);
+        // int warp_lane   = threadIdx.x / WARP_SIZE;
+        int thread_lane = threadIdx.x & (WARP_SIZE-1);
+
+        limit = limit < 0 ? g.V() : limit;
+        int length = UP_DIV(g.V(), 32);
+        int countElement = limit / BITMAP_WIDTH;
+        int remain = limit % BITMAP_WIDTH;
+        int num = 0;
+        for (auto i = thread_lane; i < countElement ; i += WARP_SIZE) {
+            auto element = result[i] & (~d_bitmap_all[v2 * length + i]);
+            num += __popc(element);
+        }
+        if (thread_lane == 0 && remain) {
+            auto element = result[countElement] & (~d_bitmap_all[v2 * length + countElement]);
+            num += __popc(element & (~((1 << (BITMAP_WIDTH - remain)) - 1)));
+        }
+        return num;
+    }
 };
 

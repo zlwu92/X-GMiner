@@ -105,14 +105,15 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
     auto degree = g.get_degree(vid);
     // std::cout << "degree: " << degree << "\n";
     if (degree <= WARP_LIMIT) {
-        // printf("here!!!\n");
         vid_warp.push_back(vid);
-    } else if (degree <= BLOCK_LIMIT) {
+    } 
+    else if (degree <= BLOCK_LIMIT) {
         vid_block.push_back(vid);
-        count++;
-    } else {
-        // printf("here~~~\n");
+        // count++;
+    } 
+    else {
         vid_global.push_back(vid);
+        // vid_block.push_back(vid);
     }
   }
   // std::cout << "vid_warp: " << vid_warp.size() << " vid_block: " << vid_block.size() << " vid_global: " << vid_global.size() << "\n";
@@ -144,10 +145,10 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   std::vector<vidType> work_depth_each_warp(num_warps);
 
   // ideal case: transform all CSR neighbor list to adjacency bitmap
-  double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
-  std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
+  // double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
+  // std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
 
-
+  float time[3];
   Timer t;
   t.Start();
   // G2Miner + LUT
@@ -182,24 +183,60 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
         P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       }
       if (vid_block_size) {
+        Timer t0;
+        t0.Start();
         std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
         lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        // lut_manager.recreate(nblocks, md, md, true);
         P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+        
         // P2_GM_LUT_block_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
         //                                           frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
         //                                           d_work_depth_each_warp
         //                                         );
+        t0.Stop();
+        std::cout << "P2_GM_LUT_block time: " << t0.Seconds() << " s\n";
+        time[0] = t0.Seconds();
       }
       if (vid_global_size){
-        std::cout << __LINE__ << "vid_global_size: " << vid_global_size << "\n";
+        std::cout << __LINE__ << " vid_global_size: " << vid_global_size << "\n";
+        Timer t1;
+        t1.Start();
         lut_manager.recreate(1, md, md, true);
+        t1.Stop();
+        std::cout << "lut_manager.recreate time: " << t1.Seconds() << " s\n";
+        time[1] = t1.Seconds();
         nblocks = BLOCK_GROUP;
+        // cudaEvent_t e1, e2;
+        // cudaEventCreate(&e1);
+        // cudaEventCreate(&e2);
+        // cudaEventRecord(e1, 0);
+        float elapsedTime;
+        Timer t2;
+        t2.Start();
         for (vidType i = 0; i < vid_global_size; i++) {
           vidType task_id = vid_global[i];
+          // Timer t2;
+          // t2.Start();
           lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
+          // cudaEventRecord(t1, 0);
           GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
           P2_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
+          // cudaEventRecord(t2, 0);
+          // cudaEventSynchronize(t2);
+          // cudaEventElapsedTime(&elapsedTime, t1, t2);
+          // t2.Stop();
+          // elapsedTime = t2.Seconds() * 1000;
+          // std::cout << "task_id: " << task_id << ", degree: " << g.get_degree(task_id) << ", elapsedTime: " << elapsedTime << " ms\n";
         }
+        // cudaEventRecord(e2, 0);
+        // cudaEventSynchronize(e2);
+        // cudaEventElapsedTime(&elapsedTime, e1, e2);
+        // std::cout << "global task elapsedTime: " << elapsedTime << " ms\n";
+        t2.Stop();
+        elapsedTime = t2.Seconds() * 1000;
+        std::cout << "global task elapsedTime: " << t2.Seconds() << " s\n";
+        time[2] = t2.Seconds();
       }
     }
     else {
@@ -630,12 +667,26 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   CUDA_SAFE_CALL(cudaMemcpy(work_depth_each_warp.data(), d_work_depth_each_warp, num_warps * sizeof(vidType), cudaMemcpyDeviceToHost));
   out.close();
   out.open("/data-ssd/home/zhenlin/workspace/graphmining/X-GMiner/results/work_depth_per_warp_glumin_g2miner_lut.csv", std::ios::app);
-  out << "P" << k << "_LUT,";
-  for (size_t i = 0; i < work_depth_each_warp.size(); i++) {
-    out << work_depth_each_warp[i];
-    if (i < work_depth_each_warp.size() - 1)  out << ",";
+  // out << "P" << k << "_LUT,";
+  // for (size_t i = 0; i < work_depth_each_warp.size(); i++) {
+  //   out << work_depth_each_warp[i];
+  //   if (i < work_depth_each_warp.size() - 1)  out << ",";
+  // }
+  // out << "\n";
+  out.close();
+
+  out.open("../results/prof_glumin_LUT_kernel_time_percentage.csv", std::ios::app);
+  cudaDeviceProp prop;
+  CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, 0));
+  std::string prop_name(prop.name);
+  if (prop_name.find("3090") != std::string::npos) {
+    out << "3090,";
+    out << time[0] << "," << time[1] << "," << time[2] << "," << t.Seconds() << "\n";
+  } else if (prop_name.find("6000") != std::string::npos) {
+    out << "ada6000,";
+    std::cout << "here!!!\n";
+    out << time[0] << "," << time[1] << "," << time[2] << "," << t.Seconds() << "\n";
   }
-  out << "\n";
 
   std::cout << "runtime [G2Miner + LUT] = " << t.Seconds() << " sec\n";
   CUDA_SAFE_CALL(cudaFree(d_counts));

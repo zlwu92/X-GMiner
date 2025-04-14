@@ -60,6 +60,7 @@ __device__ __host__ struct LUT{
   __device__ __host__ void build_block(GraphGPU& g, vidType* vlist, vidType size){
     vlist_ = vlist;
     size_ = size;
+    // printf("max_size_: %d, size_: %d\n", max_size_, size_);
     assert(size <= max_size_);
 #ifdef ROARING
     bitmap_.init(heap_, types_, size_);
@@ -303,6 +304,7 @@ public:
       auto max_padded_rowsize_ = (max_ncol + W - 1) / W;
       max_LUT_size_ = max_padded_rowsize_ * max_nrow;
       size_t totalMemSize = max_LUT_size_ * LUT_num_ * sizeof(T);
+      std::cout << "total LUT Mem Size: " << totalMemSize * 1.0 / (1024*1024) << " MB\n";
 #ifdef ROARING
       chunk_rowsize_ = (max_ncol + CHUNK_WIDTH - 1) / CHUNK_WIDTH;
       max_type_size_ = chunk_rowsize_ * max_nrow;
@@ -325,6 +327,7 @@ public:
       }
       std::cout << LUT_num << " LUT, each has up to " << max_nrow << " rows, " << max_ncol << " cols,"<<
         " total memory size: " << float(totalMemSize) / (1024*1024) << " MB\n";
+      std::cout << "max_row_size_: " << max_row_size_ << ", max_LUT_size_: " << max_LUT_size_ << std::endl;
     }
 
     void update_para(uint32_t LUT_num, uint32_t max_nrow, uint32_t max_ncol, bool use_gpu) {
@@ -352,6 +355,10 @@ public:
 #ifdef ROARING
       lut.init(heap_head_ + lut_id * max_LUT_size_, types_head_ + lut_id * max_type_size_, max_row_size_);
 #else
+      // int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+      // if (thread_id == 0) {
+      //   printf("LUT %d, size %d\n", lut_id, max_LUT_size_);
+      // }
       lut.init(heap_head_ + lut_id * max_LUT_size_, max_row_size_);
 #endif
       return lut;

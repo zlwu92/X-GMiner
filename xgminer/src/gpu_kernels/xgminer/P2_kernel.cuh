@@ -244,9 +244,81 @@ xgminer_bitmap_bigset_opt_P2_vertex_induced(
 
 __global__ void __launch_bounds__(BLOCK_SIZE, 8)
 P2_GM_LUT_block_ideal_test(GraphGPU g,
-                            vidType* d_bitmap_all) {
+                            vidType *vlists,
+                            bitmapType* frontier_bitmap,
+                            // vidType* d_bitmap_all,
+                            XGMiner_BITMAP<> bitmaps,
+                            vidType max_deg,
+                            AccType *counter) {
 
+    // __shared__ vidType list_size[WARPS_PER_BLOCK * 3];
+    // __shared__ vidType bitmap_size[WARPS_PER_BLOCK * 1];
+    // __shared__ typename BlockReduce::TempStorage temp_storage;
+    int thread_id   = blockIdx.x * blockDim.x + threadIdx.x;
+    int block_id    = blockIdx.x;
+    int num_warps   = WARPS_PER_BLOCK * gridDim.x;
+    int warp_id     = thread_id / WARP_SIZE;
+    int warp_lane   = threadIdx.x / WARP_SIZE;
+    int thread_lane = threadIdx.x & (WARP_SIZE-1);
+    int num_blocks  = gridDim.x;
+    AccType count = 0;
+    // meta
+    StorageMeta meta;
+    // meta.lut = LUTs.getEmptyLUT(block_id);
+    meta.base = vlists;
+    // meta.base_size = list_size;
+    meta.bitmap_base = frontier_bitmap;
+    // meta.bitmap_base_size = bitmap_size;
+    meta.nv = g.V();//end;
+    meta.slot_size = max_deg;
+    // meta.bitmap_size = (max_deg + WARP_SIZE - 1) / WARP_SIZE;
+    meta.bitmap_size = (g.V() + WARP_SIZE - 1) / WARP_SIZE;
+    meta.capacity = 3;
+    meta.bitmap_capacity = 1;
+    meta.global_warp_id = warp_id;
+    meta.local_warp_id = warp_lane;
+    __syncwarp();
 
+    auto candidate_v0 = __get_vlist_from_heap(g, meta, /*slot_id=*/-1);
+    
+    for(vidType v0_idx = block_id; v0_idx < candidate_v0.size(); v0_idx += num_blocks){
+        auto v0 = v0_idx;
+        auto candidate_v1 = __get_vlist_from_graph(g, meta, /*vid=*/v0); // v1 is in N(v0)
+        // __syncthreads();
+        // if (v0 == 0) 
+        {
+        for (vidType v1_idx = warp_lane; v1_idx < candidate_v1.size(); v1_idx += WARP_PER_BLOCK) {
+        // if (warp_lane == 0) {
+            // for (vidType v1_idx = 0; v1_idx < candidate_v1.size(); v1_idx++) {
+                auto v1 = candidate_v1[v1_idx];
+                if (v1 > v0 
+                    // && v1_idx <= 8 
+                    // && v1_idx >= 7
+                ) {
+                    bitmaps.full_bitmap_intersect(g, meta, 0, v0, v1, -1);
 
+                    auto index_result = bitmaps.get_index_from_bitmap(
+                                                            g, meta, 0, 0, -1
+                                                        );
 
+                    // if (thread_lane == 0) {
+                    //     printf("v1: %d: ", v1);
+                    //     for (int i = 0; i < index_result.size(); i++) {
+                    //         printf("%d ", index_result[i]);
+                    //     }
+                    //     printf("\n");
+                    // }
+                    for (vidType v2_idx = thread_lane; v2_idx < index_result.size(); v2_idx += WARP_SIZE) {
+                        auto v2 = index_result[v2_idx];
+                        count += bitmaps.full_bitmap_difference_count_thread(g, meta, 0, 0, v2, v2);
+                    }
+                }
+            // }
+        // }
+        }
+        }
+        __syncthreads();
+    }
+
+    atomicAdd(&counter[0], count);
 }

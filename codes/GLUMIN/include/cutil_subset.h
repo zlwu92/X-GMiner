@@ -70,24 +70,26 @@ static size_t print_device_info(bool print_all, bool disable = false) {
   size_t mem_size = 0;
   for (int device = 0; device < deviceCount; device++) {
     cudaDeviceProp prop;
-    CUDA_SAFE_CALL(cudaSetDevice(device));
-    CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, device));
-    if (device == 0) mem_size = prop.totalGlobalMem;
-    if (disable) break;
-    printf("  Device[%d]: %s\n", device, prop.name);
-    if (device == 0 || print_all) {
-      // printf("  Compute capability: %d.%d\n", prop.major, prop.minor);
-      // printf("  Warp size: %d\n", prop.warpSize);
-      // printf("  Total # SM: %d\n", prop.multiProcessorCount);
-      // printf("  Total # CUDA cores: %d\n", getSPcores(prop));
-      // printf("  Total amount of shared memory per block: %lu bytes\n", prop.sharedMemPerBlock);
-      // printf("  Total # registers per block: %d\n", prop.regsPerBlock);
-      // printf("  Total amount of constant memory: %lu bytes\n", prop.totalConstMem);
-      // printf("  Total global memory: %.1f GB\n", float(prop.totalGlobalMem)/float(1024*1024*1024));
-      // printf("  Memory Clock Rate: %.2f GHz\n", float(prop.memoryClockRate)/float(1024*1024));
-      // printf("  Memory Bus Width: %d bits\n", prop.memoryBusWidth);
-      // //printf("  Maximum memory pitch: %u\n", prop.memPitch);
-      // printf("  Peak Memory Bandwidth: %.2f GB/s\n\n", 2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
+    if (device == 0) {
+      CUDA_SAFE_CALL(cudaSetDevice(device));
+      CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, device));
+      if (device == 0) mem_size = prop.totalGlobalMem;
+      if (disable) break;
+      printf("  Device[%d]: %s\n", device, prop.name);
+      if (device == 0 || print_all) {
+        // printf("  Compute capability: %d.%d\n", prop.major, prop.minor);
+        // printf("  Warp size: %d\n", prop.warpSize);
+        // printf("  Total # SM: %d\n", prop.multiProcessorCount);
+        // printf("  Total # CUDA cores: %d\n", getSPcores(prop));
+        // printf("  Total amount of shared memory per block: %lu bytes\n", prop.sharedMemPerBlock);
+        // printf("  Total # registers per block: %d\n", prop.regsPerBlock);
+        // printf("  Total amount of constant memory: %lu bytes\n", prop.totalConstMem);
+        // printf("  Total global memory: %.1f GB\n", float(prop.totalGlobalMem)/float(1024*1024*1024));
+        // printf("  Memory Clock Rate: %.2f GHz\n", float(prop.memoryClockRate)/float(1024*1024));
+        // printf("  Memory Bus Width: %d bits\n", prop.memoryBusWidth);
+        // //printf("  Maximum memory pitch: %u\n", prop.memPitch);
+        // printf("  Peak Memory Bandwidth: %.2f GB/s\n\n", 2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
+      }
     }
   }
   return mem_size;

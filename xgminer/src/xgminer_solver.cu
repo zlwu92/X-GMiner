@@ -32,6 +32,7 @@ void XGMiner::clique_solver(Graph_V2& g) {
 
 void XGMiner::motif_solver(Graph_V2& g) {
     LOG_INFO("Running motif solver");
+#if 1
     constexpr int BUCKET_NUM = calculate_value(TEMPLATE_BUCKET_NUM);
     LOG_INFO("Calculated BUCKET_NUM = " + std::to_string(BUCKET_NUM));
     int k = local_patternId;
@@ -48,13 +49,10 @@ void XGMiner::motif_solver(Graph_V2& g) {
     
     std::cout << "bucket_k = " << TEMPLATE_BUCKET_NUM << "\n";
     XGMiner_BITMAP<> bitmap(TEMPLATE_BUCKET_NUM);
-    bitmap.bigset_bitmap_processing(g);
-    
-    // for (int i = 0; i < nv; ++i) {
-    //     if (g.get_degree(i) == 0) {
-    //         std::cout << "vertex " << i << " degree 0\n";
-    //     }
-    // }
+    if (algo == "bitmap_bigset_opt") {
+        bitmap.bigset_bitmap_processing(g);
+    }
+
     
     GraphGPU gg(g);
     gg.init_edgelist(g);
@@ -69,7 +67,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
 
     size_t n_lists;
     size_t n_bitmaps;
-    n_lists = 5;
+    n_lists = 7;//5;
     n_bitmaps = 3;
 
     // vidType switch_lut = 1;
@@ -87,8 +85,8 @@ void XGMiner::motif_solver(Graph_V2& g) {
 
     nblocks = std::min(nv, 640);
     nblocks = 640;
-    nthreads = BLOCK_SIZE_DENSE;
-    nwarps = nthreads / WARP_SIZE;
+    // nthreads = BLOCK_SIZE_DENSE;
+    // nwarps = nthreads / WARP_SIZE;
     // cudaDeviceProp deviceProp;
     // CUDA_SAFE_CALL(cudaGetDeviceProperties(&deviceProp, 0));
     // int max_blocks_per_SM;
@@ -107,20 +105,40 @@ void XGMiner::motif_solver(Graph_V2& g) {
     // nblocks = 640;
     // std::cout << "CUDA pattern listing (" << nblocks << " CTAs, " << nthreads << " threads/CTA)\n";
 
-    size_t list_size = nblocks * per_block_vlist_size;
-    std::cout << "frontier list size: " << 1.0 * list_size / (1024*1024) << " MB\n";
     vidType *frontier_list; // each warp has (k-3) vertex sets; each set has size of max_degree
-    CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_list, list_size));
+    bitmap64_Type *frontier_bitmap64; // each thread has lut rows to store midresult of lut compute
+    bitmapType *frontier_bitmap; // each thread has lut rows to store midresult of lut compute
 
-    size_t bitmap_size = nblocks * nwarps * n_bitmaps * bitmap.bigset_bucket_num / BITMAP64_WIDTH * sizeof(bitmap64_Type);
-    std::cout << "lut rows size: " << 1.0 * bitmap_size/(1024*1024) << " MB\n";
-    bitmap64_Type *frontier_bitmap; // each thread has lut rows to store midresult of lut compute
-    CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
-    CUDA_SAFE_CALL(cudaMemset(frontier_bitmap, 0x0, bitmap_size));
+    if (algo == "bitmap_bigset_opt") {
+        nthreads = BLOCK_SIZE_DENSE;
+        nwarps = nthreads / WARP_SIZE;
+        // size_t list_size = nblocks * per_block_vlist_size;
+        size_t list_size = nblocks * nwarps * n_lists * size_t(md) * sizeof(vidType);
+        std::cout << "frontier list size: " << 1.0 * list_size / (1024*1024) << " MB\n";
+        CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_list, list_size));
 
-    // ideal case: transform all CSR neighbor list to adjacency bitmap
-    double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
-    std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
+        size_t bitmap_size = nblocks * nwarps * n_bitmaps * bitmap.bigset_bucket_num / BITMAP64_WIDTH * sizeof(bitmap64_Type);
+        std::cout << "lut rows size: " << 1.0 * bitmap_size/(1024*1024) << " MB\n";
+        CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap64, bitmap_size));
+        CUDA_SAFE_CALL(cudaMemset(frontier_bitmap64, 0x0, bitmap_size));
+    }
+
+    if (algo == "ideal_bitmap_test") {
+        // ideal case: transform all CSR neighbor list to adjacency bitmap
+        double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
+        std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
+
+        bitmap.transform_all_neighlist_to_bitmap(g);
+
+        size_t list_size = nblocks * per_block_vlist_size;
+        std::cout << "frontier list size: " << 1.0 * list_size/(1024*1024) << " MB\n";
+        CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_list, list_size));
+
+        per_block_bitmap_size = nwarps * n_bitmaps * ((nv + BITMAP_WIDTH-1)/BITMAP_WIDTH) * sizeof(vidType);
+        size_t bitmap_size = nblocks * per_block_bitmap_size;
+        std::cout << "lut rows size: " << 1.0 * bitmap_size/(1024*1024) << " MB\n";
+        CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
+    }
 
     GPUTimer gputimer;
     gputimer.start();
@@ -135,15 +153,15 @@ void XGMiner::motif_solver(Graph_V2& g) {
             //                                                     d_counts);
             xgminer_bitmap_bigset_opt_P2_vertex_induced<BUCKET_NUM><<<nblocks, nthreads>>>(gg, 
                                                                     frontier_list,
-                                                                    frontier_bitmap, 
+                                                                    frontier_bitmap64, 
                                                                     bitmap, 
                                                                     UP_DIV(bitmap.bigset_bucket_num, BITMAP64_WIDTH),
                                                                     md, 
                                                                     d_counts);
         }
         if (algo == "ideal_bitmap_test") {
-            P2_GM_LUT_block_ideal_test<<<nblocks, nthreads>>>(gg, 
-                                                            bitmap.d_bitmap_all);
+            P2_GM_LUT_block_ideal_test<<<nblocks, nthreads>>>(gg, frontier_list, frontier_bitmap,
+                                                            bitmap, md, d_counts);
         }
     }
     gputimer.end_with_sync();
@@ -156,5 +174,9 @@ void XGMiner::motif_solver(Graph_V2& g) {
     if (algo == "bitmap_bigset_opt") {
         std::cout << "P" << k << "[bitmap_bigset_opt] = " << gputimer.elapsed() / 1000 << " s\n";
     }
+    if (algo == "ideal_bitmap_test") {
+        std::cout << "P" << k << "[ideal_bitmap_test] = " << gputimer.elapsed() / 1000 << " s\n";
+    }
     CUDA_SAFE_CALL(cudaFree(d_counts));
+#endif
 }
