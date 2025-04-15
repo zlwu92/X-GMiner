@@ -9,6 +9,7 @@ import re
 from datetime import datetime
 import utils
 from scipy.stats import skew
+import numpy as np
 
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")[:-3]
 print(f"[{current_time}]")
@@ -21,20 +22,20 @@ datasets = [
     # ("../testgr3/", "TestGr3"),
     # ("../testgr4/", "TestGr4"),
     # ("../testgr5/", "TestGr5"),
-    # ("ba_1k_150k/", "ba_1k"),
-    # ("mico/", "mico"),
-    # ("youtube/", "YT"),
-    # ("com-dblp/", "dblp"),
-    # ("cit-Patents/", "cp"),
+    ("ba_1k_150k/", "ba_1k"),
+    ("mico/", "mico"),
+    ("youtube/", "YT"),
+    ("com-dblp/", "dblp"),
+    ("cit-Patents/", "cp"),
     ("livej/", "livej"),
-    # ("orkut/", "orkut"),
+    ("orkut/", "orkut"),
     
 ]
 
 patterns = [
-    # ("P1", 17),
+    ("P1", 17),
     ("P2", 18),
-    # ("P3", 19),
+    ("P3", 19),
     # ("P4", 20),
     # ("P5", 21),
     # ("P6", 22),
@@ -96,8 +97,10 @@ def test_glumin_workload():
             cmd += f"--patternID {pattern_id} "
             cmd += f"--prof-workload 1 "
             print(f"Command: {cmd}")
-            # subprocess.run(cmd, shell=True)
+            subprocess.run(cmd, shell=True)
 
+            with open(f"../results/prof_glumin_kernel_workload.csv", "a") as f:
+                f.write(f"{dataset_name},{pattern},")
             print("G2Miner+LUT kernel:", end="")
             with open(f"../results/prof_glumin_kernel_workload_{dataset_name}.csv", "r") as file:
                 # read every line to a list
@@ -105,6 +108,9 @@ def test_glumin_workload():
                 # 去除每行末尾的换行符
                 lines = [int(line.strip()) for line in lines]
                 print("max:", max(lines), " min:", min(lines))
+                with open(f"../results/prof_glumin_kernel_workload.csv", "a") as f:
+                    f.write(f"{(max(lines)/min(lines)):.2f},{np.std(lines):.2f},{skew(lines):.2f},")
+                
                 
 
             cmd = f"../xgminer/bin/xgminer "
@@ -123,6 +129,8 @@ def test_glumin_workload():
                 # 去除每行末尾的换行符
                 lines = [int(line.strip()) for line in lines]
                 print("max:", max(lines), " min:", min(lines))
+                with open(f"../results/prof_glumin_kernel_workload.csv", "a") as f:
+                    f.write(f"{(max(lines)/min(lines)):.2f},{np.std(lines):.2f},{skew(lines):.2f}\n")
 
 
 def parse_args():            
