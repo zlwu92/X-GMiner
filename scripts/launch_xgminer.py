@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 from datetime import datetime
 import utils
+from scipy.stats import skew
 
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")[:-3]
 print(f"[{current_time}]")
@@ -20,12 +21,12 @@ datasets = [
     # ("../testgr3/", "TestGr3"),
     # ("../testgr4/", "TestGr4"),
     # ("../testgr5/", "TestGr5"),
-    ("ba_1k_150k/", "ba_1k"),
-    ("mico/", "mico"),
+    # ("ba_1k_150k/", "ba_1k"),
+    # ("mico/", "mico"),
     # ("youtube/", "YT"),
     # ("com-dblp/", "dblp"),
     # ("cit-Patents/", "cp"),
-    # ("livej/", "livej"),
+    ("livej/", "livej"),
     # ("orkut/", "orkut"),
     
 ]
@@ -79,19 +80,67 @@ def test_bitmap_opt1():
                 subprocess.run(cmd, shell=True)
 
 
+def test_glumin_workload():
+    cmd = f"cd ../build && make xgminer && cd ../scripts/"
+    os.system(cmd)
+
+    for pattern, pattern_id in patterns:
+        for dataset, dataset_name in datasets:
+            dataset_path = benchmark_dir + dataset
+            print(f"Dataset: {dataset_path}")
+
+            cmd = f"../xgminer/bin/xgminer "
+            cmd += f"--graph {dataset_path} "
+            cmd += f"--dataname {dataset_name} "
+            cmd += f"--algorithm glumin_g2miner_lut "
+            cmd += f"--patternID {pattern_id} "
+            cmd += f"--prof-workload 1 "
+            print(f"Command: {cmd}")
+            # subprocess.run(cmd, shell=True)
+
+            print("G2Miner+LUT kernel:", end="")
+            with open(f"../results/prof_glumin_kernel_workload_{dataset_name}.csv", "r") as file:
+                # read every line to a list
+                lines = file.readlines()
+                # 去除每行末尾的换行符
+                lines = [int(line.strip()) for line in lines]
+                print("max:", max(lines), " min:", min(lines))
+                
+
+            cmd = f"../xgminer/bin/xgminer "
+            cmd += f"--graph {dataset_path} "
+            cmd += f"--dataname {dataset_name} "
+            cmd += f"--algorithm glumin_g2miner "
+            cmd += f"--patternID {pattern_id} "
+            cmd += f"--prof-workload 1 "
+            print(f"Command: {cmd}")
+            subprocess.run(cmd, shell=True)
+
+            print("G2Miner kernel:", end="")
+            with open(f"../results/prof_glumin_kernel_workload_{dataset_name}.csv", "r") as file:
+                # read every line to a list
+                lines = file.readlines()
+                # 去除每行末尾的换行符
+                lines = [int(line.strip()) for line in lines]
+                print("max:", max(lines), " min:", min(lines))
+
 
 def parse_args():            
     """显示交互式菜单"""
     print(f"{utils.Colors.OKBLUE}>> Choose experiment:{utils.Colors.ENDC}")
-    print("0 -- bitmap_bigset_opt: bigset bitmap optimization")
-    
+    print("0 -- test_bitmap_opt1: bigset bitmap optimization")
+    print("1 -- test_glumin_workload: glumin workload")
+
     choice = input("Enter Exp. ID: ").strip()
     if (choice == "0"):
         return test_bitmap_opt1()
+    if (choice == "1"):
+        return test_glumin_workload()
 
 
 if __name__ == "__main__":
     
     # args = parse_args()
-    test_bitmap_opt1()
+    # test_bitmap_opt1()
+    test_glumin_workload()
 

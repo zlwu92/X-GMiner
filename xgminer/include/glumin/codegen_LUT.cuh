@@ -68,7 +68,20 @@ __device__ __host__ struct LUT{
 #endif
     // bitmap_.clear();
     bitmap_.build_block(g, vlist, size); 
-  }  
+  }
+  
+  __device__ __host__ void build_block_test(GraphGPU& g, vidType* vlist, vidType size, vidType* workload){
+    vlist_ = vlist;
+    size_ = size;
+    assert(size <= max_size_);
+#ifdef ROARING
+    bitmap_.init(heap_, types_, size_);
+#else
+    bitmap_.init(heap_, size_);
+#endif
+    // bitmap_.clear();
+    bitmap_.build_block_test(g, vlist, size, workload); 
+  }
 
   __device__ __host__ void build_global(GraphGPU& g, vidType* vlist, vidType size){
     vlist_ = vlist;

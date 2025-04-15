@@ -131,6 +131,7 @@ __forceinline__ __device__ T intersect_bs_cache(T* a, T size_a, T* b, T size_b, 
   return count[warp_lane];
 }
 
+
 // warp-wise intersection using hybrid method (binary search + merge)
 template <typename T = vidType>
 __forceinline__ __device__ T intersect(T* a, T size_a, T *b, T size_b, T* c) {
@@ -138,6 +139,53 @@ __forceinline__ __device__ T intersect(T* a, T size_a, T *b, T size_b, T* c) {
   //  return intersect_merge(a, size_a, b, size_b, c);
   //else
     return intersect_bs_cache(a, size_a, b, size_b, c);  // this is the original code, need to be 
+}
+
+
+template <typename T = vidType>
+__forceinline__ __device__ T intersect_bs_cache_test(T* a, T size_a, T* b, T size_b, T* c, vidType* workload) {
+  //if (size_a == 0 || size_b == 0) return 0;
+  int thread_lane = threadIdx.x & (WARP_SIZE-1); // thread index within the warp
+  int warp_lane   = threadIdx.x / WARP_SIZE;     // warp index within the CTA
+  __shared__ T count[WARPS_PER_BLOCK];
+  __shared__ T cache[BLOCK_SIZE];
+  T* lookup = a;
+  T* search = b;
+  T lookup_size = size_a;
+  T search_size = size_b;
+  if (size_a > size_b) {
+    lookup = b;
+    search = a;
+    lookup_size = size_b;
+    search_size = size_a;
+  }
+  if (thread_lane == 0) count[warp_lane] = 0;
+  cache[warp_lane * WARP_SIZE + thread_lane] = search[thread_lane * search_size / WARP_SIZE];
+  workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+  __syncwarp();
+
+  for (auto i = thread_lane; i < lookup_size; i += WARP_SIZE) {
+    vidType key = lookup[i]; // each thread picks a vertex as the key
+    int found = 0;
+    if (binary_search_2phase_test(search, cache, key, search_size, workload))
+      found = 1;
+    unsigned active = __activemask();
+    unsigned mask = __ballot_sync(active, found);
+    auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (found) c[count[warp_lane]+idx-1] = key;
+    if (thread_lane == 0) count[warp_lane] += __popc(mask);
+  }
+  // __syncwarp();
+  return count[warp_lane];
+}
+
+template <typename T = vidType>
+__forceinline__ __device__ T intersect_test(T* a, T size_a, T *b, T size_b, T* c, vidType* workload) {
+  //if (size_a > ADJ_SIZE_THREASHOLD && size_b > ADJ_SIZE_THREASHOLD)
+  //  return intersect_merge(a, size_a, b, size_b, c);
+  //else
+    return intersect_bs_cache_test(a, size_a, b, size_b, c, workload);  // this is the original code, need to be 
 }
 
 template <typename T = vidType>
@@ -262,6 +310,53 @@ __forceinline__ __device__ T intersect_bs_cache(T* a, T size_a, T* b, T size_b, 
 template <typename T = vidType>
 __forceinline__ __device__ T intersect(T* a, T size_a, T *b, T size_b, T upper_bound, T* c) {
   return intersect_bs_cache(a, size_a, b, size_b, upper_bound, c);
+}
+
+
+template <typename T = vidType>
+__forceinline__ __device__ T intersect_bs_cache_test(T* a, T size_a, T* b, T size_b, T upper_bound, T* c, vidType* workload) {
+  if (size_a == 0 || size_b == 0) return 0;
+  int thread_lane = threadIdx.x & (WARP_SIZE-1); // thread index within the warp
+  int warp_lane   = threadIdx.x / WARP_SIZE;     // warp index within the CTA
+  __shared__ T count[WARPS_PER_BLOCK];
+  __shared__ T cache[BLOCK_SIZE];
+  T* lookup = a;
+  T* search = b;
+  T lookup_size = size_a;
+  T search_size = size_b;
+  if (size_a > size_b) {
+    lookup = b;
+    search = a;
+    lookup_size = size_b;
+    search_size = size_a;
+  }
+  if (thread_lane == 0) count[warp_lane] = 0;
+  cache[warp_lane * WARP_SIZE + thread_lane] = search[thread_lane * search_size / WARP_SIZE];
+  workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+  __syncwarp();
+
+  for (auto i = thread_lane; i < lookup_size; i += WARP_SIZE) {
+    vidType key = lookup[i]; // each thread picks a vertex as the key
+    int is_smaller = key < upper_bound ? 1 : 0;
+    int found = 0;
+    if (is_smaller && binary_search_2phase_test(search, cache, key, search_size, workload))
+      found = 1;
+    unsigned active = __activemask();
+    unsigned mask = __ballot_sync(active, found);
+    auto idx = __popc(mask << (WARP_SIZE-thread_lane-1));
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (found) c[count[warp_lane]+idx-1] = key;
+    if (thread_lane == 0) count[warp_lane] += __popc(mask);
+    mask = __ballot_sync(active, is_smaller);
+    if (mask != FULL_MASK) break;
+  }
+  return count[warp_lane];
+}
+
+
+template <typename T = vidType>
+__forceinline__ __device__ T intersect_test(T* a, T size_a, T *b, T size_b, T upper_bound, T* c, vidType* workload) {
+  return intersect_bs_cache_test(a, size_a, b, size_b, upper_bound, c, workload);
 }
 
 // warp-wise intersection using binary search

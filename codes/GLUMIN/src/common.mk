@@ -25,7 +25,7 @@ CUDA_ARCH := $(GENCODE_SM70)
 CXXFLAGS  := -Wall -fopenmp -std=c++17 -march=native
 ICPCFLAGS := -O3 -Wall -qopenmp
 NVFLAGS := $(CUDA_ARCH)
-NVFLAGS += -Xptxas -v
+NVFLAGS += -Xptxas -v -lineinfo
 NVFLAGS += -DUSE_GPU
 NVLDFLAGS = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs -lcuda -lcudart
 MPI_LIBS = -L$(MPI_HOME)/lib -lmpi

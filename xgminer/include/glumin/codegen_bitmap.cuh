@@ -254,6 +254,35 @@ __device__ struct Bitmap1DView {
     return *result_size;
   }
 
+  __device__ vidType _to_index_test(bool connected, vidType* result, vidType* result_size, vidType* workload) {
+    int limit = size_;
+    int thread_lane = threadIdx.x & (WARP_SIZE - 1);
+    int remain = limit % WARP_SIZE;
+    if (thread_lane == 0) *result_size = 0;
+    __syncwarp();
+    for (int key = thread_lane; key < limit - remain; key += WARP_SIZE) {
+      bool found = (connected == bit(key) ? 1 : 0);
+      unsigned mask = __ballot_sync(FULL_MASK, found);
+      auto idx1 = __popc(mask << (WARP_SIZE - thread_lane - 1));
+      if (found) result[*result_size + idx1 - 1] = key;
+      if (thread_lane == 0) *result_size += __popc(mask);
+      workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    }
+    // N.B. This is not clear why CUDA compiler can not generate correct active_mask
+    if(thread_lane < remain) {
+      int key = thread_lane + limit - remain;
+      bool found = (connected == bit(key) ? 1 : 0);
+      unsigned activemask = __activemask();
+      unsigned mask = __ballot_sync(activemask, found);
+      auto idx1 = __popc(mask << (WARP_SIZE - thread_lane - 1));
+      if (found) result[*result_size + idx1 - 1] = key;
+      if (thread_lane == 0) *result_size += __popc(mask);
+      workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    }
+    __syncwarp();
+    return *result_size;
+  }
+
   // for debug
   __device__ vidType _to_index_thread(bool connected, vidType *result, vidType* result_size) {
     *result_size = 0;
@@ -875,6 +904,32 @@ __device__ struct Bitmap2DView{
         bool flag = (j!=i) && binary_search(search, vlist[j], search_size);
         warp_set(i, j, flag);
       }
+    }
+  }
+
+  __device__ void build_block_test(GraphGPU& g, vidType* vlist, vidType size, vidType* workload) {
+    int thread_lane = threadIdx.x & (WARP_SIZE - 1);
+    int warp_lane = threadIdx.x / WARP_SIZE;
+    for (vidType i = warp_lane; i < size; i += WARPS_PER_BLOCK) {
+      auto search = g.N(vlist[i]);
+      vidType search_size = g.getOutDegree(vlist[i]);
+      for (int j = thread_lane; j < size; j += WARP_SIZE) {
+        bool flag = (j!=i) && binary_search_test(search, vlist[j], search_size, workload);
+        workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+        warp_set_test(i, j, flag, workload);
+      }
+    }
+  }
+
+  __device__ void warp_set_test(uint32_t x, uint32_t y, bool flag, vidType* workload) {
+    uint32_t thread_lane = threadIdx.x & (WARP_SIZE-1);
+    uint32_t element = y / W; // should be the same value in this warp
+    uint32_t activemask = __activemask();
+    uint32_t mask = __ballot_sync(activemask, flag);
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (thread_lane == 0) {
+      ptr_[x * padded_rowsize_ + element] = mask;
+      workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
     }
   }
 

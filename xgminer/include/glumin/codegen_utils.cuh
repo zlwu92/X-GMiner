@@ -265,6 +265,11 @@ __build_LUT_block(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
 }
 
 __device__ __forceinline__ void
+__build_LUT_block_test(GraphGPU& g, StorageMeta& meta, VertexArrayView target, vidType* workload){
+  meta.lut.build_block_test(g, target.ptr(), target.size(), workload);
+}
+
+__device__ __forceinline__ void
 __build_LUT_global(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_global(g, target.ptr(), target.size());
 }
@@ -279,6 +284,13 @@ __build_index_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int 
   vidType* index = meta.buffer(slot_id);
   vidType* index_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
   vmap.bitmap_._to_index(vmap.use_one, index, index_size_addr);
+}
+
+__device__ __forceinline__ void 
+__build_index_from_vmap_test(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int slot_id, vidType* workload) {
+  vidType* index = meta.buffer(slot_id);
+  vidType* index_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
+  vmap.bitmap_._to_index_test(vmap.use_one, index, index_size_addr, workload);
 }
 
 __device__ __forceinline__ void 
@@ -345,11 +357,29 @@ __device__ __forceinline__ VertexArrayView
 __intersect(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upper_bound, int slot_id) {
   vidType* buffer = meta.buffer(slot_id);
   vidType cnt;
-  if (threadIdx.x == 0) printf("v.size: %d, u.size: %d\n", v.size(), u.size());
+  // if (threadIdx.x == 0) printf("v.size: %d, u.size: %d\n", v.size(), u.size());
   if(upper_bound < 0) {
     cnt = intersect(v.ptr(), v.size(), u.ptr(), u.size(), buffer);
   } else {
     cnt = intersect(v.ptr(), v.size(), u.ptr(), u.size(), upper_bound, buffer);
+  }
+  __syncwarp();
+  if (0 == (threadIdx.x & (WARP_SIZE - 1))) {
+    meta.base_size[WARPS_PER_BLOCK * slot_id + meta.local_warp_id] = cnt;
+  }
+  __syncwarp();
+  return VertexArrayView(buffer, cnt);
+}
+
+__device__ __forceinline__ VertexArrayView
+__intersect_test(StorageMeta& meta, VertexArrayView v, VertexArrayView u, vidType upper_bound, int slot_id, vidType* workload) {
+  vidType* buffer = meta.buffer(slot_id);
+  vidType cnt;
+  // if (threadIdx.x == 0) printf("v.size: %d, u.size: %d\n", v.size(), u.size());
+  if(upper_bound < 0) {
+    cnt = intersect_test(v.ptr(), v.size(), u.ptr(), u.size(), buffer, workload);
+  } else {
+    cnt = intersect_test(v.ptr(), v.size(), u.ptr(), u.size(), upper_bound, buffer, workload);
   }
   __syncwarp();
   if (0 == (threadIdx.x & (WARP_SIZE - 1))) {
@@ -365,6 +395,15 @@ __difference_num(VertexArrayView v, VertexArrayView u, vidType upper_bound) {
     return difference_num(v.ptr(), v.size(), u.ptr(), u.size());
   } else {
     return difference_num(v.ptr(), v.size(), u.ptr(), u.size(), upper_bound);
+  }
+}
+
+__device__ __forceinline__ vidType
+__difference_num_test(VertexArrayView v, VertexArrayView u, vidType upper_bound, vidType* workload) {
+  if (upper_bound < 0) {
+    return difference_num_test(v.ptr(), v.size(), u.ptr(), u.size(), workload);
+  } else {
+    return difference_num_test(v.ptr(), v.size(), u.ptr(), u.size(), upper_bound, workload);
   }
 }
 

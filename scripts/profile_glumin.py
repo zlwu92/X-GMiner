@@ -15,20 +15,20 @@ print(f"[{current_time}]")
 # benchmark_dir = "/mnt/microndisk/home/zlwu/graphmine_bench/glumin_data/datasets/dataset2/"
 benchmark_dir = "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/"
 datasets = [
-    ("ba_1k_150k/graph", "ba_1k"),
-    ("mico/graph", "mico"),
-    ("youtube/graph", "youtube"),
-    ("com-dblp/graph", "com-dblp"),
-    ("cit-Patents/graph", "cit-Patents"),
+    # ("ba_1k_150k/graph", "ba_1k"),
+    # ("mico/graph", "mico"),
+    # ("youtube/graph", "youtube"),
+    # ("com-dblp/graph", "com-dblp"),
+    # ("cit-Patents/graph", "cit-Patents"),
     ("livej/graph", "livej"),
-    ("orkut/graph", "orkut"),
+    # ("orkut/graph", "orkut"),
     
 ]
 
 patterns = [
-    "P1",
+    # "P1",
     "P2",
-    "P3",
+    # "P3",
     # "P4",
     # "P5",
     # "P6",

@@ -39,6 +39,31 @@ __forceinline__ __device__ T difference_num(T* a, T size_a, T* b, T size_b) {
   return difference_num_bs_cache(a, size_a, b, size_b);
 }
 
+
+template <typename T = vidType>
+__forceinline__ __device__ T difference_num_bs_cache_test(T* a, T size_a, T* b, T size_b, vidType* workload) {
+  //if (size_a == 0) return 0;
+  //assert(size_b != 0);
+  int thread_lane = threadIdx.x & (WARP_SIZE-1);            // thread index within the warp
+  int warp_lane   = threadIdx.x / WARP_SIZE;                // warp index within the CTA
+  __shared__ T cache[BLOCK_SIZE];
+  cache[warp_lane * WARP_SIZE + thread_lane] = b[thread_lane * size_b / WARP_SIZE];
+  workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+  __syncwarp();
+  T num = 0;
+  for (auto i = thread_lane; i < size_a; i += WARP_SIZE) {
+    auto key = a[i];
+    if (!binary_search_2phase_test(b, cache, key, size_b, workload))
+      num += 1;
+  }
+  return num;
+}
+
+template <typename T = vidType>
+__forceinline__ __device__ T difference_num_test(T* a, T size_a, T* b, T size_b, vidType* workload) {
+  return difference_num_bs_cache_test(a, size_a, b, size_b, workload);
+}
+
 template <typename T = vidType>
 __forceinline__ __device__ T difference_num_bs_cache(T* a, T* source, T size_a, T* b, T size_b) {
   //if (size_a == 0) return 0;
@@ -107,6 +132,37 @@ template <typename T = vidType>
 __forceinline__ __device__ T difference_num(T* a, T size_a, T* b, T size_b, T upper_bound) {
   return difference_num_bs_cache(a, size_a, b, size_b, upper_bound);
 }
+
+
+template <typename T = vidType>
+__forceinline__ __device__ T difference_num_bs_cache_test(T* a, T size_a, T* b, T size_b, T upper_bound, vidType* workload) {
+  //if (size_a == 0) return 0;
+  //assert(size_b != 0);
+  int thread_lane = threadIdx.x & (WARP_SIZE-1);            // thread index within the warp
+  int warp_lane   = threadIdx.x / WARP_SIZE;                // warp index within the CTA
+  __shared__ T cache[BLOCK_SIZE];
+  cache[warp_lane * WARP_SIZE + thread_lane] = b[thread_lane * size_b / WARP_SIZE];
+  workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+  __syncwarp();
+  T num = 0;
+  for (auto i = thread_lane; i < size_a; i += WARP_SIZE) {
+    auto key = a[i];
+    int is_smaller = key < upper_bound ? 1 : 0;
+    if (is_smaller && !binary_search_2phase_test(b, cache, key, size_b, workload))
+      num += 1;
+    unsigned active = __activemask();
+    unsigned mask = __ballot_sync(active, is_smaller);
+    if (mask != FULL_MASK) break;
+  }
+  return num;
+}
+
+template <typename T = vidType>
+__forceinline__ __device__ T difference_num_test(T* a, T size_a, T* b, T size_b, T upper_bound, vidType* workload) {
+  return difference_num_bs_cache_test(a, size_a, b, size_b, upper_bound, workload);
+}
+
+
 
 template <typename T = vidType>
 __forceinline__ __device__ T difference_num_bs_cache(T* a, T* source, T size_a, T* b, T size_b, T upper_bound) {

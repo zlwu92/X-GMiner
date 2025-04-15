@@ -37,8 +37,9 @@ void GLUMIN::run_glumin_g2miner() {
         // std::cout << "num_patterns: " << num_patterns << "\n";
         // std::vector<uint64_t> total(num_patterns, 0);
         for (int r = 0; r < repeated; r++) {
-            if (!use_lut)   PatternSolver_on_G2Miner(g);
-            else            PatternSolver_LUT_on_G2Miner(g);
+            // if (!use_lut)   PatternSolver_on_G2Miner(g);
+            // else            
+            PatternSolver_LUT_on_G2Miner(g);
             for (int i = 0; i < num_patterns; i++)
             std::cout << "Pattern P" << local_patternId << " count: " << total[i] << "\n";
         }

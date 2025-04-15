@@ -36,6 +36,21 @@ __forceinline__ __device__ bool binary_search(T *list, T key, T size) {
 }
 
 template <typename T = vidType>
+__forceinline__ __device__ bool binary_search_test(T *list, T key, T size, vidType* workload) {
+  int l = 0;
+  int r = size-1;
+  while (r >= l) { 
+    int mid = l + (r - l) / 2; 
+    T value = list[mid];
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (value == key) return true;
+    if (value < key) l = mid + 1;
+    else r = mid - 1;
+  }
+  return false;
+}
+
+template <typename T = vidType>
 __forceinline__ __device__ bool binary_search_enhanced(T* list, T key, T size) {
   int l = 0;
   int r = size-1;
@@ -71,6 +86,37 @@ __forceinline__ __device__ bool binary_search_2phase(T *list, T *cache, T key, T
   while (top >= bottom) {
     mid = (top + bottom) / 2;
     T y = list[mid];
+    if (key == y) return true;
+    if (key < y) top = mid - 1;
+    else bottom = mid + 1;
+  }
+  return false;
+}
+
+template <typename T = vidType>
+__forceinline__ __device__ bool binary_search_2phase_test(T *list, T *cache, T key, T size, vidType* workload) {
+  if (size == 0) return false;
+  int p = (threadIdx.x / WARP_SIZE) * WARP_SIZE;
+  int mid = 0;
+  // phase 1: search in the cache
+  int bottom = 0;
+  int top = WARP_SIZE;
+  while (top > bottom + 1) {
+    mid = (top + bottom) / 2;
+    T y = cache[p + mid];
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (key == y) return true;
+    if (key < y) top = mid;
+    if (key > y) bottom = mid;
+  }
+
+  //phase 2: search in global memory
+  bottom = bottom * size / WARP_SIZE;
+  top = top * size / WARP_SIZE - 1;
+  while (top >= bottom) {
+    mid = (top + bottom) / 2;
+    T y = list[mid];
+    workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
     if (key == y) return true;
     if (key < y) top = mid - 1;
     else bottom = mid + 1;

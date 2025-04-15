@@ -47,7 +47,8 @@ public:
             ("vert-induced", "Vertex induced", cxxopts::value<int>()->default_value("0"))
             ("tunek", "Tune k", cxxopts::value<int>()->default_value("0"))
             ("setk", "Set k", cxxopts::value<int>()->default_value("0"))
-            ("run-xgminer", "Run X-GMiner", cxxopts::value<int>()->default_value("0"));
+            ("run-xgminer", "Run X-GMiner", cxxopts::value<int>()->default_value("0"))
+            ("prof-workload", "Profile workload", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -134,6 +135,11 @@ public:
                 PRINT_GREEN("Run X-GMiner: " << run_xgminer);
             }
 
+            if (result.count("prof-workload")) {
+                prof_workload = result["prof-workload"].as<int>();
+                PRINT_GREEN("Profile workload: " << prof_workload);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -168,6 +174,8 @@ public:
         program.add_argument("--setk").help("Set k").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--run-xgminer").help("Run X-GMiner").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--prof-workload").help("Profile workload").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -250,6 +258,11 @@ public:
                 PRINT_GREEN("Run X-GMiner: " << run_xgminer);
             }
 
+            if (program.get<int>("--prof-workload") != 0) {
+                prof_workload = program.get<int>("--prof-workload");
+                PRINT_GREEN("Profile workload: " << prof_workload);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -295,6 +308,7 @@ public:
     int tune_k = 0; // control bitmap bucket number
     int set_k = 0; // set a specific bitmap bucket number mannually
     int run_xgminer = 0;
+    int prof_workload = 0;
     
 private:
     int argc;
