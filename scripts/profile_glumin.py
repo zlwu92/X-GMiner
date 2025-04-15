@@ -15,19 +15,20 @@ print(f"[{current_time}]")
 # benchmark_dir = "/mnt/microndisk/home/zlwu/graphmine_bench/glumin_data/datasets/dataset2/"
 benchmark_dir = "/data-ssd/home/zhenlin/workspace/graphmining/graphmine_bench/glumin_data/datasets/dataset2/"
 datasets = [
-    # ("mico/graph", "mico"),
-    # ("youtube/graph", "youtube"),
-    # ("com-dblp/graph", "com-dblp"),
-    # ("cit-Patents/graph", "cit-Patents"),
+    ("ba_1k_150k/graph", "ba_1k"),
+    ("mico/graph", "mico"),
+    ("youtube/graph", "youtube"),
+    ("com-dblp/graph", "com-dblp"),
+    ("cit-Patents/graph", "cit-Patents"),
     ("livej/graph", "livej"),
-    # ("orkut/graph", "orkut"),
+    ("orkut/graph", "orkut"),
     
 ]
 
 patterns = [
-    # "P1",
+    "P1",
     "P2",
-    # "P3",
+    "P3",
     # "P4",
     # "P5",
     # "P6",
@@ -63,7 +64,7 @@ def test_glumin_memory():
 def test_glumin_workload_distribution():
 
     cmd = f"cd ../codes/GLUMIN && make all && cd ../../scripts/"
-    # os.system(cmd)
+    os.system(cmd)
             
     for pattern in patterns:
         for dataset, dataset_name in datasets:
@@ -106,7 +107,7 @@ def ncu_profile_glumin_kernel():
 
 def test_glumin_kernel_percentage():
     cmd = f"cd ../codes/GLUMIN && make  && cd ../../scripts/"
-    os.system(cmd)
+    # os.system(cmd)
 
     for pattern in patterns:
         for dataset, dataset_name in datasets:
@@ -117,6 +118,13 @@ def test_glumin_kernel_percentage():
                 f.write(f"{dataset_name},")
             cmd = f"../codes/GLUMIN/bin/pattern_gpu_GM_LUT {dataset_path} {pattern}"
             subprocess.run(cmd, shell=True)
+
+            if pattern == "P1" and dataset_name == "orkut":
+                with open("../results/prof_glumin_LUT_kernel_time_percentage.csv", "a") as f:
+                    f.write("\n")
+            else:
+                cmd = f"../codes/GLUMIN/bin/pattern_gpu_GM_LUT {dataset_path} {pattern} 0 0 0 "
+                subprocess.run(cmd, shell=True)
 
 def parse_args():            
     """显示交互式菜单"""

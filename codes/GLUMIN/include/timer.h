@@ -1,6 +1,8 @@
 #pragma once
 #include <sys/time.h>
 #include <iostream>
+// #include <cuda_runtime.h>
+// #include <cuda_runtime_api.h>
 
 class Timer {
 public:
@@ -58,4 +60,5 @@ inline uint64_t read_cycle() {
 #endif
   return t;
 }
+
 

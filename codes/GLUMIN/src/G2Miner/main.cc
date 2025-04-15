@@ -3,7 +3,7 @@
 #include "graph.h"
 #include "pattern.hh"
 
-void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int);
+void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int use_lue=1);
 void CliqueSolver(Graph &g, int k, uint64_t &total, int, int);
 
 int main(int argc, char *argv[]) {
@@ -51,10 +51,12 @@ int main(int argc, char *argv[]) {
     std::cout << "P" << k << "\n";
     g.print_meta_data();
   
+    int use_lut = 1;
+    if (argc > 5) use_lut = atoi(argv[5]);
     int num_patterns = 1;
     // std::cout << "num_patterns: " << num_patterns << "\n";
     std::vector<uint64_t> total(num_patterns, 0);
-    PatternSolver(g, k, total, n_devices, chunk_size);
+    PatternSolver(g, k, total, n_devices, chunk_size, use_lut);
     for (int i = 0; i < num_patterns; i++)
       std::cout << "Pattern P" << k << " count: " << total[i] << "\n";
   }

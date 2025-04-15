@@ -28,7 +28,48 @@ __global__ void clear(AccType *accumulators) {
   accumulators[i] = 0;
 }
 
-void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
+#define checkCudaError(a)                                                      \
+    do {                                                                         \
+        if (cudaSuccess != (a)) {                                                  \
+            fprintf(stderr, "Cuda runTime error in line %d of file %s : %s \n",      \
+                    __LINE__, __FILE__, cudaGetErrorString(cudaGetLastError()));     \
+            exit(EXIT_FAILURE);                                                      \
+        }                                                                          \
+    } while (0)
+
+class GPUTimer {
+  public:
+      GPUTimer() {
+          checkCudaError(cudaEventCreate(&t1));
+          checkCudaError(cudaEventCreate(&t2));
+          // cudaEventCreate(&t1);   
+          // cudaEventCreate(&t2);
+      }
+      void start() { cudaEventRecord(t1, 0); }
+      void end() {
+          cudaEventRecord(t2, 0);
+          // cudaEventSynchronize(t1);
+          // cudaEventSynchronize(t2);
+      }
+      float elapsed() {
+          cudaEventElapsedTime(&time, t1, t2);
+          return time;
+      }
+  
+      void end_with_sync() {
+          cudaEventRecord(t2, 0);
+          // cudaEventSynchronize(t1);
+          cudaEventSynchronize(t2);
+      }
+  
+  private:
+      float time;
+      cudaEvent_t t1, t2;
+};
+
+
+
+void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int use_lut) {
   assert(k >= 1);
   size_t memsize = print_device_info(0);
   vidType nv = g.num_vertices();
@@ -56,7 +97,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   n_lists = 7;
   n_bitmaps = 3;
 
-  vidType switch_lut = 1;
+  vidType switch_lut = use_lut;//1;
   // switch_lut = Select_func(nv, ne, md);
   std::cout << "switch_lut = " << switch_lut << "\n";
   size_t per_block_vlist_size = nwarps * n_lists * size_t(md) * sizeof(vidType);
@@ -148,27 +189,47 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   // double lut_gpu_mem = (double)(nv + 31) / 32 * nv * sizeof(vidType) / 1024.0 / 1024.0;
   // std::cout << "lut_gpu_mem: " << lut_gpu_mem << " MB\n";
 
+  if (switch_lut) {
+    lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+    // lut_manager.recreate(nblocks, md, md, true);
+    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+  }
+
   float time[3];
   Timer t;
   t.Start();
+  cudaEvent_t e1, e2, e3, e4;
+  GPUTimer t0;
+  float elapsedTime;
+  cudaEventCreate(&e1);
+  cudaEventCreate(&e2);
+  cudaEventCreate(&e3);
+  cudaEventCreate(&e4);
+  cudaEventRecord(e1, 0);
   // G2Miner + LUT
   if (k == 1) {
     std::cout << "P1 G2Miner + LUT\n";
     if (switch_lut){
       if (WARP_LIMIT != 0) P1_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       if (vid_block_size) {
-        lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        t0.start();
         P1_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+        t0.end_with_sync();
+        time[0] = t0.elapsed() / 1000;
       }
       if (vid_global_size){
         lut_manager.recreate(1, md, md, true);
         nblocks = BLOCK_GROUP;
+        t0.start();
         for (vidType i = 0; i < vid_global_size; i++) {
           vidType task_id = vid_global[i];
           lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
           GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
           P1_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
         }
+        t0.end_with_sync();
+        time[2] = t0.elapsed() / 1000;
       }
     }
     else {
@@ -183,37 +244,39 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
         P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       }
       if (vid_block_size) {
-        Timer t0;
-        t0.Start();
         std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
-        lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-        // lut_manager.recreate(nblocks, md, md, true);
+        // Timer t0;
+        // t0.Start();
+        // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        t0.start();
         P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         
         // P2_GM_LUT_block_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
         //                                           frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
         //                                           d_work_depth_each_warp
         //                                         );
-        t0.Stop();
-        std::cout << "P2_GM_LUT_block time: " << t0.Seconds() << " s\n";
-        time[0] = t0.Seconds();
+        t0.end_with_sync();
+        // t0.Stop();
+        // std::cout << "P2_GM_LUT_block time: " << t0.Seconds() << " s\n";
+        // time[0] = t0.Seconds();
+        time[0] = t0.elapsed() / 1000;
       }
       if (vid_global_size){
         std::cout << __LINE__ << " vid_global_size: " << vid_global_size << "\n";
-        Timer t1;
-        t1.Start();
+        // Timer t1;
+        // t1.Start();
         lut_manager.recreate(1, md, md, true);
-        t1.Stop();
-        std::cout << "lut_manager.recreate time: " << t1.Seconds() << " s\n";
-        time[1] = t1.Seconds();
+        // t1.Stop();
+        // std::cout << "lut_manager.recreate time: " << t1.Seconds() << " s\n";
+        // time[1] = t1.Seconds();
         nblocks = BLOCK_GROUP;
         // cudaEvent_t e1, e2;
         // cudaEventCreate(&e1);
         // cudaEventCreate(&e2);
-        // cudaEventRecord(e1, 0);
-        float elapsedTime;
-        Timer t2;
-        t2.Start();
+        t0.start();
+        // float elapsedTime;
+        // Timer t2;
+        // t2.Start();
         for (vidType i = 0; i < vid_global_size; i++) {
           vidType task_id = vid_global[i];
           // Timer t2;
@@ -229,15 +292,15 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
           // elapsedTime = t2.Seconds() * 1000;
           // std::cout << "task_id: " << task_id << ", degree: " << g.get_degree(task_id) << ", elapsedTime: " << elapsedTime << " ms\n";
         }
-        // cudaEventRecord(e2, 0);
-        // cudaEventSynchronize(e2);
-        // cudaEventElapsedTime(&elapsedTime, e1, e2);
+        t0.end_with_sync();
         // std::cout << "global task elapsedTime: " << elapsedTime << " ms\n";
-        t2.Stop();
-        elapsedTime = t2.Seconds() * 1000;
-        std::cout << "global task elapsedTime: " << t2.Seconds() << " s\n";
-        time[2] = t2.Seconds();
+        // t2.Stop();
+        // elapsedTime = t2.Seconds() * 1000;
+        // std::cout << "global task elapsedTime: " << t2.Seconds() << " s\n";
+        // time[2] = t2.Seconds();
+        time[2] = t0.elapsed() / 1000;
       }
+    
     }
     else {
       P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
@@ -248,18 +311,24 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
     if (switch_lut){
       if (WARP_LIMIT != 0) P3_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
       if (vid_block_size) {
-        lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+        t0.start();
         P3_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+        t0.end_with_sync();
+        time[0] = t0.elapsed() / 1000;
       }
       if (vid_global_size){
         lut_manager.recreate(1, md, md, true);
         nblocks = BLOCK_GROUP;
+        t0.start();
         for (vidType i = 0; i < vid_global_size; i++) {
           vidType task_id = vid_global[i];
           lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
           GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
           P3_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
         }
+        t0.end_with_sync();
+        time[2] = t0.elapsed() / 1000;
       }
     }
     else {
@@ -660,6 +729,9 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   else {
     std::cout << "Not supported right now\n";
   }
+  cudaEventRecord(e2, 0);
+  cudaEventSynchronize(e2);
+  cudaEventElapsedTime(&elapsedTime, e1, e2);
   t.Stop();
   CUDA_SAFE_CALL(cudaMemcpy(h_counts, d_counts, sizeof(AccType) * npatterns, cudaMemcpyDeviceToHost));
   for (size_t i = 0; i < npatterns; i ++) accum[i] = h_counts[i];
@@ -675,20 +747,33 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   // out << "\n";
   out.close();
 
+  
   out.open("../results/prof_glumin_LUT_kernel_time_percentage.csv", std::ios::app);
   cudaDeviceProp prop;
   CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, 0));
   std::string prop_name(prop.name);
-  if (prop_name.find("3090") != std::string::npos) {
-    out << "3090,";
-    out << time[0] << "," << time[1] << "," << time[2] << "," << t.Seconds() << "\n";
-  } else if (prop_name.find("6000") != std::string::npos) {
-    out << "ada6000,";
-    std::cout << "here!!!\n";
-    out << time[0] << "," << time[1] << "," << time[2] << "," << t.Seconds() << "\n";
+  if (switch_lut) {
+    if (prop_name.find("3090") != std::string::npos) {
+      out << "P" << k << ",3090,";
+      out << time[0] << "," << time[2] << "," << t.Seconds() << ",";
+    } else if (prop_name.find("6000") != std::string::npos) {
+      out << "P" << k << ",ada6000,";
+      std::cout << "here!!!\n";
+      out << time[0] << "," << time[2] << "," << t.Seconds() << ",";
+    }
+  } else {
+    if (prop_name.find("3090") != std::string::npos) {
+      // out << "3090,";
+      out << elapsedTime / 1000.0 << "\n";
+    } else if (prop_name.find("6000") != std::string::npos) {
+      // out << "ada6000,";
+      std::cout << "here~~~\n";
+      out << elapsedTime / 1000.0 << "\n";
+    }
   }
 
-  std::cout << "runtime [G2Miner + LUT] = " << t.Seconds() << " sec\n";
+  if (switch_lut) std::cout << "runtime [G2Miner + LUT] = " << t.Seconds() << " sec\n";
+  else std::cout << "runtime [G2Miner] = " << elapsedTime / 1000.0 << " sec\n";
   CUDA_SAFE_CALL(cudaFree(d_counts));
 }
 

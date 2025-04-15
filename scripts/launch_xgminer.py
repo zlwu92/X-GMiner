@@ -22,11 +22,11 @@ datasets = [
     # ("../testgr5/", "TestGr5"),
     ("ba_1k_150k/", "ba_1k"),
     ("mico/", "mico"),
-    ("youtube/", "YT"),
-    ("com-dblp/", "dblp"),
-    ("cit-Patents/", "cp"),
-    ("livej/", "livej"),
-    ("orkut/", "orkut"),
+    # ("youtube/", "YT"),
+    # ("com-dblp/", "dblp"),
+    # ("cit-Patents/", "cp"),
+    # ("livej/", "livej"),
+    # ("orkut/", "orkut"),
     
 ]
 

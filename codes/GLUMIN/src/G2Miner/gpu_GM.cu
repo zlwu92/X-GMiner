@@ -28,7 +28,7 @@ __global__ void clear(AccType *accumulators) {
   accumulators[i] = 0;
 }
 
-void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
+void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int use_lut) {
   std::cout << "PatternSolver without LUT.\n";
   assert(k >= 1);
   size_t memsize = print_device_info(0);
@@ -141,7 +141,6 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int) {
   // G2Miner
   if (k == 1){
     std::cout << "P1 Run G2Miner\n";
-    std::cout << __LINE__ << std::endl;
     P1_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
   }
   else if (k == 2){
