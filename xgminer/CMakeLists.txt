@@ -118,3 +118,25 @@ target_link_libraries(xgminer PRIVATE
     #    nlohmann_json::nlohmann_json
     ${MPI_CXX_LIBRARIES}
 )
+
+
+# 指定特定版本的 CUDA 工具链
+# set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.7")
+# set(CMAKE_CUDA_COMPILER "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc")
+
+# # 添加 CUDA 库路径和头文件路径
+# list(APPEND CMAKE_PREFIX_PATH "${CUDA_TOOLKIT_ROOT_DIR}")
+# include_directories(${CUDA_TOOLKIT_ROOT_DIR}/include)
+# link_directories(${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+
+# # 检查 CUDA 是否正确找到
+# find_package(CUDA REQUIRED)
+
+# # 设置目标 GPU 架构
+# set(CMAKE_CUDA_ARCHITECTURES 75)  # 示例：支持 Turing 架构 (sm_75)
+
+# # 添加可执行文件
+# add_executable(cuda_cxx_example main.cu helper.cpp)
+
+# # 链接 CUDA 运行时库
+# target_link_libraries(cuda_cxx_example PRIVATE cudart)
