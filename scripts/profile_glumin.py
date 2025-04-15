@@ -88,7 +88,7 @@ def test_glumin_workload_distribution():
 
 def ncu_profile_glumin_kernel():
     cmd = f"cd ../codes/GLUMIN && make  && cd ../../scripts/"
-    # os.system(cmd)
+    os.system(cmd)
 
     for pattern in patterns:
         for dataset, dataset_name in datasets:
@@ -98,9 +98,15 @@ def ncu_profile_glumin_kernel():
             output_dir = f"../results/profile_glumin/"
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
-            cmd = f"ncu --set full --import-source on -o {output_dir}{dataset_name}_{pattern}_LUT  "
+            cmd = f"ncu --set full --import-source on -f -o {output_dir}{dataset_name}_{pattern}_LUT  "
             cmd += f"--target-processes all "
             cmd += f"../codes/GLUMIN/bin/pattern_gpu_GM_LUT {dataset_path} {pattern}"
+            print(f"Command: {cmd}")
+            subprocess.run(cmd, shell=True)
+            
+            cmd = f"ncu --set full --import-source on -f -o {output_dir}{dataset_name}_{pattern}  "
+            cmd += f"--target-processes all "
+            cmd += f"../codes/GLUMIN/bin/pattern_gpu_GM_LUT {dataset_path} {pattern} 0 0 0 "
             print(f"Command: {cmd}")
             subprocess.run(cmd, shell=True)
 
