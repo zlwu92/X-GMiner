@@ -109,6 +109,8 @@ void XGMiner::motif_solver(Graph_V2& g) {
     bitmap64_Type *frontier_bitmap64; // each thread has lut rows to store midresult of lut compute
     bitmapType *frontier_bitmap; // each thread has lut rows to store midresult of lut compute
 
+    vidType* d_workload;
+
     if (algo == "bitmap_bigset_opt") {
         nthreads = BLOCK_SIZE_DENSE;
         nwarps = nthreads / WARP_SIZE;
@@ -138,6 +140,8 @@ void XGMiner::motif_solver(Graph_V2& g) {
         size_t bitmap_size = nblocks * per_block_bitmap_size;
         std::cout << "lut rows size: " << 1.0 * bitmap_size/(1024*1024) << " MB\n";
         CUDA_SAFE_CALL(cudaMalloc((void **)&frontier_bitmap, bitmap_size));
+
+        CUDA_SAFE_CALL(cudaMalloc((void **)&d_workload, nblocks * nthreads * sizeof(vidType)));
     }
 
     GPUTimer gputimer;
@@ -161,7 +165,7 @@ void XGMiner::motif_solver(Graph_V2& g) {
         }
         if (algo == "ideal_bitmap_test") {
             P2_GM_LUT_block_ideal_test<<<nblocks, nthreads>>>(gg, frontier_list, frontier_bitmap,
-                                                            bitmap, md, d_counts);
+                                                            bitmap, md, d_counts, d_workload);
         }
     }
     gputimer.end_with_sync();

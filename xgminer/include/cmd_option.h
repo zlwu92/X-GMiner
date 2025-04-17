@@ -48,7 +48,9 @@ public:
             ("tunek", "Tune k", cxxopts::value<int>()->default_value("0"))
             ("setk", "Set k", cxxopts::value<int>()->default_value("0"))
             ("run-xgminer", "Run X-GMiner", cxxopts::value<int>()->default_value("0"))
-            ("prof-workload", "Profile workload", cxxopts::value<int>()->default_value("0"));
+            ("prof-workload", "Profile workload", cxxopts::value<int>()->default_value("0"))
+            ("use-vert-para", "Use vertex parallelism", cxxopts::value<int>()->default_value("0"))
+            ("prof-edgecheck", "Profile edge check", cxxopts::value<int>()->default_value("0"));
         ;
         
         try {
@@ -140,6 +142,16 @@ public:
                 PRINT_GREEN("Profile workload: " << prof_workload);
             }
 
+            if (result.count("use-vert-para")) {
+                use_vert_para = result["use-vert-para"].as<int>();
+                PRINT_GREEN("Use vertex parallelism: " << use_vert_para);
+            }
+
+            if (result.count("prof-edgecheck")) {
+                prof_edgecheck = result["prof-edgecheck"].as<int>();
+                PRINT_GREEN("Profile edge check: " << prof_edgecheck);
+            }
+
         } catch (const cxxopts::exceptions::exception& e) {
             std::cerr << "Error parsing options: " << e.what() << std::endl;
             exit(1);
@@ -176,6 +188,10 @@ public:
         program.add_argument("--run-xgminer").help("Run X-GMiner").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
         program.add_argument("--prof-workload").help("Profile workload").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--use-vert-para").help("Use vertex parallelism").default_value(0).action(
+                                                        [](const std::string& value) { return std::stoi(value); });
+        program.add_argument("--prof-edgecheck").help("Profile edge check").default_value(0).action(
                                                         [](const std::string& value) { return std::stoi(value); });
 
         try {
@@ -263,6 +279,16 @@ public:
                 PRINT_GREEN("Profile workload: " << prof_workload);
             }
 
+            if (program.get<int>("--use-vert-para") != 0) {
+                use_vert_para = program.get<int>("--use-vert-para");
+                PRINT_GREEN("Use vertex parallelism: " << use_vert_para);
+            }
+
+            if (program.get<int>("--prof-edgecheck") != 0) {
+                prof_edgecheck = program.get<int>("--prof-edgecheck");
+                PRINT_GREEN("Profile edge check: " << prof_edgecheck);
+            }
+
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
             std::cerr << program;
@@ -309,6 +335,8 @@ public:
     int set_k = 0; // set a specific bitmap bucket number mannually
     int run_xgminer = 0;
     int prof_workload = 0;
+    int use_vert_para = 0;
+    int prof_edgecheck = 0;
     
 private:
     int argc;

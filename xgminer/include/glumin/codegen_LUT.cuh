@@ -83,6 +83,20 @@ __device__ __host__ struct LUT{
     bitmap_.build_block_test(g, vlist, size, workload); 
   }
 
+  __device__ __host__ void build_block_edgecheck(GraphGPU& g, vidType* vlist, vidType size, 
+                                                  vidType* edgecheck, vidType* edgecheck2, AccType* edgecheck_cnt){
+    vlist_ = vlist;
+    size_ = size;
+    assert(size <= max_size_);
+#ifdef ROARING
+    bitmap_.init(heap_, types_, size_);
+#else
+    bitmap_.init(heap_, size_);
+#endif
+    // bitmap_.clear();
+    bitmap_.build_block_edgecheck(g, vlist, size, edgecheck, edgecheck2, edgecheck_cnt); 
+  }
+
   __device__ __host__ void build_global(GraphGPU& g, vidType* vlist, vidType size){
     vlist_ = vlist;
     size_ = size;

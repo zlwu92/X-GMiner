@@ -32,6 +32,11 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "GM_LUT_kernels/P2_profile.cuh"
 #include "GM_kernels/P2_profile.cuh"
 
+#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <thrust/fill.h>
+#include <thrust/execution_policy.h>
+
 __global__ __forceinline__ void clear(AccType *accumulators) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     accumulators[i] = 0;
@@ -370,6 +375,28 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
     else {
       d_workload = nullptr;
     }
+    std::vector<vidType> edgecheck(nblocks * nthreads);
+    vidType *d_edgecheck, *d_edgecheck2; 
+    AccType* d_edgecheck_cnt;
+    uint64_t edgecheck_size = 1343125092;
+    std::vector<vidType> edgecheck2;//
+    if (prof_edgecheck) {
+      CUDA_SAFE_CALL(cudaMalloc((void **)&d_edgecheck, nblocks * nthreads * sizeof(vidType)));
+      CUDA_SAFE_CALL(cudaMemset(d_edgecheck, 0, nblocks * nthreads * sizeof(vidType)));
+
+      edgecheck2.resize(edgecheck_size);
+      CUDA_SAFE_CALL(cudaMallocManaged((void **)&d_edgecheck2, edgecheck_size * sizeof(vidType)));
+      CUDA_SAFE_CALL(cudaMemset(d_edgecheck2, 0, edgecheck_size * sizeof(vidType)));
+      thrust::fill(thrust::device, d_edgecheck2, d_edgecheck2 + edgecheck_size, -1);
+      std::cout << "edgecheck2 size: " << edgecheck_size * sizeof(vidType) / 1024.0 / 1024.0 << " MB\n";
+
+      CUDA_SAFE_CALL(cudaMalloc((void **)&d_edgecheck_cnt, sizeof(AccType)));
+      CUDA_SAFE_CALL(cudaMemset(d_edgecheck_cnt, 0, sizeof(AccType)));
+    }
+    else {
+      d_edgecheck = nullptr;
+    }
+
 
     float time[3];
     Timer t;
@@ -413,7 +440,7 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       }
     }
     else if (k == 2) {
-      std::cout << "P2 G2Miner + LUT\n";
+      PRINT_GREEN("P2 G2Miner + LUT");
       if (switch_lut){
         if (WARP_LIMIT != 0) {
           std::cout << __LINE__ << " vid_warp_size: " << vid_warp_size << ", nthreads: " << nthreads << "\n";
@@ -421,73 +448,59 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
         }
         if (vid_block_size) {
           std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
-          // Timer t0;
-          // t0.Start();
           // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-          t0.start();
+          // t0.start();
           if (prof_workload) {
-            std::cout << "P2_GM_LUT_block_workload_test\n";
+            PRINT_GREEN("P2_GM_LUT_block_workload_test");
             P2_GM_LUT_block_workload_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
                                                     frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
                                                     d_workload
                                                   );
+          } else if (prof_edgecheck) {
+            PRINT_GREEN("P2_GM_LUT_block_profile_edgecheck_only");
+            // P2_GM_LUT_block_edgecheck_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+            //                                         frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
+            //                                         d_edgecheck, d_edgecheck2, d_edgecheck_cnt
+            //                                       );
+            P2_GM_LUT_block_profile_edgecheck_only<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                                      frontier_list, frontier_bitmap, md, d_counts, lut_manager, 
+                                                      d_edgecheck2, d_edgecheck_cnt
+                                                    );
           }
           else {
             P2_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
                                                   frontier_list, frontier_bitmap, md, d_counts, lut_manager);
           }
-          t0.end_with_sync();
-          // t0.Stop();
-          // std::cout << "P2_GM_LUT_block time: " << t0.Seconds() << " s\n";
-          // time[0] = t0.Seconds();
-          time[0] = t0.elapsed() / 1000;
+          // t0.end_with_sync();
+          // time[0] = t0.elapsed() / 1000;
         }
         if (vid_global_size){
           std::cout << __LINE__ << " vid_global_size: " << vid_global_size << "\n";
-          // Timer t1;
-          // t1.Start();
           lut_manager.recreate(1, md, md, true);
-          // t1.Stop();
-          // std::cout << "lut_manager.recreate time: " << t1.Seconds() << " s\n";
-          // time[1] = t1.Seconds();
           nblocks = BLOCK_GROUP;
-          // cudaEvent_t e1, e2;
-          // cudaEventCreate(&e1);
-          // cudaEventCreate(&e2);
-          t0.start();
-          // float elapsedTime;
-          // Timer t2;
-          // t2.Start();
+          // t0.start();
           for (vidType i = 0; i < vid_global_size; i++) {
             vidType task_id = vid_global[i];
-            // Timer t2;
-            // t2.Start();
             lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
-            // cudaEventRecord(t1, 0);
             GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
             P2_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
-            // cudaEventRecord(t2, 0);
-            // cudaEventSynchronize(t2);
-            // cudaEventElapsedTime(&elapsedTime, t1, t2);
-            // t2.Stop();
-            // elapsedTime = t2.Seconds() * 1000;
-            // std::cout << "task_id: " << task_id << ", degree: " << g.get_degree(task_id) << ", elapsedTime: " << elapsedTime << " ms\n";
           }
-          t0.end_with_sync();
-          // std::cout << "global task elapsedTime: " << elapsedTime << " ms\n";
-          // t2.Stop();
-          // elapsedTime = t2.Seconds() * 1000;
-          // std::cout << "global task elapsedTime: " << t2.Seconds() << " s\n";
-          // time[2] = t2.Seconds();
-          time[2] = t0.elapsed() / 1000;
+          // t0.end_with_sync();
+          // time[2] = t0.elapsed() / 1000;
         }
       
       }
       else {
         if (prof_workload) {
-          std::cout << "P2_GM_workload_test\n";
-          P2_GM_workload_test<<<nblocks, nthreads>>>(ne, gg, 
-                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload);
+          PRINT_GREEN("P2_GM_workload_test");
+          if (use_vert_para) {
+            PRINT_GREEN("P2_GM_vert_parallel_test");
+            P2_GM_vert_parallel_test<<<nblocks, nthreads>>>(ne, gg, 
+                                    frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload);
+          } else {
+            P2_GM_workload_test<<<nblocks, nthreads>>>(ne, gg, 
+              frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload);
+          }
         }
         else {
           P2_GM<<<nblocks, nthreads>>>(ne, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
@@ -971,13 +984,65 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
     out.close();
 
     if (prof_workload) {
-      std::string file = "../results/prof_glumin_kernel_workload_" + data_name + ".csv";
-      out.open(file);
+      // std::string file = "../results/prof_glumin_kernel_workload_" + data_name + ".csv";
+      // out.open(file);
       std::cout << "length = " << nblocks * nthreads << "\n";
       CUDA_SAFE_CALL(cudaMemcpy(workload.data(), d_workload, sizeof(vidType) * nblocks * nthreads, cudaMemcpyDeviceToHost));
+      // for (int i = 0; i < nblocks * nthreads; i++) {
+      //   out << workload[i] << "\n";
+      // }
+      unsigned long total = std::accumulate(workload.begin(), workload.end(), 0LL);
+      int max = *std::max_element(workload.begin(), workload.end());
+      int min = *std::min_element(workload.begin(), workload.end());
+      float max_min = (float) max / min;
+      out.open("../results/prof_glumin_kernel_workload.csv", std::ios::app);
+      std::cout << max << "," << min << "\n";
+      out << total << "," << max_min << ",";
+    }
+    if (prof_edgecheck) {
+      std::string file = "../results/prof_glumin_kernel_edgecheck_" + data_name + ".csv";
+      out.open(file);
+      CUDA_SAFE_CALL(cudaMemcpy(edgecheck.data(), d_edgecheck, sizeof(vidType) * nblocks * nthreads, cudaMemcpyDeviceToHost));
       for (int i = 0; i < nblocks * nthreads; i++) {
-        out << workload[i] << "\n";
+        out << edgecheck[i] << "\n";
       }
+      out.close();
+      // calculate max of edgecheck
+      int max_edgecheck = *std::max_element(edgecheck.begin(), edgecheck.end());
+      int total = std::accumulate(edgecheck.begin(), edgecheck.end(), 0);
+      std::cout << "max_edgecheck = " << max_edgecheck << "\n";
+      std::cout << "max memory = " << 1.0 * max_edgecheck * nblocks * nthreads * sizeof(vidType) / 1024 / 1024 / 1024 << " GB\n";
+      std::cout << "real memory = " << 1.0 * total * sizeof(vidType) / 1024 / 1024 / 1024 << " GB\n";
+    
+      AccType edgecheck_cnt;
+      CUDA_SAFE_CALL(cudaMemcpy(&edgecheck_cnt, d_edgecheck_cnt, sizeof(AccType), cudaMemcpyDeviceToHost));
+      std::cout << "edgecheck_cnt = " << edgecheck_cnt << "\n";
+
+      CUDA_SAFE_CALL(cudaMemcpy(edgecheck2.data(), d_edgecheck2, sizeof(vidType) * edgecheck_cnt, cudaMemcpyDeviceToHost));
+      out.open("../results/prof_glumin_kernel_edgecheck2_" + data_name + ".csv");
+      std::map<std::pair<int, int>, int> pair_counts;
+      for (int i = 0; i < edgecheck_cnt; i+=2) {
+        // out << edgecheck2[i] << "," << edgecheck2[i+1] << "\n";
+        pair_counts[{edgecheck2[i], edgecheck2[i + 1]}]++;
+      }
+      // 打印每对(pair)出现的次数
+      // for (const auto& pair : pair_counts) {
+      //   std::cout << "Pair {" << pair.first.first << ", " << pair.first.second << "}: " << pair.second << " times" << std::endl;
+      // }
+      int unique_pairs = pair_counts.size();
+      std::cout << "Total number of unique pairs: " << unique_pairs << std::endl;
+      // 统计总次数、最大次数和最小次数
+      int total_count = 0;
+      int max_count = std::numeric_limits<int>::min();
+      int min_count = std::numeric_limits<int>::max();
+      
+      for (const auto& pair : pair_counts) {
+          total_count += pair.second;
+          max_count = std::max(max_count, pair.second);
+          min_count = std::min(min_count, pair.second);
+      }
+      std::cout << "sum: " << total_count << ", max: " << max_count << ", min: " << min_count << "\n";
+      out.close();
     }
 
     CUDA_SAFE_CALL(cudaFree(d_counts));

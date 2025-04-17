@@ -5,7 +5,7 @@
 #include "../include/common.h"
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>
-#include <ranges> // C++20 ranges
+// #include <ranges> // C++20 ranges
 #include <algorithm> // std::set_difference
 
 __global__ void test_kernel(vidType* d_bucket_vlists_) {
@@ -928,7 +928,7 @@ struct XGMiner_BITMAP {
     __device__ __forceinline__ void full_bitmap_intersect(
                                                             GraphGPU& g, StorageMeta& meta, int bitmap_id,
                                                             int v1, int v2, int limit
-                                                            
+                                                            // vidType* workload
                                                         ) {
         vidType* result = meta.bitmap(bitmap_id);
         // int warp_lane   = threadIdx.x / WARP_SIZE;

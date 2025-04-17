@@ -51,6 +51,21 @@ __forceinline__ __device__ bool binary_search_test(T *list, T key, T size, vidTy
 }
 
 template <typename T = vidType>
+__forceinline__ __device__ bool binary_search_edgecheck(T *list, T key, T size, vidType* edgecheck) {
+  int l = 0;
+  int r = size-1;
+  while (r >= l) { 
+    int mid = l + (r - l) / 2; 
+    T value = list[mid];
+    edgecheck[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+    if (value == key) return true;
+    if (value < key) l = mid + 1;
+    else r = mid - 1;
+  }
+  return false;
+}
+
+template <typename T = vidType>
 __forceinline__ __device__ bool binary_search_enhanced(T* list, T key, T size) {
   int l = 0;
   int r = size-1;

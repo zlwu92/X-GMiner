@@ -270,6 +270,12 @@ __build_LUT_block_test(GraphGPU& g, StorageMeta& meta, VertexArrayView target, v
 }
 
 __device__ __forceinline__ void
+__build_LUT_block_edgecheck(GraphGPU& g, StorageMeta& meta, VertexArrayView target, 
+                            vidType* edgecheck, vidType* edgecheck2, AccType* edgecheck_cnt){
+  meta.lut.build_block_edgecheck(g, target.ptr(), target.size(), edgecheck, edgecheck2, edgecheck_cnt);
+}
+
+__device__ __forceinline__ void
 __build_LUT_global(GraphGPU& g, StorageMeta& meta, VertexArrayView target){
   meta.lut.build_global(g, target.ptr(), target.size());
 }
@@ -292,6 +298,7 @@ __build_index_from_vmap_test(GraphGPU& g, StorageMeta& meta, VertexMapView vmap,
   vidType* index_size_addr = meta.buffer_size_addr(slot_id); // shared_memory
   vmap.bitmap_._to_index_test(vmap.use_one, index, index_size_addr, workload);
 }
+
 
 __device__ __forceinline__ void 
 __build_vlist_from_vmap(GraphGPU& g, StorageMeta& meta, VertexMapView vmap, int slot_id) {

@@ -21,6 +21,8 @@ public:
         do_validation = opts.do_validation;
         algo = opts.algo;
         prof_workload = opts.prof_workload;
+        use_vert_para = opts.use_vert_para;
+        prof_edgecheck = opts.prof_edgecheck;
         total.resize(num_patterns, 0);
         total_time.resize(num_patterns, 0);
     }
@@ -128,6 +130,8 @@ private:
     std::vector<int> embedding;
     Input_FileFormat file_format = Input_FileFormat::BINARY;
     int prof_workload = 0;
+    int use_vert_para = 0;
+    int prof_edgecheck = 0;
 
     bool do_validation = true;
 

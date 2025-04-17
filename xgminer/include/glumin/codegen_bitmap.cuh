@@ -921,6 +921,24 @@ __device__ struct Bitmap2DView{
     }
   }
 
+  __device__ void build_block_edgecheck(GraphGPU& g, vidType* vlist, vidType size, 
+                                        vidType* edgecheck, vidType* edgecheck2, AccType* edgecheck_cnt) {
+    int thread_lane = threadIdx.x & (WARP_SIZE - 1);
+    int warp_lane = threadIdx.x / WARP_SIZE;
+    for (vidType i = warp_lane; i < size; i += WARPS_PER_BLOCK) {
+      auto search = g.N(vlist[i]);
+      vidType search_size = g.getOutDegree(vlist[i]);
+      for (int j = thread_lane; j < size; j += WARP_SIZE) {
+        bool flag = (j!=i) && binary_search_edgecheck(search, vlist[j], search_size, edgecheck);
+        // edgecheck for vlist[i] and vlist[j]
+        AccType count = atomicAdd(&edgecheck_cnt[0], (unsigned long)1);
+        // edgecheck2[count] = vlist[i];
+        // edgecheck2[2 * count + 1] = vlist[j];
+        warp_set(i, j, flag);
+      }
+    }
+  }
+
   __device__ void warp_set_test(uint32_t x, uint32_t y, bool flag, vidType* workload) {
     uint32_t thread_lane = threadIdx.x & (WARP_SIZE-1);
     uint32_t element = y / W; // should be the same value in this warp

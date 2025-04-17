@@ -249,7 +249,8 @@ P2_GM_LUT_block_ideal_test(GraphGPU g,
                             // vidType* d_bitmap_all,
                             XGMiner_BITMAP<> bitmaps,
                             vidType max_deg,
-                            AccType *counter) {
+                            AccType *counter,
+                            vidType* workload) {
 
     // __shared__ vidType list_size[WARPS_PER_BLOCK * 3];
     // __shared__ vidType bitmap_size[WARPS_PER_BLOCK * 1];
@@ -296,7 +297,7 @@ P2_GM_LUT_block_ideal_test(GraphGPU g,
                     // && v1_idx >= 7
                 ) {
                     bitmaps.full_bitmap_intersect(g, meta, 0, v0, v1, -1);
-
+                    // workload[thread_id] += 
                     auto index_result = bitmaps.get_index_from_bitmap(
                                                             g, meta, 0, 0, -1
                                                         );
