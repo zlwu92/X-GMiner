@@ -30,6 +30,9 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "GM_LUT_kernels/clique7_warp_edge_subgraph.cuh"
 
 #include "GM_LUT_kernels/P2_profile.cuh"
+#include "GM_LUT_kernels/P3_profile.cuh"
+#include "GM_LUT_kernels/P1_profile.cuh"
+#include "GM_LUT_kernels/P6_profile.cuh"
 #include "GM_kernels/P2_profile.cuh"
 
 #include <thrust/device_vector.h>
@@ -366,7 +369,8 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       CUDA_SAFE_CALL(cudaDeviceSynchronize());
     }
 
-    std::vector<vidType> workload(nblocks * nthreads);
+    std::vector<vidType> workload(nblocks * nthreads, 0);
+    std::cout << "workload size:" << nblocks * nthreads << ", " << workload.size() << ", " << workload.capacity() << "\n";
     vidType *d_workload;
     if (prof_workload) {
       CUDA_SAFE_CALL(cudaMalloc((void **)&d_workload, nblocks * nthreads * sizeof(vidType)));
@@ -397,7 +401,7 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       d_edgecheck = nullptr;
     }
 
-
+    std::cout << __LINE__ << "length = " << nblocks * nthreads << "\n";
     float time[3];
     Timer t;
     t.Start();
@@ -416,23 +420,31 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
         if (WARP_LIMIT != 0) P1_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         if (vid_block_size) {
           // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-          t0.start();
-          P1_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
-          t0.end_with_sync();
-          time[0] = t0.elapsed() / 1000;
+          // t0.start();
+          if (prof_workload) {
+            PRINT_GREEN("P1_GM_LUT_block_workload_test");
+            P1_GM_LUT_block_workload_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload); 
+          }
+          else {
+            P1_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+          }
+          // t0.end_with_sync();
+          // time[0] = t0.elapsed() / 1000;
         }
         if (vid_global_size){
           lut_manager.recreate(1, md, md, true);
           nblocks = BLOCK_GROUP;
-          t0.start();
+          // t0.start();
           for (vidType i = 0; i < vid_global_size; i++) {
             vidType task_id = vid_global[i];
             lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
             GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
             P1_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
           }
-          t0.end_with_sync();
-          time[2] = t0.elapsed() / 1000;
+          // t0.end_with_sync();
+          // time[2] = t0.elapsed() / 1000;
         }
       }
       else {
@@ -447,6 +459,7 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
           P2_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         }
         if (vid_block_size) {
+          std::cout << __LINE__ << "length = " << nblocks * nthreads << "\n";
           std::cout << __LINE__ << " vid_block_size: " << vid_block_size << ", nthreads: " << nthreads << "\n";
           // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
           // t0.start();
@@ -513,23 +526,31 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
         if (WARP_LIMIT != 0) P3_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         if (vid_block_size) {
           // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-          t0.start();
-          P3_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
-          t0.end_with_sync();
-          time[0] = t0.elapsed() / 1000;
+          // t0.start();
+          if (prof_workload) {
+            PRINT_GREEN("P3_GM_LUT_block_workload_test");
+            P3_GM_LUT_block_workload_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload);
+          }
+          else{
+            P3_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                                  frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+          }
+          // t0.end_with_sync();
+          // time[0] = t0.elapsed() / 1000;
         }
         if (vid_global_size){
           lut_manager.recreate(1, md, md, true);
           nblocks = BLOCK_GROUP;
-          t0.start();
+          // t0.start();
           for (vidType i = 0; i < vid_global_size; i++) {
             vidType task_id = vid_global[i];
             lut_manager.update_para(1, g.get_degree(task_id), g.get_degree(task_id), true);
             GM_build_LUT<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
             P3_GM_LUT_global<<<nblocks, nthreads>>>(0, nv, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager, task_id);
           }
-          t0.end_with_sync();
-          time[2] = t0.elapsed() / 1000;
+          // t0.end_with_sync();
+          // time[2] = t0.elapsed() / 1000;
         }
       }
       else {
@@ -541,8 +562,16 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       if (switch_lut){
         if (WARP_LIMIT != 0) P6_GM_LUT_warp<<<nblocks, nthreads>>>(0, vid_warp_size, d_vid_warp, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
         if (vid_block_size) {
-          lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
-          P6_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+          // lut_manager.recreate(nblocks, BLOCK_LIMIT, BLOCK_LIMIT, true);
+          if (prof_workload) {
+            PRINT_GREEN("P6_GM_LUT_block_workload_test");
+            P6_GM_LUT_block_workload_test<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                            frontier_list, frontier_bitmap, md, d_counts, lut_manager, d_workload);
+          }
+          else {
+            P6_GM_LUT_block<<<nblocks, nthreads>>>(0, vid_block_size, d_vid_block, gg, 
+                                            frontier_list, frontier_bitmap, md, d_counts, lut_manager);
+            }
         }
         if (vid_global_size){
           lut_manager.recreate(1, md, md, true);
@@ -947,7 +976,7 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
     // }
     // out << "\n";
     out.close();
-
+    std::cout << __LINE__ << "length = " << nblocks * nthreads << "\n";
   
     out.open("../results/prof_glumin_LUT_kernel_time_percentage.csv", std::ios::app);
     cudaDeviceProp prop;
@@ -982,27 +1011,30 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       total_time[0] += elapsedTime / 1000.0;
     }
     out.close();
-
+    
     if (prof_workload) {
-      // std::string file = "../results/prof_glumin_kernel_workload_" + data_name + ".csv";
-      // out.open(file);
-      std::cout << "length = " << nblocks * nthreads << "\n";
-      CUDA_SAFE_CALL(cudaMemcpy(workload.data(), d_workload, sizeof(vidType) * nblocks * nthreads, cudaMemcpyDeviceToHost));
-      // for (int i = 0; i < nblocks * nthreads; i++) {
-      //   out << workload[i] << "\n";
-      // }
+      std::string file = "../results/prof_glumin_kernel_workload_" + data_name + ".csv";
+      out.open(file);
+      std::cout << __LINE__ << "length = " << workload.size() << "\n";
+      CUDA_SAFE_CALL(cudaMemcpy(workload.data(), d_workload, sizeof(vidType) * workload.size(), cudaMemcpyDeviceToHost));
+      for (int i = 0; i < workload.size(); i++) {
+        out << workload[i] << "\n";
+        // if (workload[i] == 0) printf("zero workload!\n");
+      }
+      out.close();
       unsigned long total = std::accumulate(workload.begin(), workload.end(), 0LL);
-      int max = *std::max_element(workload.begin(), workload.end());
-      int min = *std::min_element(workload.begin(), workload.end());
-      float max_min = (float) max / min;
+      auto max = std::max_element(workload.begin(), workload.end());
+      auto min = std::min_element(workload.begin(), workload.end());
+      std::cout << workload.end() - workload.begin() << ", " << workload.size() << "\n";
+      float max_min = (float) *max / *min;
       out.open("../results/prof_glumin_kernel_workload.csv", std::ios::app);
-      std::cout << max << "," << min << "\n";
-      out << total << "," << max_min << ",";
+      std::cout << total << "," << *max << "," << *min << "," << (float) total / workload.size() << "\n";
+      out << total << "," << max_min << "," << (float) total / workload.size();
     }
     if (prof_edgecheck) {
       std::string file = "../results/prof_glumin_kernel_edgecheck_" + data_name + ".csv";
       out.open(file);
-      CUDA_SAFE_CALL(cudaMemcpy(edgecheck.data(), d_edgecheck, sizeof(vidType) * nblocks * nthreads, cudaMemcpyDeviceToHost));
+      CUDA_SAFE_CALL(cudaMemcpy(edgecheck.data(), d_edgecheck, sizeof(vidType) * edgecheck.size(), cudaMemcpyDeviceToHost));
       for (int i = 0; i < nblocks * nthreads; i++) {
         out << edgecheck[i] << "\n";
       }
@@ -1011,7 +1043,7 @@ void GLUMIN::PatternSolver_LUT_on_G2Miner(Graph_V2& g) {
       int max_edgecheck = *std::max_element(edgecheck.begin(), edgecheck.end());
       int total = std::accumulate(edgecheck.begin(), edgecheck.end(), 0);
       std::cout << "max_edgecheck = " << max_edgecheck << "\n";
-      std::cout << "max memory = " << 1.0 * max_edgecheck * nblocks * nthreads * sizeof(vidType) / 1024 / 1024 / 1024 << " GB\n";
+      std::cout << "max memory = " << 1.0 * max_edgecheck * edgecheck.size() * sizeof(vidType) / 1024 / 1024 / 1024 << " GB\n";
       std::cout << "real memory = " << 1.0 * total * sizeof(vidType) / 1024 / 1024 / 1024 << " GB\n";
     
       AccType edgecheck_cnt;

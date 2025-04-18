@@ -297,9 +297,9 @@ P2_GM_LUT_block_ideal_test(GraphGPU g,
                     // && v1_idx >= 7
                 ) {
                     bitmaps.full_bitmap_intersect(g, meta, 0, v0, v1, -1);
-                    // workload[thread_id] += 
+                    workload[thread_id] += (g.V() / BITMAP_WIDTH + 1);
                     auto index_result = bitmaps.get_index_from_bitmap(
-                                                            g, meta, 0, 0, -1
+                                                            g, meta, 0, 0, -1, workload
                                                         );
 
                     // if (thread_lane == 0) {
@@ -312,6 +312,7 @@ P2_GM_LUT_block_ideal_test(GraphGPU g,
                     for (vidType v2_idx = thread_lane; v2_idx < index_result.size(); v2_idx += WARP_SIZE) {
                         auto v2 = index_result[v2_idx];
                         count += bitmaps.full_bitmap_difference_count_thread(g, meta, 0, 0, v2, v2);
+                        workload[thread_id] += (v2 / BITMAP_WIDTH + 1);
                     }
                 }
             // }
@@ -320,6 +321,6 @@ P2_GM_LUT_block_ideal_test(GraphGPU g,
         }
         __syncthreads();
     }
-
+    workload[thread_id] += 1;
     atomicAdd(&counter[0], count);
 }

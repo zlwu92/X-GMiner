@@ -216,6 +216,14 @@ __get_vmap_from_lut_vid_limit(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid
   return vmap;
 }
 
+__device__ __forceinline__ VertexMapView
+__get_vmap_from_lut_vid_limit_test(GraphGPU& g, StorageMeta& meta, vidType vidx_rowid, bool connected, int upper_bound, vidType* workload) {
+  auto lut = meta.lut;
+  auto vmap = VertexMapView(VertexArrayView(lut.vlist_, lut.size_), lut.row_limit_workload(vidx_rowid, upper_bound, workload));
+  if(!connected) vmap.use_zero();
+  return vmap;
+}
+
 // optional bitmapa and optinalindex
 __device__ __forceinline__ VertexMapView
 __get_vmap_from_heap(GraphGPU& g, StorageMeta& meta, int bitmap_id, int slot_id) {

@@ -168,6 +168,26 @@ __device__ __host__ struct LUT{
     return ret;
   }
 
+  __device__ __host__ Bitmap1DView<T,W> row_limit_workload(int x, int upper_bound, vidType* workload) {
+    Bitmap1DView<T, W> ret;
+    int s = 0;
+    int len = size_;
+    int key = upper_bound;
+    while (len > 0) { 
+      int half = len >> 1;
+      int mid = s + half;
+      workload[threadIdx.x + blockIdx.x * blockDim.x] += 1;
+      if (vlist_[mid] < key) {
+        s = mid + 1;
+        len = len - half - 1;
+      } else {
+        len = half;
+      }
+    }
+    ret.init(bitmap_.row(x), s);
+    return ret;
+  }
+
   __device__ __host__ Bitmap1DView<T,W> bitmap(T* bitmap1D) {
     Bitmap1DView<T, W> ret;
     ret.init(bitmap1D, size_);

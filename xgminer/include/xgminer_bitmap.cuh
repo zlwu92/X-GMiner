@@ -975,7 +975,7 @@ struct XGMiner_BITMAP {
     __device__ __forceinline__ VertexArrayView get_index_from_bitmap(
                                                             GraphGPU& g, StorageMeta& meta, 
                                                             int bitmap_id, int slot_id,
-                                                            int limit
+                                                            int limit, vidType* workload
                                                         ) {
         int thread_lane = threadIdx.x & (WARP_SIZE-1);
         int warp_lane   = threadIdx.x / WARP_SIZE;
@@ -998,6 +998,7 @@ struct XGMiner_BITMAP {
             auto idx = __popc(mask << (WARP_SIZE - thread_lane - 1));
             if (is_one) index[count[warp_lane] + idx - 1] = key;
             if (thread_lane == 0)   count[warp_lane] += __popc(mask);
+            workload[blockIdx.x * blockDim.x + threadIdx.x] += 1;
         }
 
         if(thread_lane < remain) {
@@ -1010,6 +1011,7 @@ struct XGMiner_BITMAP {
             // printf("thread_lane:%d, is_one:%d\n", thread_lane, is_one);
             if (is_one) index[count[warp_lane] + idx - 1] = key;
             if (thread_lane == 0)   count[warp_lane] += __popc(mask);
+            workload[blockIdx.x * blockDim.x + threadIdx.x] += 1;
         }
         __syncwarp();
 

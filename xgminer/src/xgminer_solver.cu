@@ -180,6 +180,18 @@ void XGMiner::motif_solver(Graph_V2& g) {
     }
     if (algo == "ideal_bitmap_test") {
         std::cout << "P" << k << "[ideal_bitmap_test] = " << gputimer.elapsed() / 1000 << " s\n";
+
+        std::vector<vidType> workload(nblocks * nthreads, 0);
+        CUDA_SAFE_CALL(cudaMemcpy(workload.data(), d_workload, sizeof(vidType) * nblocks * nthreads, cudaMemcpyDeviceToHost));
+        unsigned long total = std::accumulate(workload.begin(), workload.end(), 0LL);
+        std::cout << "total workload = " << total << "\n";
+        int max = *std::max_element(workload.begin(), workload.end());
+        int min = *std::min_element(workload.begin(), workload.end());
+        float max_min = (float) max / min;
+        std::ofstream out;
+        out.open("../results/prof_glumin_kernel_workload.csv", std::ios::app);
+        std::cout << max << "," << min << "\n";
+        out << total << "," << max_min << ",";
     }
     CUDA_SAFE_CALL(cudaFree(d_counts));
 #endif
