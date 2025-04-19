@@ -4,7 +4,7 @@
 #include "pattern.hh"
 
 void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int use_lue=1);
-void CliqueSolver(Graph &g, int k, uint64_t &total, int, int);
+void CliqueSolver(Graph &g, int k, uint64_t &total, int, int, int use_lut=1);
 
 int main(int argc, char *argv[]) {
   if (argc < 3) {
@@ -35,11 +35,14 @@ int main(int argc, char *argv[]) {
     int choose = 0;
     if (argc > 3) select_device = atoi(argv[3]);
     if (argc > 4) n_devices = atoi(argv[4]);
-    if (argc > 5) chunk_size = atoi(argv[5]);
+    // if (argc > 5) chunk_size = atoi(argv[5]);
     g.print_meta_data();
   
+    int use_lut = 1;
+    if (argc > 5) use_lut = atoi(argv[5]);
+
     uint64_t total = 0;
-    CliqueSolver(g, k_num, total, select_device, n_devices);
+    CliqueSolver(g, k_num, total, select_device, n_devices, use_lut);
     std::cout << "Pattern P" << k << " count: " << total << "\n";
   }
   else {

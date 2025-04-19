@@ -246,7 +246,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int 
   CUDA_SAFE_CALL(cudaFree(d_counts));
 }
 
-void CliqueSolver(Graph &g, int k, uint64_t &total, int, int) {
+void CliqueSolver(Graph &g, int k, uint64_t &total, int, int, int use_lut) {
   assert(k > 3);
   size_t memsize = print_device_info(0);
   vidType nv = g.num_vertices();

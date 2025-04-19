@@ -21,6 +21,11 @@ typedef cub::BlockReduce<AccType, BLOCK_SIZE> BlockReduce;
 #include "clique6_warp_edge_subgraph.cuh"
 #include "clique7_warp_edge_subgraph.cuh"
 
+#include "clique4_warp_edge.cuh"
+#include "clique5_warp_edge.cuh"
+#include "clique6_warp_edge.cuh"
+#include "clique7_warp_edge.cuh"
+
 #include "pattern_test_LUT_kernels.cuh"
 
 __global__ void clear(AccType *accumulators) {
@@ -777,7 +782,7 @@ void PatternSolver(Graph &g, int k, std::vector<uint64_t> &accum, int, int, int 
   CUDA_SAFE_CALL(cudaFree(d_counts));
 }
 
-void CliqueSolver(Graph &g, int k, uint64_t &total, int, int) {
+void CliqueSolver(Graph &g, int k, uint64_t &total, int, int, int use_lut) {
   assert(k > 3);
   size_t memsize = print_device_info(0);
   vidType nv = g.num_vertices();
@@ -822,31 +827,83 @@ void CliqueSolver(Graph &g, int k, uint64_t &total, int, int) {
   CUDA_SAFE_CALL(cudaMemcpy(d_total, &h_total, sizeof(AccType), cudaMemcpyHostToDevice));
   CUDA_SAFE_CALL(cudaDeviceSynchronize());
 
+  vidType switch_lut = use_lut;
   BinaryEncode<> sub_graph(nblocks * nwarps, md, md);
   printf("Sum Warp: %d!!!\n", nblocks * nwarps);
 
+  float time[3];
   Timer t;
   t.Start();
-  if (k == 4) {
-    std::cout << "P4 G2Miner + LUT\n";
-    clique4_warp_vertex_subgraph<<<nblocks, nthreads>>>(nv, gg, frontier_list, md, d_total, sub_graph);
-  } else if (k == 5) {
-    std::cout << "P5 G2Miner + LUT\n";
-    clique5_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
-  } else if (k == 6) {
-    std::cout << "P23 G2Miner + LUT\n";
-    clique6_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
-  } else if (k == 7) {
-    std::cout << "P24 G2Miner + LUT\n";
-    clique7_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
+  cudaEvent_t e1, e2;
+  GPUTimer t0;
+  float elapsedTime;
+  cudaEventCreate(&e1);
+  cudaEventCreate(&e2);
+  cudaEventRecord(e1, 0);
+  if (use_lut) {
+    if (k == 4) {
+      std::cout << "P4 G2Miner + LUT\n";
+      clique4_warp_vertex_subgraph<<<nblocks, nthreads>>>(nv, gg, frontier_list, md, d_total, sub_graph);
+    } else if (k == 5) {
+      std::cout << "P5 G2Miner + LUT\n";
+      clique5_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
+    } else if (k == 6) {
+      std::cout << "P23 G2Miner + LUT\n";
+      clique6_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
+    } else if (k == 7) {
+      std::cout << "P24 G2Miner + LUT\n";
+      clique7_warp_edge_subgraph<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total, sub_graph);
+    } else {
+      std::cout << "Not supported right now\n";
+    }
   } else {
-    std::cout << "Not supported right now\n";
+    if (k == 4) {
+      std::cout << "P4 Run G2Miner\n";
+      clique4_warp_edge<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total);
+    } else if (k == 5) {
+      std::cout << "P5 Run G2Miner\n";
+      clique5_warp_edge<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total);
+    } else if (k == 6) {
+      std::cout << "P23 Run G2Miner\n";
+      clique6_warp_edge<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total);
+    } else if (k == 7) {
+      std::cout << "P24 Run G2Miner\n";
+      clique7_warp_edge<<<nblocks, nthreads>>>(ne, gg, frontier_list, md, d_total);
+    } else {
+      std::cout << "Not supported right now\n";
+    }
   }
-  CUDA_SAFE_CALL(cudaDeviceSynchronize());
+  // CUDA_SAFE_CALL(cudaDeviceSynchronize());
+  cudaEventRecord(e2, 0);
+  cudaEventSynchronize(e2);
+  cudaEventElapsedTime(&elapsedTime, e1, e2);
   t.Stop();
 
-  std::cout << "runtime [G2Miner + LUT] = " << t.Seconds() << " sec\n";
   CUDA_SAFE_CALL(cudaMemcpy(&h_total, d_total, sizeof(AccType), cudaMemcpyDeviceToHost));
   total = h_total;
+
+  std::ofstream out;
+  out.open("../results/prof_glumin_LUT_kernel_time_percentage.csv", std::ios::app);
+  cudaDeviceProp prop;
+  CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, 0));
+  std::string prop_name(prop.name);
+  if (switch_lut) {
+    if (prop_name.find("3090") != std::string::npos) {
+      out << "P" << k << ",3090,";
+      out << time[0] << "," << time[2] << "," << elapsedTime / 1000.0 << ",";
+    } else if (prop_name.find("6000") != std::string::npos) {
+      out << "P" << k << ",ada6000,";
+      out << time[0] << "," << time[2] << "," << elapsedTime / 1000.0 << ",";
+    }
+  } else {
+    if (prop_name.find("3090") != std::string::npos) {
+      out << elapsedTime / 1000.0 << "\n";
+    } else if (prop_name.find("6000") != std::string::npos) {
+      out << elapsedTime / 1000.0 << "\n";
+    }
+  }
+
+  if (switch_lut) std::cout << "runtime [G2Miner + LUT] = " << t.Seconds() << " sec\n";
+  else std::cout << "runtime [G2Miner] = " << elapsedTime / 1000.0 << " sec\n";
   CUDA_SAFE_CALL(cudaFree(d_total));
 }

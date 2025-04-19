@@ -17,7 +17,7 @@ clique4_warp_edge(eidType ne, GraphGPU g, vidType *vlists, vidType max_deg, AccT
   for (eidType eid = warp_id; eid < ne; eid += num_warps) 
   {
   #if 1
-    if (eid == 7) {
+    // if (eid == 7) {
     auto v0 = g.get_src(eid);
     auto v1 = g.get_dst(eid);
     // vidType v0 = g.d_src_list[eid];
@@ -37,12 +37,12 @@ clique4_warp_edge(eidType ne, GraphGPU g, vidType *vlists, vidType max_deg, AccT
       vidType u = vlist[i];
       vidType u_size = g.getOutDegree(u);
       vidType v_size = list_size[warp_lane];
-      if (eid == 0 && threadIdx.x == 0)
-      printf("u: %d u_size: %d v_size: %d\n", u, u_size, v_size);
+      // if (eid == 0 && threadIdx.x == 0)
+      // printf("u: %d u_size: %d v_size: %d\n", u, u_size, v_size);
       counter += intersect_num(vlist, v_size, g.N(u), u_size);
     }
   #endif
-    }
+    // }
   }
   AccType block_num = BlockReduce(temp_storage).Sum(counter);
   if (threadIdx.x == 0) atomicAdd(total, block_num);

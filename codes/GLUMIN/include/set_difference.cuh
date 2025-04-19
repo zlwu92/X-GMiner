@@ -106,6 +106,7 @@ __forceinline__ __device__ T difference_num_bs_cache(T* a, T size_a, T* b, T siz
 template <typename T = vidType>
 __forceinline__ __device__ T difference_num(T* a, T size_a, T* b, T size_b, T upper_bound) {
   return difference_num_bs_cache(a, size_a, b, size_b, upper_bound);
+  // return difference_num_bs(a, size_a, b, size_b, upper_bound);
 }
 
 template <typename T = vidType>
